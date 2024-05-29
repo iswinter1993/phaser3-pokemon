@@ -1,6 +1,6 @@
 类pokemon游戏
 ## Battle System:
-  - [ ] load game assets
+  - [x] load game assets
   - [ ] create battle scene layout
   - [ ] create dialog menu 创建对话框菜单
   - [ ] create option menu
