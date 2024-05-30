@@ -7,7 +7,7 @@ export class Preloader extends Scene {
             key:'Preloader',
             // active:true
         })
-        console.log('Preloader:')
+        console.log('Preloader load')
     }
     //生命周期init，preload，create，update
     init(){
@@ -47,8 +47,9 @@ export class Preloader extends Scene {
 
     create(){
         console.log('Preloader >>> create')
-        console.log(this.textures.get(BATTLE_BACKGROUND_ASSET_KEYS.FOREST))
-        this.add.image(0,0,BATTLE_BACKGROUND_ASSET_KEYS.FOREST).setOrigin(0,0)
+        // console.log(this.textures.get(BATTLE_BACKGROUND_ASSET_KEYS.FOREST))
+        // this.add.image(0,0,BATTLE_BACKGROUND_ASSET_KEYS.FOREST).setOrigin(0,0)
+        this.scene.start('BattleScene')
     }
 
     update(){
