@@ -1,11 +1,13 @@
 import { Scene } from "phaser";
 import { BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
+import { BattleMenu } from "../battle/ui/menu/battle-menu";
+
 
 export class BattleScene extends Scene {
-
+    _battleMenu:BattleMenu;
     constructor(){
         super('BattleScene')
-        console.log('BattleScene load')
+        console.log('BattleScene load',this)
     }
 
     init(){
@@ -19,10 +21,10 @@ export class BattleScene extends Scene {
     create(){
         // create main background
         this.add.image(0,0,BATTLE_BACKGROUND_ASSET_KEYS.FOREST).setOrigin(0)
-        // create player and enemy monster
+        // create player and enemy monster 创建怪兽
         this.add.image(768,144,MONSTER_ASSET_KEYS.CARNODUSK,0) //没有动画，最后参数设置为0
         this.add.image(256,316,MONSTER_ASSET_KEYS.IGUANIGNITE,0).setFlipX(true)
-        //render player health bar
+        //render player health bar 玩家健康条
         const playerMonsterName = this.add.text(30,20,MONSTER_ASSET_KEYS.IGUANIGNITE,{
             color:'#7E3D3F',
             fontSize:'32px'
@@ -45,7 +47,7 @@ export class BattleScene extends Scene {
                 fontSize:'16px',
             }).setOrigin(1,0),
         ])
-        //render enemy health bar
+        //render enemy health bar 敌人健康条
         const enemyMonsterName = this.add.text(30,20,MONSTER_ASSET_KEYS.CARNODUSK,{
             color:'#7E3D3F',
             fontSize:'32px'
@@ -64,6 +66,11 @@ export class BattleScene extends Scene {
                 fontStyle:'italic'
             }),
         ])
+
+        //创建信息框
+      this._battleMenu = new BattleMenu(this)
+        
+
     }
     createHealthBar(x:number,y:number){
         const scaleY = 0.7
