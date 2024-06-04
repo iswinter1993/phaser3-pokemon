@@ -1,10 +1,12 @@
-import { Scene } from "phaser";
+import { GameObjects, Input, Scene, Types } from "phaser";
 import { BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
 import { BattleMenu } from "../battle/ui/menu/battle-menu";
+import { DIRECTION, DirectionType } from "../common/direction";
 
 
 export class BattleScene extends Scene {
     _battleMenu:BattleMenu;
+    _cursorkeys: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -15,8 +17,6 @@ export class BattleScene extends Scene {
     }
 
     preload(){}
-
-    update(time: number, delta: number): void {}
 
     create(){
         // create main background
@@ -68,10 +68,45 @@ export class BattleScene extends Scene {
         ])
 
         //创建信息框
-      this._battleMenu = new BattleMenu(this)
-        
-
+        this._battleMenu = new BattleMenu(this)
+        this._battleMenu.showMainBattleMenu()
+        //创建键盘 上下左右,空格 shift等热键 事件
+        this._cursorkeys = this.input.keyboard?.createCursorKeys();
     }
+    update(time: number, delta: number): void {
+        //空格键是否按下
+        const wasSpaceKeyPressed = Phaser.Input.Keyboard.JustDown(this._cursorkeys?.space)
+        // console.log(wasSpaceKeyPressed)
+        if(wasSpaceKeyPressed){
+            this._battleMenu.handlePlayerInput('OK')
+            return
+        }
+        const wasShiftKeyPressed = Phaser.Input.Keyboard.JustDown(this._cursorkeys?.shift)
+        if(wasShiftKeyPressed){
+            this._battleMenu.handlePlayerInput('CANCEL')
+            return
+        }
+
+        let selectedDirection:DirectionType = DIRECTION.NONE
+        if(this._cursorkeys?.left.isDown){
+            selectedDirection = DIRECTION.LEFT
+        } else if(this._cursorkeys?.right.isDown){
+            selectedDirection = DIRECTION.RIGHT
+        } else if(this._cursorkeys?.up.isDown){
+            selectedDirection = DIRECTION.UP
+        } else if(this._cursorkeys?.down.isDown){
+            selectedDirection = DIRECTION.DOWN
+        }
+        if(selectedDirection !== DIRECTION.NONE){
+            this._battleMenu.handlePlayerInput(selectedDirection)
+        }
+    }
+    /**
+     * 
+     * @param x X轴的坐标位置
+     * @param y Y轴的坐标位置
+     * @returns {GameObjects.Container}
+     */
     createHealthBar(x:number,y:number){
         const scaleY = 0.7
         const left_cap = this.add.image(x,y,HEALTH_BAR_ASSET_KEYS.LEFT_CAP).setOrigin(0,0.5).setScale(1,scaleY)

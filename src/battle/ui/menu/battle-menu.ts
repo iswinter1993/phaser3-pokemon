@@ -1,4 +1,6 @@
-import { GameObjects } from "phaser";
+import { GameObjects, Scene } from "phaser";
+import { MONSTER_ASSET_KEYS } from "../../../assets/asset-keys";
+import { DirectionType } from "../../../common/direction";
 
 const BATTLE_MENU_OPTION = Object.freeze({
     FIGHT:'FIGHT', //战斗
@@ -14,33 +16,62 @@ const battleUiTextStyle = {
 
 
 export class BattleMenu {
-    _scene;
+    _scene:Scene;
     _mainBattleMenuPhaserContainerGameObject: GameObjects.Container;
     _moveSelectionSubBattleMenuPhaserContainerGameObject: GameObjects.Container;
     _battleTextGameObjectLine1:GameObjects.Text;
     _battleTextGameObjectLine2:GameObjects.Text;
-    constructor(scene: any){
+    constructor(scene: Scene){
         this._scene = scene
         this._init()
     }
 
     showMainBattleMenu(){
+        this._battleTextGameObjectLine1.setText('what should')
         this._mainBattleMenuPhaserContainerGameObject.setAlpha(1)
+        this._battleTextGameObjectLine1.setAlpha(1)
+        this._battleTextGameObjectLine2.setAlpha(1)
     }
     hideMainBattleMenu(){
         this._mainBattleMenuPhaserContainerGameObject.setAlpha(0)
+        this._battleTextGameObjectLine1.setAlpha(0)
+        this._battleTextGameObjectLine2.setAlpha(0)
+    }
+    showMonsterAttackSubMenu(){
+        this._moveSelectionSubBattleMenuPhaserContainerGameObject.setAlpha(1)
+    }
+    hideMonsterAttackSubMenu(){
+        this._moveSelectionSubBattleMenuPhaserContainerGameObject.setAlpha(0)
+    }
+
+    handlePlayerInput(input:'OK'|'CANCEL'| DirectionType){
+        console.log(input)
+        if(input === 'CANCEL'){
+            this.hideMonsterAttackSubMenu()
+            this.showMainBattleMenu()
+            return
+        }
+        if(input === 'OK'){
+            this.hideMainBattleMenu()
+            this.showMonsterAttackSubMenu()
+        }
     }
 
     _init(){
         console.log('init BattleMenu')
+        this._battleTextGameObjectLine1 = this._scene.add.text(30,26,'what should',battleUiTextStyle)
+        this._battleTextGameObjectLine2 = this._scene.add.text(30,64,`${MONSTER_ASSET_KEYS.IGUANIGNITE} do next?`,battleUiTextStyle)
         this._scene.add.container(0,this._scene.scale.height-132,[
             this._createMainInfoPane(),
             this._createMainBattleMenu(),
-            this._createMonsterAttackSubMenu()
+            this._createMonsterAttackSubMenu(),
+            this._battleTextGameObjectLine1,
+            this._battleTextGameObjectLine2
         ])
     }
 
     _createMainBattleMenu(){
+        
         this._mainBattleMenuPhaserContainerGameObject = this._scene.add.container(520,4,[
             this._createMainSubInfoPane(),
             this._scene.add.text(55,22,BATTLE_MENU_OPTION.FIGHT,battleUiTextStyle),
@@ -48,6 +79,7 @@ export class BattleMenu {
             this._scene.add.text(55,70,BATTLE_MENU_OPTION.ITEM,battleUiTextStyle),
             this._scene.add.text(240,70,BATTLE_MENU_OPTION.FLEE,battleUiTextStyle),
         ])
+        this.hideMainBattleMenu()
         return this._mainBattleMenuPhaserContainerGameObject
     }
 
@@ -58,6 +90,7 @@ export class BattleMenu {
             this._scene.add.text(55,70,'-',battleUiTextStyle),
             this._scene.add.text(240,70,'-',battleUiTextStyle),
         ])
+        this.hideMonsterAttackSubMenu()
         return this._moveSelectionSubBattleMenuPhaserContainerGameObject
     }
 
