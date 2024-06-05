@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
+import { BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS, UI_ASSET_KEYS } from "../assets/asset-keys";
 export class Preloader extends Scene {
     constructor () {
         //通过构造函数创建场景，super函数中字符串为场景的key
@@ -43,6 +43,10 @@ export class Preloader extends Scene {
          */
         this.load.image(MONSTER_ASSET_KEYS.CARNODUSK,`${monsterTamerAssetPath}/monsters/carnodusk.png`)
         this.load.image(MONSTER_ASSET_KEYS.IGUANIGNITE,`${monsterTamerAssetPath}/monsters/iguanignite.png`)
+        /**
+         * 光标
+         */
+        this.load.image(UI_ASSET_KEYS.CURSOR,`${monsterTamerAssetPath}/ui/cursor.png`)
     }
 
     create(){
