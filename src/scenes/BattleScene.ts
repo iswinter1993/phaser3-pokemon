@@ -79,6 +79,14 @@ export class BattleScene extends Scene {
         // console.log(wasSpaceKeyPressed)
         if(wasSpaceKeyPressed){
             this._battleMenu.handlePlayerInput('OK')
+            //判断玩家选择的招式，并更新文本
+            if(this._battleMenu.selectedAttack === undefined){
+                return
+            }
+            console.log('选择使用招式：',this._battleMenu.selectedAttack)
+            this._battleMenu.hideMonsterAttackSubMenu()
+            this._battleMenu.updateInfoPanelMessageAndWaitForInput([`Your monster attacks enemy`],this._battleMenu.showMainBattleMenu)
+
             return
         }
         const wasShiftKeyPressed = Phaser.Input.Keyboard.JustDown(this._cursorkeys?.shift)
@@ -86,7 +94,7 @@ export class BattleScene extends Scene {
             this._battleMenu.handlePlayerInput('CANCEL')
             return
         }
-
+        
         let selectedDirection:DirectionType = DIRECTION.NONE
         if(this._cursorkeys?.left.isDown){
             selectedDirection = DIRECTION.LEFT

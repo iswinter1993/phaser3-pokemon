@@ -40,15 +40,21 @@ export class BattleMenu {
      */
     _queuedInfoPanelMessage:string[];
     /**
-     * @_queuedInfoPanelCallback 消息队列的回调函数
+     * @_queuedInfoPanelCallback 消息队列为空时的回调函数
      */
     _queuedInfoPanelCallback:(()=>void) | undefined;
     /**
-     * @_waitingForPlayerInput 等待玩家是否输入
+     * @_waitingForPlayerInput 是否等待玩家输入, 消息队列不为空则设施为true
      */
     _waitingForPlayerInput:Boolean;
+    /**
+     * @_selectedAttackIndex 选择招式的索引
+     */
+     _selectedAttackIndex:number | undefined;
+
     constructor(scene: Scene){
         this._scene = scene
+        this._selectedAttackIndex = undefined
         this._queuedInfoPanelCallback = undefined
         this._queuedInfoPanelMessage = []
         this._waitingForPlayerInput = false
@@ -57,6 +63,15 @@ export class BattleMenu {
         this._selectedAttackMenuOption = ATTACK_MOVE_OPTION.MOVE_1
         this._init()
     }
+    /**
+     * 是否在招式选择菜单，选择了招式。
+     */
+    get selectedAttack(){
+        if(this._activeBattleMenu === ACTIVE_BATTLE_MENU.BATTLE_MOVE_SELECT){
+            return this._selectedAttackIndex
+        }
+        return undefined
+    }
 
     showMainBattleMenu(){
         this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN
@@ -64,6 +79,7 @@ export class BattleMenu {
         this._mainBattleMenuPhaserContainerGameObject.setAlpha(1)
         this._battleTextGameObjectLine1.setAlpha(1)
         this._battleTextGameObjectLine2.setAlpha(1)
+        this._selectedAttackIndex = undefined
         // this._selectedBattleMenuOption = BATTLE_MENU_OPTION.FIGHT
         // this._mainBattleMenuCursorPhaserImageGameObject.setPosition(BATTLE_MENU_CURSOR_POS.x,BATTLE_MENU_CURSOR_POS.y)
     }
@@ -97,7 +113,7 @@ export class BattleMenu {
                 return
             }
             if(this._activeBattleMenu === ACTIVE_BATTLE_MENU.BATTLE_MOVE_SELECT){
-
+                this._handlePlayerChooseAttack()
                 return
             }
             
@@ -135,7 +151,7 @@ export class BattleMenu {
         }
 
         //消息队列中还有没显示的信息，获取第一条显示，并且在消息队列中删除,等待玩家输入
-        const messageToDisplay = this._queuedInfoPanelMessage.shift()
+        const messageToDisplay = this._queuedInfoPanelMessage.shift() || ''
         console.log(messageToDisplay)
         this._battleTextGameObjectLine1.setText(messageToDisplay)
         this._waitingForPlayerInput = true
@@ -403,18 +419,39 @@ export class BattleMenu {
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.SWITCH){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_SWITCH
-            this.updateInfoPanelMessageAndWaitForInput(['You dont have pokemon.'],this._switchToMainBattelMenu)
+            this.updateInfoPanelMessageAndWaitForInput(['You have no other monsters...'],this._switchToMainBattelMenu)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.ITEM){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_ITEM
-            this.updateInfoPanelMessageAndWaitForInput(['You have nothing.'],this._switchToMainBattelMenu)
+            this.updateInfoPanelMessageAndWaitForInput(['Your bag is empty...'],this._switchToMainBattelMenu)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.FLEE){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_FLEE
-            this.updateInfoPanelMessageAndWaitForInput(['flee failed.'],this._switchToMainBattelMenu)
+            this.updateInfoPanelMessageAndWaitForInput(['You fail to run away...'],this._switchToMainBattelMenu)
             return
         }
+    }
+    _handlePlayerChooseAttack(){
+        let selectedAttackIndex = 0
+        switch (this._selectedAttackMenuOption) {
+            case ATTACK_MOVE_OPTION.MOVE_1:
+                selectedAttackIndex = 0
+                break;
+            case ATTACK_MOVE_OPTION.MOVE_2:
+                selectedAttackIndex = 1
+                break;
+            case ATTACK_MOVE_OPTION.MOVE_3:
+                selectedAttackIndex = 2
+                break;
+            case ATTACK_MOVE_OPTION.MOVE_4:
+                selectedAttackIndex = 3
+                break;
+        
+            default:
+                break;
+        }
+        this._selectedAttackIndex = selectedAttackIndex
     }
 }
