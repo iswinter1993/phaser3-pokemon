@@ -1,11 +1,11 @@
 类pokemon游戏
 ## Battle System:
   - [x] load game assets
-  - [ ] create battle scene layout
-  - [ ] create dialog menu 创建对话框菜单
-  - [ ] create option menu
-  - [ ] create monster attack move list
-  - [ ] handle player input
+  - [x] create battle scene layout
+  - [x] create dialog menu 创建对话框菜单
+  - [x] create option menu
+  - [x] create monster attack move list
+  - [x] handle player input
   - [ ] code optimization - move logic to components
     - [ ] create health component
     - [ ] create background component
