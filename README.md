@@ -7,8 +7,8 @@
   - [x] create monster attack move list
   - [x] handle player input
   - [ ] code optimization - move logic to components
-    - [ ] create health component
-    - [ ] create background component
+    - [x] create health component
+    - [x] create background component
     - [ ] create monster components
   - [ ] adding basic attack logic
   - [ ] taking damage and monster knock out
