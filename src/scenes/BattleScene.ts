@@ -1,6 +1,7 @@
-import { GameObjects, Input, Scene, Types } from "phaser";
-import { BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
+import { Scene } from "phaser";
+import { BATTLLE_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
 import { Background } from "../battle/background";
+import { EnemyBattleMonster } from "../battle/monsters/enemy-battle-monster";
 import { HealthBar } from "../battle/ui/health-bar";
 import { BattleMenu } from "../battle/ui/menu/battle-menu";
 import { DIRECTION, DirectionType } from "../common/direction";
@@ -11,6 +12,7 @@ export class BattleScene extends Scene {
     _cursorkeys: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
     _playerHealthBar:HealthBar;
     _enemyHealthBar:HealthBar;
+    _activeEnemyMonster:EnemyBattleMonster;
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -27,7 +29,20 @@ export class BattleScene extends Scene {
         const background = new Background(this)
         background.showForest()
         // create player and enemy monster 创建怪兽
-        this.add.image(768,144,MONSTER_ASSET_KEYS.CARNODUSK,0) //没有动画，最后参数设置为0
+        this._activeEnemyMonster = new EnemyBattleMonster(
+            {
+                scene:this,
+                monsterDetails:{
+                    name:MONSTER_ASSET_KEYS.CARNODUSK,
+                    assetKey:MONSTER_ASSET_KEYS.CARNODUSK,
+                    maxHp:25,
+                    currentHp:25,
+                    baseAttack:5,
+                    attackIds:[]
+                }
+            }
+        )
+        // this.add.image(768,144,MONSTER_ASSET_KEYS.CARNODUSK,0) //没有动画，最后参数设置为0
         this.add.image(256,316,MONSTER_ASSET_KEYS.IGUANIGNITE,0).setFlipX(true)
         //render player health bar 玩家健康条
         this._playerHealthBar = new HealthBar(this,34,34);
@@ -54,7 +69,8 @@ export class BattleScene extends Scene {
             }).setOrigin(1,0),
         ])
         //render enemy health bar 敌人健康条
-        this._enemyHealthBar = new HealthBar(this,34,34)
+        // this._enemyHealthBar = new HealthBar(this,34,34)
+        const enemyHealthBar = this._activeEnemyMonster.healthBar
         const enemyMonsterName = this.add.text(30,20,MONSTER_ASSET_KEYS.CARNODUSK,{
             color:'#7E3D3F',
             fontSize:'32px'
@@ -62,7 +78,7 @@ export class BattleScene extends Scene {
         this.add.container(0, 0, [
             this.add.image(0,0,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND).setOrigin(0).setScale(1,0.8),
             enemyMonsterName,
-            this._enemyHealthBar.container,
+            enemyHealthBar.container,
             this.add.text(enemyMonsterName.width+35,23,'L5',{
                 color:'#ED474B',
                 fontSize:'28px'
@@ -73,7 +89,10 @@ export class BattleScene extends Scene {
                 fontStyle:'italic'
             }),
         ])
-
+        this._activeEnemyMonster.takeDamage(15,()=>{
+            console.log('受到攻击',15)
+        })
+        console.log(this._activeEnemyMonster.isFainted)
         //创建信息框
         this._battleMenu = new BattleMenu(this)
         this._battleMenu.showMainBattleMenu()
