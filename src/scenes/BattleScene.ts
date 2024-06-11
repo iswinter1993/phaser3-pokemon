@@ -2,6 +2,7 @@ import { Scene } from "phaser";
 import { BATTLLE_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
 import { Background } from "../battle/background";
 import { EnemyBattleMonster } from "../battle/monsters/enemy-battle-monster";
+import { PlayerBattleMonster } from "../battle/monsters/player-battle-monster";
 import { HealthBar } from "../battle/ui/health-bar";
 import { BattleMenu } from "../battle/ui/menu/battle-menu";
 import { DIRECTION, DirectionType } from "../common/direction";
@@ -13,6 +14,7 @@ export class BattleScene extends Scene {
     _playerHealthBar:HealthBar;
     _enemyHealthBar:HealthBar;
     _activeEnemyMonster:EnemyBattleMonster;
+    _activePlayerMonster:PlayerBattleMonster;
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -38,67 +40,47 @@ export class BattleScene extends Scene {
                     maxHp:25,
                     currentHp:25,
                     baseAttack:5,
-                    attackIds:[]
-                }
+                    attackIds:[],
+                    currentLevel:5
+                },
+                scaleHealthBarBackgroundImageByY:0.8,
+                healthBarComponentPosition:{x:0,y:0}
             }
         )
         // this.add.image(768,144,MONSTER_ASSET_KEYS.CARNODUSK,0) //没有动画，最后参数设置为0
-        this.add.image(256,316,MONSTER_ASSET_KEYS.IGUANIGNITE,0).setFlipX(true)
+       
         //render player health bar 玩家健康条
-        this._playerHealthBar = new HealthBar(this,34,34);
-        const playerMonsterName = this.add.text(30,20,MONSTER_ASSET_KEYS.IGUANIGNITE,{
-            color:'#7E3D3F',
-            fontSize:'32px'
+        this._activePlayerMonster = new PlayerBattleMonster({
+            scene:this,
+            monsterDetails:{
+                name:MONSTER_ASSET_KEYS.IGUANIGNITE,
+                assetKey:MONSTER_ASSET_KEYS.IGUANIGNITE,
+                maxHp:25,
+                currentHp:25,
+                baseAttack:5,
+                attackIds:[],
+                currentLevel:5
+            },
+            scaleHealthBarBackgroundImageByY:1,
+            healthBarComponentPosition:{x:556,y:318}
         })
-        this.add.container(556, 318, [
-            this.add.image(0,0,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND).setOrigin(0),
-            playerMonsterName,
-            this._playerHealthBar.container,
-            this.add.text(playerMonsterName.width+35,23,'L5',{
-                color:'#ED474B',
-                fontSize:'28px'
-            }),
-            this.add.text(30,55,'HP',{
-                color:'#FF6505',
-                fontSize:'24px',
-                fontStyle:'italic'
-            }),
-            this.add.text(443,80,'25/25',{
-                color:'#7E3D3F',
-                fontSize:'16px',
-            }).setOrigin(1,0),
-        ])
+       
         //render enemy health bar 敌人健康条
         // this._enemyHealthBar = new HealthBar(this,34,34)
-        const enemyHealthBar = this._activeEnemyMonster.healthBar
-        const enemyMonsterName = this.add.text(30,20,MONSTER_ASSET_KEYS.CARNODUSK,{
-            color:'#7E3D3F',
-            fontSize:'32px'
-        })
-        this.add.container(0, 0, [
-            this.add.image(0,0,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND).setOrigin(0).setScale(1,0.8),
-            enemyMonsterName,
-            enemyHealthBar.container,
-            this.add.text(enemyMonsterName.width+35,23,'L5',{
-                color:'#ED474B',
-                fontSize:'28px'
-            }),
-            this.add.text(30,55,'HP',{
-                color:'#FF6505',
-                fontSize:'24px',
-                fontStyle:'italic'
-            }),
-        ])
+        
         this._activeEnemyMonster.takeDamage(15,()=>{
-            console.log('受到攻击',15)
+            console.log('EnemyMonster受到攻击',15)
         })
         console.log(this._activeEnemyMonster.isFainted)
+        this._activePlayerMonster.takeDamage(5,()=>{
+            console.log('PlayerMonster受到攻击',5)
+        })
+        console.log(this._activePlayerMonster.isFainted)
         //创建信息框
         this._battleMenu = new BattleMenu(this)
         this._battleMenu.showMainBattleMenu()
         //创建键盘 上下左右,空格 shift等热键 事件
         this._cursorkeys = this.input.keyboard?.createCursorKeys();
-        this._playerHealthBar.setMeterPercentageAnimated(0.6)
     }
     update(time: number, delta: number): void {
         //空格键是否按下

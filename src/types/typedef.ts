@@ -6,12 +6,15 @@ export type Monster = {
     maxHp:number,
     currentHp:number,
     baseAttack:number,
-    attackIds:number[]
+    attackIds:number[],
+    currentLevel:number
 }
 
 export type BattleMonsterConfig = {
     scene:Scene,
-    monsterDetails:Monster
+    monsterDetails:Monster,
+    scaleHealthBarBackgroundImageByY:number,
+    healthBarComponentPosition:Coordinate
 }
 
 export type Coordinate = {
