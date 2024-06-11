@@ -9,7 +9,7 @@
   - [ ] code optimization - move logic to components
     - [x] create health component
     - [x] create background component
-    - [ ] create monster components
+    - [x] create monster components
   - [ ] adding basic attack logic
   - [ ] taking damage and monster knock out
   - [ ] battle state machine
