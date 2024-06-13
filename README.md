@@ -6,12 +6,12 @@
   - [x] create option menu
   - [x] create monster attack move list
   - [x] handle player input
-  - [ ] code optimization - move logic to components
+  - [x] code optimization - move logic to components
     - [x] create health component
     - [x] create background component
     - [x] create monster components
-  - [ ] adding basic attack logic
-  - [ ] taking damage and monster knock out
+  - [x] adding basic attack logic
+  - [x] taking damage and monster knock out
   - [ ] battle state machine
     - [ ] what is a finite state machine
     - [ ] review the battle states and what each one represents
