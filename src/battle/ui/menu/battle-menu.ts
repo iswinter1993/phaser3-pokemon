@@ -3,6 +3,7 @@ import { GameObjects, Scene } from "phaser";
 import { MONSTER_ASSET_KEYS, UI_ASSET_KEYS } from "../../../assets/asset-keys";
 import { ActiveBattleMenu, ACTIVE_BATTLE_MENU, AttackMoveOption, ATTACK_MOVE_OPTION, BattleMenuOption, BATTLE_MENU_OPTION } from './battle-menu-option';
 import { BATTLE_UI_TEXT_STYLE } from './battle-menu-config';
+import { PlayerBattleMonster } from '../../monsters/player-battle-monster';
 
 
 const BATTLE_MENU_CURSOR_POS =Object.freeze({
@@ -51,9 +52,11 @@ export class BattleMenu {
      * @_selectedAttackIndex 选择招式的索引
      */
      _selectedAttackIndex:number | undefined;
+     _activePlayerMonster:PlayerBattleMonster;
 
-    constructor(scene: Scene){
+    constructor(scene: Scene, activePlayerMonster:PlayerBattleMonster){
         this._scene = scene
+        this._activePlayerMonster = activePlayerMonster
         this._selectedAttackIndex = undefined
         this._queuedInfoPanelCallback = undefined
         this._queuedInfoPanelMessage = []
@@ -161,7 +164,7 @@ export class BattleMenu {
         console.log('init BattleMenu')
         
         this._battleTextGameObjectLine1 = this._scene.add.text(30,26,'what should',BATTLE_UI_TEXT_STYLE)
-        this._battleTextGameObjectLine2 = this._scene.add.text(30,64,`${MONSTER_ASSET_KEYS.IGUANIGNITE} do next?`,BATTLE_UI_TEXT_STYLE)
+        this._battleTextGameObjectLine2 = this._scene.add.text(30,64,`${this._activePlayerMonster.name} do next?`,BATTLE_UI_TEXT_STYLE)
         this._scene.add.container(0,this._scene.scale.height-132,[
             this._createMainInfoPane(),
             this._createMainBattleMenu(),
@@ -186,12 +189,16 @@ export class BattleMenu {
     }
 
     _createMonsterAttackSubMenu(){
+        const attackNames = []
+        for(var i = 0; i<4; i++){
+            attackNames.push(this._activePlayerMonster.attacks[i]?.name || '-')
+        }
         this._attackBattleMenuCursorPhaserImageGameObject = this._scene.add.image(ATTACK_MENU_CURSOR_POS.x,ATTACK_MENU_CURSOR_POS.y,UI_ASSET_KEYS.CURSOR).setOrigin(0.5).setScale(2.5)
         this._moveSelectionSubBattleMenuPhaserContainerGameObject = this._scene.add.container(0,4,[
-            this._scene.add.text(55,22,'slash',BATTLE_UI_TEXT_STYLE),
-            this._scene.add.text(240,22,'growl',BATTLE_UI_TEXT_STYLE),
-            this._scene.add.text(55,70,'-',BATTLE_UI_TEXT_STYLE),
-            this._scene.add.text(240,70,'-',BATTLE_UI_TEXT_STYLE),
+            this._scene.add.text(55,22,attackNames[0],BATTLE_UI_TEXT_STYLE),
+            this._scene.add.text(240,22,attackNames[1],BATTLE_UI_TEXT_STYLE),
+            this._scene.add.text(55,70,attackNames[2],BATTLE_UI_TEXT_STYLE),
+            this._scene.add.text(240,70,attackNames[3],BATTLE_UI_TEXT_STYLE),
             this._attackBattleMenuCursorPhaserImageGameObject
         ])
         this.hideMonsterAttackSubMenu()

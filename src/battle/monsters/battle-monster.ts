@@ -1,7 +1,7 @@
 import { GameObjects, Scene } from 'phaser';
 import { HealthBar } from '../ui/health-bar';
 import { Monster,BattleMonsterConfig,Coordinate, Attack } from '../../types/typedef'; 
-import { BATTLLE_ASSET_KEYS } from '../../assets/asset-keys';
+import { BATTLLE_ASSET_KEYS, DATA_ASSET_KEYS } from '../../assets/asset-keys';
 
 export class BattleMonster {
     _scene:Scene;
@@ -26,6 +26,16 @@ export class BattleMonster {
         this._monsterAttacks = []
         this._phaserGameObject = this._scene.add.image(position.x,position.y,this._monsterDetails.assetKey,this._monsterDetails.assetFrame||0)
         this._creatHealthBarComponents(config.scaleHealthBarBackgroundImageByY,config.healthBarComponentPosition)
+        /**
+         * 获取缓存的json
+         */
+        const data:Attack[] = this._scene.cache.json.get(DATA_ASSET_KEYS.ATTACKS)
+        this._monsterDetails.attackIds.forEach( attackId => {
+            const monsterAttack = data.find( attack => attack.id === attackId)
+            if(monsterAttack != undefined){
+                this._monsterAttacks.push(monsterAttack)
+            }
+        })
     }
 
     /**

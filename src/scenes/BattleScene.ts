@@ -15,13 +15,14 @@ export class BattleScene extends Scene {
     _enemyHealthBar:HealthBar;
     _activeEnemyMonster:EnemyBattleMonster;
     _activePlayerMonster:PlayerBattleMonster;
+    _activePlayerAttackIndex:number;
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
     }
 
     init(){
-        
+        this._activePlayerAttackIndex = -1
     }
 
     preload(){}
@@ -39,8 +40,8 @@ export class BattleScene extends Scene {
                     assetKey:MONSTER_ASSET_KEYS.CARNODUSK,
                     maxHp:25,
                     currentHp:25,
-                    baseAttack:5,
-                    attackIds:[],
+                    baseAttack:25,
+                    attackIds:[1],
                     currentLevel:5
                 },
                 scaleHealthBarBackgroundImageByY:0.8,
@@ -58,26 +59,16 @@ export class BattleScene extends Scene {
                 maxHp:25,
                 currentHp:25,
                 baseAttack:5,
-                attackIds:[],
+                attackIds:[2,1],
                 currentLevel:5
             },
             scaleHealthBarBackgroundImageByY:1,
             healthBarComponentPosition:{x:556,y:318}
         })
        
-        //render enemy health bar 敌人健康条
-        // this._enemyHealthBar = new HealthBar(this,34,34)
         
-        this._activeEnemyMonster.takeDamage(15,()=>{
-            console.log('EnemyMonster受到攻击',15)
-        })
-        console.log(this._activeEnemyMonster.isFainted)
-        this._activePlayerMonster.takeDamage(5,()=>{
-            console.log('PlayerMonster受到攻击',5)
-        })
-        console.log(this._activePlayerMonster.isFainted)
         //创建信息框
-        this._battleMenu = new BattleMenu(this)
+        this._battleMenu = new BattleMenu(this,this._activePlayerMonster)
         this._battleMenu.showMainBattleMenu()
         //创建键盘 上下左右,空格 shift等热键 事件
         this._cursorkeys = this.input.keyboard?.createCursorKeys();
@@ -93,8 +84,10 @@ export class BattleScene extends Scene {
                 return
             }
             console.log('选择使用招式：',this._battleMenu.selectedAttack)
+            this._activePlayerAttackIndex = this._battleMenu.selectedAttack
+            if( !this._activePlayerMonster.attacks[this._activePlayerAttackIndex] ) return
             this._battleMenu.hideMonsterAttackSubMenu()
-            this._battleMenu.updateInfoPanelMessageAndWaitForInput([`Your monster attacks enemy`],this._battleMenu.showMainBattleMenu)
+            this._handleBattleSequene()
 
             return
         }
@@ -118,6 +111,72 @@ export class BattleScene extends Scene {
             this._battleMenu.handlePlayerInput(selectedDirection)
         }
     }
-    
+     
+    _handleBattleSequene(){
+        //如果 玩家、敌人同时选择攻击， 生成战斗序列
+        //显示攻击信息，短暂暂停
+        //展示战斗动画，短暂暂停
+        //展示受伤动画，短暂暂停
+        //血条动画，短暂暂停
+        //换成另一只怪兽，重新走这个流程
 
+        this._playerAttack()
+    }
+    _playerAttack(){
+        this._battleMenu.updateInfoPanelMessageAndWaitForInput([`${this._activePlayerMonster.name} used ${this._activePlayerMonster.attacks[this._activePlayerAttackIndex].name}`],()=>{
+            //引入时间插件
+            this.time.delayedCall(500,()=>{
+                this._activeEnemyMonster.takeDamage(this._activePlayerMonster.baseAttack,()=>{
+                    this._enemyAttck()
+                })
+            })
+        })
+    }
+    _enemyAttck(){
+        if(this._activeEnemyMonster.isFainted){
+            this._postBattleSequeneCheck()
+            return
+        }
+        this._battleMenu.updateInfoPanelMessageAndWaitForInput([`${this._activeEnemyMonster.name} used ${this._activeEnemyMonster.attacks[0].name}`],()=>{
+            this.time.delayedCall(500,()=>{
+                this._activePlayerMonster.takeDamage(this._activeEnemyMonster.baseAttack,()=>{
+                    this._postBattleSequeneCheck()
+                })
+            })
+        })
+    }
+    /**
+     * 战斗后序列的检查
+     */
+    _postBattleSequeneCheck(){
+        /**
+         * 检查敌方是否晕倒
+         */
+        if(this._activeEnemyMonster.isFainted){
+            this._battleMenu.updateInfoPanelMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`,'You have gained some exp!'],()=>{
+                //过渡到世界地图
+                this._transitionToNextScene()
+            })
+            return
+        }
+
+        if(this._activePlayerMonster.isFainted){
+            this._battleMenu.updateInfoPanelMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
+                this._transitionToNextScene()
+            })
+            return
+        }
+
+        this._battleMenu.showMainBattleMenu()
+    }
+
+    _transitionToNextScene(){
+        //camare淡出动画效果
+        this.cameras.main.fadeOut(600,0,0,0)
+        //注册一个时间监听 淡出动画完成
+        this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
+            //完成回调
+            this.scene.start('world')
+        })
+    }
 }
