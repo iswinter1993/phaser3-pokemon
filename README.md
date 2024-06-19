@@ -12,10 +12,10 @@
     - [x] create monster components
   - [x] adding basic attack logic
   - [x] taking damage and monster knock out
-  - [ ] battle state machine
-    - [ ] what is a finite state machine
-    - [ ] review the battle states and what each one represents
-    - [ ] implement each state
+  - [x] battle state machine
+    - [x] what is a finite state machine
+    - [x] review the battle states and what each one represents
+    - [x] implement each state
     - [ ] add item, flee, and monster states
     - [ ] player input improvements
  - [ ] battle scene polish
