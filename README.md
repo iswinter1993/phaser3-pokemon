@@ -16,10 +16,10 @@
     - [x] what is a finite state machine
     - [x] review the battle states and what each one represents
     - [x] implement each state
-    - [ ] add item, flee, and monster states
-    - [ ] player input improvements
+    - [x] add item, flee, and monster states
+    - [x] player input improvements
  - [ ] battle scene polish
-    - [ ] text animations
+    - [x] text animations
     - [ ] monster animations
     - [ ] skip animations
     - [ ] attack animations

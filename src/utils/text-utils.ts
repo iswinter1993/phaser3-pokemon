@@ -5,7 +5,7 @@ type AnimateTextConfig = {
     delay?:number
 }
 /**
- * 
+ * 文字显示动画
  * @param scene 
  * @param targets phaser文本对象
  * @param text  字符串
