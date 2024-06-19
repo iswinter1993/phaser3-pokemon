@@ -4,6 +4,7 @@ import { MONSTER_ASSET_KEYS, UI_ASSET_KEYS } from "../../../assets/asset-keys";
 import { ActiveBattleMenu, ACTIVE_BATTLE_MENU, AttackMoveOption, ATTACK_MOVE_OPTION, BattleMenuOption, BATTLE_MENU_OPTION } from './battle-menu-option';
 import { BATTLE_UI_TEXT_STYLE } from './battle-menu-config';
 import { PlayerBattleMonster } from '../../monsters/player-battle-monster';
+import { animateText } from '../../../utils/text-utils';
 
 
 const BATTLE_MENU_CURSOR_POS =Object.freeze({
@@ -64,6 +65,14 @@ export class BattleMenu {
       * 文案后提醒用户输入光标的动画
       */
      _userInputCursorPhaserTween:Tweens.Tween
+     /**
+      * 是否跳过文字动画
+      */
+     _quequeMessagesSkipAnimation:boolean
+     /**
+      * 文字动画是否正在播放
+      */
+     _quequeMessagesAnimationPlaying:boolean
 
     constructor(scene: Scene, activePlayerMonster:PlayerBattleMonster){
         this._scene = scene
@@ -75,6 +84,8 @@ export class BattleMenu {
         this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN
         this._selectedBattleMenuOption = BATTLE_MENU_OPTION.FIGHT
         this._selectedAttackMenuOption = ATTACK_MOVE_OPTION.MOVE_1
+        this._quequeMessagesSkipAnimation = false
+        this._quequeMessagesAnimationPlaying = false
         this._init()
     }
     /**
@@ -125,6 +136,7 @@ export class BattleMenu {
 
     handlePlayerInput(input:'OK'|'CANCEL'| DirectionType){
         console.log(input)
+        if(this._quequeMessagesAnimationPlaying && input === 'OK') return
         if(this._waitingForPlayerInput && (input === 'CANCEL' || input === 'OK')){
             this._updateInfoPanelWithMessage()
             return
@@ -152,29 +164,49 @@ export class BattleMenu {
         this._updateSelectedMoveMenuOptionFormInput(input)
         this._moveMoveBattleMenuCursor()
     }
-
-    updateInfoPaneMessageNoInputRequired(message:string,callback?:()=>void){
+    /**
+     * 
+     * @param message 
+     * @param callback 
+     * @param skipAnimation 是否跳过文字动画
+     */
+    updateInfoPaneMessageNoInputRequired(message:string,callback?:()=>void, skipAnimation = false){
         //因为要设置文字动画，所以先设置为空。
         this._battleTextGameObjectLine1.setText('').setAlpha(1)
-        //TODO animate message
-        this._battleTextGameObjectLine1.setText(message)
-        this._waitingForPlayerInput = false
-        if(callback){
-            callback()
+        this._quequeMessagesSkipAnimation = skipAnimation
+        if(skipAnimation){
+            this._battleTextGameObjectLine1.setText(message)
+            this._waitingForPlayerInput = false
+            if(callback){
+                callback()
+            }
+            return
         }
+
+        //TODO animate message
+        animateText(this._scene,this._battleTextGameObjectLine1,message,{callback:()=>{
+            this._waitingForPlayerInput = false
+            if(callback){
+                callback()
+            }
+        }})
     }
 
     /**
      * 消息队列，玩家输入ok 或 cancel 消息会按队列一条条显示，消息队列为空时，再输入ok 或 cancel，调用回调方法。
      * @param message 
      * @param callback 
+     * @param skipAnimation 是否跳过文字动画
      */
-    updateInfoPaneMessageAndWaitForInput(message:string[],callback?:(()=>void)|undefined){
+    updateInfoPaneMessageAndWaitForInput(message:string[],callback?:(()=>void)|undefined,skipAnimation = false){
         this._queuedInfoPanelMessage = message
         this._queuedInfoPanelCallback = callback
+        this._quequeMessagesSkipAnimation = skipAnimation
+        
         this._updateInfoPanelWithMessage()
     }
     _updateInfoPanelWithMessage(){
+        this._quequeMessagesAnimationPlaying = false
         this._waitingForPlayerInput = false
         this._battleTextGameObjectLine1.setText('').setAlpha(1)
         this.hideInputCursorAnimate()
@@ -194,9 +226,27 @@ export class BattleMenu {
         //消息队列中还有没显示的信息，获取第一条显示，并且在消息队列中删除,等待玩家输入
         const messageToDisplay = this._queuedInfoPanelMessage.shift() || ''
         console.log(messageToDisplay)
-        this._battleTextGameObjectLine1.setText(messageToDisplay)
-        this._waitingForPlayerInput = true
-        this.playInputCursorAnimate()
+        if(this._quequeMessagesSkipAnimation){
+            this._battleTextGameObjectLine1.setText(messageToDisplay)
+            this._waitingForPlayerInput = true
+            this._quequeMessagesAnimationPlaying = false
+            if(this._queuedInfoPanelCallback){
+                //调用后 设置 为 undefined
+                this._queuedInfoPanelCallback()
+                this._queuedInfoPanelCallback = undefined
+            }
+            return
+        }
+        this._quequeMessagesAnimationPlaying = true
+        animateText(this._scene,this._battleTextGameObjectLine1,messageToDisplay,{
+            delay:50,
+            callback:()=>{
+                this.playInputCursorAnimate()
+                this._waitingForPlayerInput = true
+                this._quequeMessagesAnimationPlaying = false
+            }
+        })
+        
 
     }
     _init(){
