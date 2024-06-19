@@ -91,7 +91,19 @@ export class BattleScene extends Scene {
         this._battleStateMachine.update()
         //空格键是否按下
         const wasSpaceKeyPressed = Phaser.Input.Keyboard.JustDown(this._cursorkeys?.space)
-        // console.log(wasSpaceKeyPressed)
+        //基于当前战斗状态，限制玩家输入
+        //如果我们不在正确的状态，提前返回不处理输入
+        if(wasSpaceKeyPressed && (this._battleStateMachine.currentStateName === BATTLE_STATES.PRE_BATTLE_INFO
+            || this._battleStateMachine.currentStateName === BATTLE_STATES.POST_ATTACK_CHECK
+            || this._battleStateMachine.currentStateName === BATTLE_STATES.FLEE_ATTEMPT
+        )){
+            this._battleMenu.handlePlayerInput('OK')
+            return
+        }
+
+        if( this._battleStateMachine.currentStateName !== BATTLE_STATES.PLAYER_INPUT){
+            return
+        }
         if(wasSpaceKeyPressed){
             this._battleMenu.handlePlayerInput('OK')
             //判断玩家选择的招式，并更新文本
@@ -129,9 +141,9 @@ export class BattleScene extends Scene {
      
  
     _playerAttack(){
-        this._battleMenu.updateInfoPanelMessageAndWaitForInput([`${this._activePlayerMonster.name} used ${this._activePlayerMonster.attacks[this._activePlayerAttackIndex].name}`],()=>{
+        this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activePlayerMonster.name} used ${this._activePlayerMonster.attacks[this._activePlayerAttackIndex].name}`,()=>{
             //引入时间插件
-            this.time.delayedCall(500,()=>{
+            this.time.delayedCall(1200,()=>{
                 this._activeEnemyMonster.takeDamage(this._activePlayerMonster.baseAttack,()=>{
                     this._enemyAttck()
                 })
@@ -143,8 +155,8 @@ export class BattleScene extends Scene {
             this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
             return
         }
-        this._battleMenu.updateInfoPanelMessageAndWaitForInput([`${this._activeEnemyMonster.name} used ${this._activeEnemyMonster.attacks[0].name}`],()=>{
-            this.time.delayedCall(500,()=>{
+        this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activeEnemyMonster.name} used ${this._activeEnemyMonster.attacks[0].name}`,()=>{
+            this.time.delayedCall(1200,()=>{
                 this._activePlayerMonster.takeDamage(this._activeEnemyMonster.baseAttack,()=>{
                     this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
                 })
@@ -159,7 +171,7 @@ export class BattleScene extends Scene {
          * 检查敌方是否晕倒
          */
         if(this._activeEnemyMonster.isFainted){
-            this._battleMenu.updateInfoPanelMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`,'You have gained some exp!'],()=>{
+            this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`,'You have gained some exp!'],()=>{
                 //过渡下个状态
                 this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
             })
@@ -167,7 +179,7 @@ export class BattleScene extends Scene {
         }
 
         if(this._activePlayerMonster.isFainted){
-            this._battleMenu.updateInfoPanelMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
+            this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
                 this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
             })
             return
@@ -202,7 +214,7 @@ export class BattleScene extends Scene {
             onEnter:()=>{
                 //等待敌方怪兽出现在场景中并通知玩家相关信息
                 this.time.delayedCall(500,()=>{
-                    this._battleMenu.updateInfoPanelMessageAndWaitForInput([`${this._activeEnemyMonster.name} appear!`],()=>{
+                    this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} appear!`],()=>{
                         //等待文本动画完成 并跳转下一个状态
                         this.time.delayedCall(500,()=>{
                             this._battleStateMachine.setState(BATTLE_STATES.BRING_OUT_MONSTER)
@@ -216,11 +228,14 @@ export class BattleScene extends Scene {
             onEnter:()=>{
                 //等待玩家怪兽出现并且 通知玩家相关信息
                 this.time.delayedCall(500,()=>{
-                    this._battleMenu.updateInfoPanelMessageAndWaitForInput([`go ${this._activePlayerMonster.name}!`],()=>{
+                    this._battleMenu.updateInfoPaneMessageNoInputRequired(`go ${this._activePlayerMonster.name}!`,()=>{
                         //等待文本动画完成 并跳转下一个状态
-                        //使用this.time.delayedCall函数，this._battleStateMachine.setState会被放到 微任务 中，
-                        //会先把isChangingState赋值为false，然后运行this._battleStateMachine.setState，BATTLE_STATES.PLAYER_INPUT不会被push到changingStateQueQue序列
-                        this.time.delayedCall(500,()=>{
+                        //运用事件循环机制，先安照代码循序执行，
+                        //使用this.time.delayedCall函数，this._battleStateMachine.setState会被放到 宏任务队列 中，
+                        //isChangingState为同步执行代码没有使用任何队列，所以先赋值为false，主代码流程执行完成后，开始执行微任务队列，
+                        //当微任务队列为空后，开始执行宏任务队列，运行this._battleStateMachine.setState，因为isChangingState已经是false，
+                        //BATTLE_STATES.PLAYER_INPUT不会被push到changingStateQueQue序列
+                        this.time.delayedCall(1200,()=>{
                             this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
                         })
                     })
@@ -238,8 +253,8 @@ export class BattleScene extends Scene {
             onEnter:()=>{
                 //为敌方随机选择一个招式，并在未来实现AI行为
 
-                //不使用this.time.delayedCall函数，this._battleStateMachine.setState不会放到 微任务 中，
-                //先运行this._battleStateMachine.setState，此时isChangingState会是true，
+                //不使用this.time.delayedCall函数，this._battleStateMachine.setState不会放到 宏任务队列 中，
+                //所以this._battleStateMachine.setState为同步执行代码没有使用任何队列，会先执行，此时isChangingState会是true，
                 //BATTLE_STATES.BATTLE会被push到changingStateQueQue序列中，
                 //然后isChangingState才赋值为false
                 this._battleStateMachine.setState(BATTLE_STATES.BATTLE)
@@ -273,7 +288,7 @@ export class BattleScene extends Scene {
         this._battleStateMachine.addState({
             name:BATTLE_STATES.FLEE_ATTEMPT,
             onEnter:()=>{
-                this._battleMenu.updateInfoPanelMessageAndWaitForInput([`You got away safely!`],()=>{
+                this._battleMenu.updateInfoPaneMessageAndWaitForInput([`You got away safely!`],()=>{
                     this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
                 })
             }

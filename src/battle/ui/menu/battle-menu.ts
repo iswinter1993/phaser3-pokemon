@@ -1,5 +1,5 @@
 import { DIRECTION, DirectionType } from './../../../common/direction';
-import { GameObjects, Scene } from "phaser";
+import { GameObjects, Scene, Tweens } from "phaser";
 import { MONSTER_ASSET_KEYS, UI_ASSET_KEYS } from "../../../assets/asset-keys";
 import { ActiveBattleMenu, ACTIVE_BATTLE_MENU, AttackMoveOption, ATTACK_MOVE_OPTION, BattleMenuOption, BATTLE_MENU_OPTION } from './battle-menu-option';
 import { BATTLE_UI_TEXT_STYLE } from './battle-menu-config';
@@ -13,6 +13,9 @@ const BATTLE_MENU_CURSOR_POS =Object.freeze({
 
 const ATTACK_MENU_CURSOR_POS =Object.freeze({
     x:42,
+    y:38
+}) 
+const PLAYER_INPUT_CURSOR_POS =Object.freeze({
     y:38
 }) 
 
@@ -53,6 +56,14 @@ export class BattleMenu {
      */
      _selectedAttackIndex:number | undefined;
      _activePlayerMonster:PlayerBattleMonster;
+     /**
+      * 文案后提醒用户输入光标
+      */
+     _userInputCursorPhaserImageObject:GameObjects.Image;
+     /**
+      * 文案后提醒用户输入光标的动画
+      */
+     _userInputCursorPhaserTween:Tweens.Tween
 
     constructor(scene: Scene, activePlayerMonster:PlayerBattleMonster){
         this._scene = scene
@@ -74,6 +85,18 @@ export class BattleMenu {
             return this._selectedAttackIndex
         }
         return undefined
+    }
+
+    playInputCursorAnimate(){
+        this._userInputCursorPhaserImageObject.setPosition(this._battleTextGameObjectLine1.displayWidth + this._userInputCursorPhaserImageObject.displayWidth * 2.7,
+            this._userInputCursorPhaserImageObject.y
+        )
+        this._userInputCursorPhaserImageObject.setAlpha(1)
+        this._userInputCursorPhaserTween.restart()
+    }
+    hideInputCursorAnimate(){
+        this._userInputCursorPhaserImageObject.setAlpha(0)
+        this._userInputCursorPhaserTween.pause()
     }
 
     showMainBattleMenu(){
@@ -129,12 +152,24 @@ export class BattleMenu {
         this._updateSelectedMoveMenuOptionFormInput(input)
         this._moveMoveBattleMenuCursor()
     }
+
+    updateInfoPaneMessageNoInputRequired(message:string,callback?:()=>void){
+        //因为要设置文字动画，所以先设置为空。
+        this._battleTextGameObjectLine1.setText('').setAlpha(1)
+        //TODO animate message
+        this._battleTextGameObjectLine1.setText(message)
+        this._waitingForPlayerInput = false
+        if(callback){
+            callback()
+        }
+    }
+
     /**
      * 消息队列，玩家输入ok 或 cancel 消息会按队列一条条显示，消息队列为空时，再输入ok 或 cancel，调用回调方法。
      * @param message 
      * @param callback 
      */
-    updateInfoPanelMessageAndWaitForInput(message:string[],callback?:(()=>void)|undefined){
+    updateInfoPaneMessageAndWaitForInput(message:string[],callback?:(()=>void)|undefined){
         this._queuedInfoPanelMessage = message
         this._queuedInfoPanelCallback = callback
         this._updateInfoPanelWithMessage()
@@ -142,6 +177,9 @@ export class BattleMenu {
     _updateInfoPanelWithMessage(){
         this._waitingForPlayerInput = false
         this._battleTextGameObjectLine1.setText('').setAlpha(1)
+        this.hideInputCursorAnimate()
+
+
         //检查消息队列中的信息是否已经全部显示 并且 调用回调函数
         if(this._queuedInfoPanelMessage.length === 0){
             //再判断是否有回调函数
@@ -158,6 +196,7 @@ export class BattleMenu {
         console.log(messageToDisplay)
         this._battleTextGameObjectLine1.setText(messageToDisplay)
         this._waitingForPlayerInput = true
+        this.playInputCursorAnimate()
 
     }
     _init(){
@@ -169,6 +208,7 @@ export class BattleMenu {
             this._createMainInfoPane(),
             this._createMainBattleMenu(),
             this._createMonsterAttackSubMenu(),
+            this._createPlayerInputCursor(),
             this._battleTextGameObjectLine1,
             this._battleTextGameObjectLine2
         ])
@@ -415,6 +455,9 @@ export class BattleMenu {
         }
     }
     _switchToMainBattelMenu(){
+        //
+        this._waitingForPlayerInput = false
+        this.hideInputCursorAnimate()
         this.hideMonsterAttackSubMenu()
         this.showMainBattleMenu()
     }
@@ -426,17 +469,17 @@ export class BattleMenu {
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.SWITCH){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_SWITCH
-            this.updateInfoPanelMessageAndWaitForInput(['You have no other monsters...'],this._switchToMainBattelMenu)
+            this.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],this._switchToMainBattelMenu)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.ITEM){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_ITEM
-            this.updateInfoPanelMessageAndWaitForInput(['Your bag is empty...'],this._switchToMainBattelMenu)
+            this.updateInfoPaneMessageAndWaitForInput(['Your bag is empty...'],this._switchToMainBattelMenu)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.FLEE){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_FLEE
-            this.updateInfoPanelMessageAndWaitForInput(['You fail to run away...'],this._switchToMainBattelMenu)
+            this.updateInfoPaneMessageAndWaitForInput(['You fail to run away...'],this._switchToMainBattelMenu)
             return
         }
     }
@@ -460,5 +503,24 @@ export class BattleMenu {
                 break;
         }
         this._selectedAttackIndex = selectedAttackIndex
+    }
+    _createPlayerInputCursor(){
+        this._userInputCursorPhaserImageObject = this._scene.add.image(0,0,UI_ASSET_KEYS.CURSOR)
+        this._userInputCursorPhaserImageObject.setAngle(90).setScale(2.5,1.5)
+        this._userInputCursorPhaserImageObject.setAlpha(0)
+
+        this._userInputCursorPhaserTween = this._scene.add.tween({
+            delay:0,
+            duration:500,
+            repeat:-1,
+            y:{
+                from:PLAYER_INPUT_CURSOR_POS.y,
+                start:PLAYER_INPUT_CURSOR_POS.y,
+                to:PLAYER_INPUT_CURSOR_POS.y + 6,
+            },
+            targets:this._userInputCursorPhaserImageObject
+        })
+        this._userInputCursorPhaserTween.pause()
+        return this._userInputCursorPhaserImageObject
     }
 }

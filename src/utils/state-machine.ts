@@ -65,6 +65,12 @@ export class StateMachine {
 
         this._currentState = this._state.get(name)
 
+
+        //运用事件循环机制，先安照代码循序执行，
+        //如果onEnter函数中，有settimeout等函数设置 宏任务队列 的操作，
+        //isChangingState为同步执行代码没有使用任何队列，会先赋值为false，主代码流程执行完成后，开始执行微任务队列，
+        //当微任务队列为空后，开始执行宏任务队列，运行settimeout等函数,状态不会push到_changingStateQueque中。
+        //如果没有settimeout等函数设置 宏任务队列 的操作，则按照代码执行顺序，先调用onEnter函数中代码，将状态push到_changingStateQueque中，再为isChangingState赋值为false。
         if(this._currentState?.onEnter){
             console.log(`[${StateMachine.name}-${this._id}:${methodName}] ${this._currentState.name} 被调用`)
             this._currentState.onEnter()
