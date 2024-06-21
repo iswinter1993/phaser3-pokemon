@@ -5,6 +5,7 @@ import { ActiveBattleMenu, ACTIVE_BATTLE_MENU, AttackMoveOption, ATTACK_MOVE_OPT
 import { BATTLE_UI_TEXT_STYLE } from './battle-menu-config';
 import { PlayerBattleMonster } from '../../monsters/player-battle-monster';
 import { animateText } from '../../../utils/text-utils';
+import { SKIP_BATTLE_ANIMATIONS } from '../../../config';
 
 
 const BATTLE_MENU_CURSOR_POS =Object.freeze({
@@ -230,11 +231,7 @@ export class BattleMenu {
             this._battleTextGameObjectLine1.setText(messageToDisplay)
             this._waitingForPlayerInput = true
             this._quequeMessagesAnimationPlaying = false
-            if(this._queuedInfoPanelCallback){
-                //调用后 设置 为 undefined
-                this._queuedInfoPanelCallback()
-                this._queuedInfoPanelCallback = undefined
-            }
+            this.playInputCursorAnimate()
             return
         }
         this._quequeMessagesAnimationPlaying = true
@@ -519,17 +516,17 @@ export class BattleMenu {
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.SWITCH){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_SWITCH
-            this.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],this._switchToMainBattelMenu)
+            this.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],this._switchToMainBattelMenu,SKIP_BATTLE_ANIMATIONS)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.ITEM){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_ITEM
-            this.updateInfoPaneMessageAndWaitForInput(['Your bag is empty...'],this._switchToMainBattelMenu)
+            this.updateInfoPaneMessageAndWaitForInput(['Your bag is empty...'],this._switchToMainBattelMenu,SKIP_BATTLE_ANIMATIONS)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.FLEE){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_FLEE
-            this.updateInfoPaneMessageAndWaitForInput(['You fail to run away...'],this._switchToMainBattelMenu)
+            this.updateInfoPaneMessageAndWaitForInput(['You fail to run away...'],this._switchToMainBattelMenu,SKIP_BATTLE_ANIMATIONS)
             return
         }
     }

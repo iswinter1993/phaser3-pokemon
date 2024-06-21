@@ -10,11 +10,15 @@ export type Monster = {
     currentLevel:number
 }
 
+/**
+ * 
+ */
 export type BattleMonsterConfig = {
     scene:Scene,
     monsterDetails:Monster,
-    scaleHealthBarBackgroundImageByY:number,
-    healthBarComponentPosition:Coordinate
+    scaleHealthBarBackgroundImageByY?:number,
+    healthBarComponentPosition:Coordinate,
+    skipBattleAnimations:boolean
 }
 
 export type Coordinate = {

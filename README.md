@@ -20,8 +20,8 @@
     - [x] player input improvements
  - [ ] battle scene polish
     - [x] text animations
-    - [ ] monster animations
-    - [ ] skip animations
+    - [x] monster animations
+    - [x] skip animations
     - [ ] attack animations
     - [ ] scene transitions
     - [ ] custom fonts

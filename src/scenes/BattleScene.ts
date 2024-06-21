@@ -6,6 +6,7 @@ import { PlayerBattleMonster } from "../battle/monsters/player-battle-monster";
 import { HealthBar } from "../battle/ui/health-bar";
 import { BattleMenu } from "../battle/ui/menu/battle-menu";
 import { DIRECTION, DirectionType } from "../common/direction";
+import { SKIP_BATTLE_ANIMATIONS } from "../config";
 import { StateMachine } from "../utils/state-machine";
 
 const BATTLE_STATES = Object.freeze({
@@ -57,7 +58,8 @@ export class BattleScene extends Scene {
                     currentLevel:5
                 },
                 scaleHealthBarBackgroundImageByY:0.8,
-                healthBarComponentPosition:{x:0,y:0}
+                healthBarComponentPosition:{x:0,y:0},
+                skipBattleAnimations:SKIP_BATTLE_ANIMATIONS
             }
         )
         // this.add.image(768,144,MONSTER_ASSET_KEYS.CARNODUSK,0) //没有动画，最后参数设置为0
@@ -75,7 +77,8 @@ export class BattleScene extends Scene {
                 currentLevel:5
             },
             scaleHealthBarBackgroundImageByY:1,
-            healthBarComponentPosition:{x:556,y:318}
+            healthBarComponentPosition:{x:556,y:318},
+            skipBattleAnimations:SKIP_BATTLE_ANIMATIONS
         })
        
         
@@ -150,7 +153,9 @@ export class BattleScene extends Scene {
                     })
                 })
             })
-        })
+        },
+        SKIP_BATTLE_ANIMATIONS
+        )
     }
     _enemyAttck(){
         if(this._activeEnemyMonster.isFainted){
@@ -165,7 +170,9 @@ export class BattleScene extends Scene {
                     })
                 })
             })
-        })
+        },
+        SKIP_BATTLE_ANIMATIONS
+        )
     }
     /**
      * 战斗后序列的检查
@@ -179,7 +186,9 @@ export class BattleScene extends Scene {
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`,'You have gained some exp!'],()=>{
                     //过渡下个状态
                     this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
-                })
+                },
+                SKIP_BATTLE_ANIMATIONS
+                )
             })
             return
         }
@@ -188,7 +197,9 @@ export class BattleScene extends Scene {
             this._activePlayerMonster.playDeathAnimation(()=>{
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
                     this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
-                })
+                },
+                SKIP_BATTLE_ANIMATIONS
+                )
             })
             return
         }
@@ -225,8 +236,12 @@ export class BattleScene extends Scene {
                         this._activeEnemyMonster.playMonsterHealthAppearAnimation(()=>{})
                         this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} appear!`],()=>{
                             //等待文本动画完成 并跳转下一个状态
-                            this._battleStateMachine.setState(BATTLE_STATES.BRING_OUT_MONSTER)
-                        })
+                            this.time.delayedCall(800,()=>{
+                                this._battleStateMachine.setState(BATTLE_STATES.BRING_OUT_MONSTER)
+                            })
+                        },
+                        SKIP_BATTLE_ANIMATIONS
+                        )
                     })
             }
         })
@@ -246,7 +261,9 @@ export class BattleScene extends Scene {
                             this.time.delayedCall(800,()=>{
                                 this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
                             })
-                        })
+                        },
+                        SKIP_BATTLE_ANIMATIONS
+                        )
                     })
             }
         })
@@ -298,7 +315,9 @@ export class BattleScene extends Scene {
             onEnter:()=>{
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput([`You got away safely!`],()=>{
                     this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
-                })
+                },
+                SKIP_BATTLE_ANIMATIONS
+                )
             }
         })
         //启动状态机

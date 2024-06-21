@@ -13,6 +13,7 @@ export class BattleMonster {
      _maxHealth:number;
      _monsterAttacks:Attack[];
      _phaserHealthBarContainerGameObject:GameObjects.Container
+     _skipBattleAnimations:boolean;
     /**
      * 
      * @param config 怪兽设置
@@ -21,7 +22,7 @@ export class BattleMonster {
     constructor(config:BattleMonsterConfig,position:Coordinate){
         this._scene = config.scene
         this._monsterDetails = config.monsterDetails
-      
+        this._skipBattleAnimations = config.skipBattleAnimations
         this._currentHealth = this._monsterDetails.currentHp
         this._maxHealth = this._monsterDetails.maxHp
         this._monsterAttacks = []
@@ -80,6 +81,11 @@ export class BattleMonster {
         throw new Error('playMonsterHealthAppearAnimation方法没有实现')
     }
     playTakeDamageAnimation(callback:()=>void){
+        if(this._skipBattleAnimations) {
+            this._phaserGameObject.setAlpha(1)
+            callback()
+            return
+        }
         this._scene.add.tween({
             targets:this._phaserGameObject,
             alpha:{
