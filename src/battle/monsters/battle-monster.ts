@@ -3,6 +3,7 @@ import { HealthBar } from '../ui/health-bar';
 import { Monster,BattleMonsterConfig,Coordinate, Attack } from '../../types/typedef'; 
 import { BATTLLE_ASSET_KEYS } from '../../assets/asset-keys';
 import { DataUtils } from '../../utils/data-utils';
+import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../../assets/font-keys';
 
 export class BattleMonster {
     _scene:Scene;
@@ -110,17 +111,20 @@ export class BattleMonster {
         this._healthBar = new HealthBar(this._scene,34,34);
         const monsterNameGameText:GameObjects.Text = this._scene.add.text(30,20,this.name,{
             color:'#7E3D3F',
-            fontSize:'32px'
+            fontSize:'32px',
+            fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME
         })
         const healthBarBgImage:GameObjects.Image = this._scene.add.image(0,0,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND).setOrigin(0).setScale(1,scaleHealthBarBackgroundImageByY)
         const monsterHealthBarLevelText:GameObjects.Text = this._scene.add.text(monsterNameGameText.width+35,23,`L${this.level}`,{
             color:'#ED474B',
-            fontSize:'28px'
+            fontSize:'28px',
+            fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME
         })
         const monsterHpText:GameObjects.Text = this._scene.add.text(30,55,'HP',{
             color:'#FF6505',
             fontSize:'24px',
-            fontStyle:'italic'
+            fontStyle:'italic',
+            fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME
         })
 
         this._phaserHealthBarContainerGameObject = this._scene.add.container(position.x,position.y, [

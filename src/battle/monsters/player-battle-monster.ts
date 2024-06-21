@@ -1,4 +1,5 @@
 import { GameObjects } from 'phaser';
+import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../../assets/font-keys';
 import { BattleMonsterConfig, Coordinate } from "../../types/typedef";
 import { BattleMonster } from "./battle-monster";
 
@@ -20,7 +21,8 @@ export class PlayerBattleMonster extends BattleMonster {
     _addHealthBarComponents(){
         this._healthBarTextGameObject = this._scene.add.text(443,80,``,{
             color:'#7E3D3F',
-            fontSize:'16px'
+            fontSize:'16px',
+            fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME
         }).setOrigin(1,0)
         this._setHealthBarText()
         this._phaserHealthBarContainerGameObject.add(this._healthBarTextGameObject)
