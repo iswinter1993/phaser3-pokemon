@@ -52,7 +52,7 @@ export class BattleScene extends Scene {
                     assetKey:MONSTER_ASSET_KEYS.CARNODUSK,
                     maxHp:25,
                     currentHp:25,
-                    baseAttack:5,
+                    baseAttack:25,
                     attackIds:[1],
                     currentLevel:5
                 },
@@ -70,7 +70,7 @@ export class BattleScene extends Scene {
                 assetKey:MONSTER_ASSET_KEYS.IGUANIGNITE,
                 maxHp:25,
                 currentHp:25,
-                baseAttack:15,
+                baseAttack:25,
                 attackIds:[2,1],
                 currentLevel:5
             },
@@ -143,9 +143,11 @@ export class BattleScene extends Scene {
     _playerAttack(){
         this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activePlayerMonster.name} used ${this._activePlayerMonster.attacks[this._activePlayerAttackIndex].name}`,()=>{
             //引入时间插件
-            this.time.delayedCall(1200,()=>{
-                this._activeEnemyMonster.takeDamage(this._activePlayerMonster.baseAttack,()=>{
-                    this._enemyAttck()
+            this.time.delayedCall(500,()=>{
+                this._activeEnemyMonster.playTakeDamageAnimation(()=>{
+                    this._activeEnemyMonster.takeDamage(this._activePlayerMonster.baseAttack,()=>{
+                        this._enemyAttck()
+                    })
                 })
             })
         })
@@ -156,9 +158,11 @@ export class BattleScene extends Scene {
             return
         }
         this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activeEnemyMonster.name} used ${this._activeEnemyMonster.attacks[0].name}`,()=>{
-            this.time.delayedCall(1200,()=>{
-                this._activePlayerMonster.takeDamage(this._activeEnemyMonster.baseAttack,()=>{
-                    this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+            this.time.delayedCall(500,()=>{
+                this._activePlayerMonster.playTakeDamageAnimation(()=>{
+                    this._activePlayerMonster.takeDamage(this._activeEnemyMonster.baseAttack,()=>{
+                        this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                    })
                 })
             })
         })
@@ -171,16 +175,20 @@ export class BattleScene extends Scene {
          * 检查敌方是否晕倒
          */
         if(this._activeEnemyMonster.isFainted){
-            this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`,'You have gained some exp!'],()=>{
-                //过渡下个状态
-                this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+            this._activeEnemyMonster.playDeathAnimation(()=>{
+                this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`,'You have gained some exp!'],()=>{
+                    //过渡下个状态
+                    this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+                })
             })
             return
         }
 
         if(this._activePlayerMonster.isFainted){
-            this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
-                this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+            this._activePlayerMonster.playDeathAnimation(()=>{
+                this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
+                    this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+                })
             })
             return
         }
@@ -213,33 +221,33 @@ export class BattleScene extends Scene {
             name:BATTLE_STATES.PRE_BATTLE_INFO,
             onEnter:()=>{
                 //等待敌方怪兽出现在场景中并通知玩家相关信息
-                this.time.delayedCall(500,()=>{
-                    this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} appear!`],()=>{
-                        //等待文本动画完成 并跳转下一个状态
-                        this.time.delayedCall(500,()=>{
+                    this._activeEnemyMonster.playMonsterAppearAnimation(()=>{
+                        this._activeEnemyMonster.playMonsterHealthAppearAnimation(()=>{})
+                        this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} appear!`],()=>{
+                            //等待文本动画完成 并跳转下一个状态
                             this._battleStateMachine.setState(BATTLE_STATES.BRING_OUT_MONSTER)
                         })
                     })
-                })
             }
         })
         this._battleStateMachine.addState({
             name:BATTLE_STATES.BRING_OUT_MONSTER,
             onEnter:()=>{
                 //等待玩家怪兽出现并且 通知玩家相关信息
-                this.time.delayedCall(500,()=>{
-                    this._battleMenu.updateInfoPaneMessageNoInputRequired(`go ${this._activePlayerMonster.name}!`,()=>{
-                        //等待文本动画完成 并跳转下一个状态
-                        //运用事件循环机制，先安照代码循序执行，
-                        //使用this.time.delayedCall函数，this._battleStateMachine.setState会被放到 宏任务队列 中，
-                        //isChangingState为同步执行代码没有使用任何队列，所以先赋值为false，主代码流程执行完成后，开始执行微任务队列，
-                        //当微任务队列为空后，开始执行宏任务队列，运行this._battleStateMachine.setState，因为isChangingState已经是false，
-                        //BATTLE_STATES.PLAYER_INPUT不会被push到changingStateQueQue序列
-                        this.time.delayedCall(1200,()=>{
-                            this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
+                    this._activePlayerMonster.playMonsterAppearAnimation(()=>{
+                        this._activePlayerMonster.playMonsterHealthAppearAnimation(()=>{})
+                        this._battleMenu.updateInfoPaneMessageNoInputRequired(`go ${this._activePlayerMonster.name}!`,()=>{
+                            //等待文本动画完成 并跳转下一个状态
+                            //运用事件循环机制，先安照代码循序执行，
+                            //使用this.time.delayedCall函数，this._battleStateMachine.setState会被放到 宏任务队列 中，
+                            //isChangingState为同步执行代码没有使用任何队列，所以先赋值为false，主代码流程执行完成后，开始执行微任务队列，
+                            //当微任务队列为空后，开始执行宏任务队列，运行this._battleStateMachine.setState，因为isChangingState已经是false，
+                            //BATTLE_STATES.PLAYER_INPUT不会被push到changingStateQueQue序列
+                            this.time.delayedCall(800,()=>{
+                                this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
+                            })
                         })
                     })
-                })
             }
         })
         this._battleStateMachine.addState({

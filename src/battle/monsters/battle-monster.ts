@@ -25,7 +25,7 @@ export class BattleMonster {
         this._currentHealth = this._monsterDetails.currentHp
         this._maxHealth = this._monsterDetails.maxHp
         this._monsterAttacks = []
-        this._phaserGameObject = this._scene.add.image(position.x,position.y,this._monsterDetails.assetKey,this._monsterDetails.assetFrame||0)
+        this._phaserGameObject = this._scene.add.image(position.x,position.y,this._monsterDetails.assetKey,this._monsterDetails.assetFrame||0).setAlpha(0)
         this._creatHealthBarComponents(config.scaleHealthBarBackgroundImageByY,config.healthBarComponentPosition)
         /**
          * 通过 attackId 获取招式数据
@@ -73,6 +73,33 @@ export class BattleMonster {
         this._healthBar.setMeterPercentageAnimated(this._currentHealth/this._maxHealth,{callback})
     } 
 
+    playMonsterAppearAnimation(callback:()=>void){
+        throw new Error('playMonsterAppearAnimation方法没有实现')
+    }
+    playMonsterHealthAppearAnimation(callback:()=>void){
+        throw new Error('playMonsterHealthAppearAnimation方法没有实现')
+    }
+    playTakeDamageAnimation(callback:()=>void){
+        this._scene.add.tween({
+            targets:this._phaserGameObject,
+            alpha:{
+                form:1,
+                start:1,
+                to:0
+            },
+            delay:0,
+            duration:150,
+            repeat:10,
+            onComplete:()=>{
+                callback()
+                this._phaserGameObject.setAlpha(1)
+            }
+        })
+    }
+    playDeathAnimation(callback:()=>void){
+        throw new Error('playDeathAnimation方法没有实现')
+    }
+
     _creatHealthBarComponents(scaleHealthBarBackgroundImageByY=1,position:Coordinate){
         this._healthBar = new HealthBar(this._scene,34,34);
         const monsterNameGameText:GameObjects.Text = this._scene.add.text(30,20,this.name,{
@@ -96,7 +123,7 @@ export class BattleMonster {
             this._healthBar.container,
             monsterHealthBarLevelText,
             monsterHpText,
-        ])
+        ]).setAlpha(0)
     }
 
 }
