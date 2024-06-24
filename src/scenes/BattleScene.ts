@@ -1,5 +1,6 @@
 import { Scene } from "phaser";
 import { BATTLLE_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
+import { IceShard } from "../battle/attacks/ice-shard";
 import { Background } from "../battle/background";
 import { EnemyBattleMonster } from "../battle/monsters/enemy-battle-monster";
 import { PlayerBattleMonster } from "../battle/monsters/player-battle-monster";
@@ -89,6 +90,8 @@ export class BattleScene extends Scene {
         
         //创建键盘 上下左右,空格 shift等热键 事件
         this._cursorkeys = this.input.keyboard?.createCursorKeys();
+
+        const akt = new IceShard(this,{x:745,y:140})
     }
     update(time: number, delta: number): void {
         this._battleStateMachine.update()

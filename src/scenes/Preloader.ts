@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, DATA_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS, UI_ASSET_KEYS } from "../assets/asset-keys";
+import { ATTACK_ASSET_KEYS, BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, DATA_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS, UI_ASSET_KEYS } from "../assets/asset-keys";
 import { WebFontFileLoader } from "../assets/web-font-file-loader";
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from "../assets/font-keys";
 
@@ -27,6 +27,7 @@ export class Preloader extends Scene {
         const monsterTamerAssetPath = 'assets/images/monster-tamer'
         const kenneysAssetPath = 'assets/images/kenneys-assets'
         const dataAssetPath = 'assets/data'
+        const pimenAssetPath = 'assets/images/pimen'
         console.log('Preloader >>> preload')
         /**
          * battle background assets
@@ -62,6 +63,23 @@ export class Preloader extends Scene {
          * 加载字体文件
          */
         this.load.addFile(new WebFontFileLoader(this.load,[KENNEY_FUTURE_NARROW_FONT_NAME]))
+        /**
+         * 加载攻击资源
+         * 使用 this.load.spritesheet 方法预加载 spritesheet。
+         *  frameWidth 和 frameHeight 是每帧的宽度和高度。
+         */
+        this.load.spritesheet(ATTACK_ASSET_KEYS.ICE_SHARD,`${pimenAssetPath}/ice-attack/active.png`,{
+            frameHeight:32,
+            frameWidth:32
+        })
+        this.load.spritesheet(ATTACK_ASSET_KEYS.ICE_SHARD_START,`${pimenAssetPath}/ice-attack/start.png`,{
+            frameHeight:32,
+            frameWidth:32
+        })
+        this.load.spritesheet(ATTACK_ASSET_KEYS.SLASH,`${pimenAssetPath}/slash.png`,{
+            frameHeight:48,
+            frameWidth:48
+        })
         
     }
 
