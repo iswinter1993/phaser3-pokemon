@@ -22,7 +22,7 @@
     - [x] text animations
     - [x] monster animations
     - [x] skip animations
-    - [ ] attack animations
+    - [x] attack animations
     - [ ] scene transitions
     - [ ] custom fonts
 

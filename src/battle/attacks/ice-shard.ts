@@ -23,7 +23,7 @@ export class IceShard extends Attack {
             key:ATTACK_ASSET_KEYS.ICE_SHARD,
             frames:this._scene.anims.generateFrameNumbers(ATTACK_ASSET_KEYS.ICE_SHARD,{
                 start:0,
-                end:8
+                end:7
             }), //生成帧数组，可以指定开始和结束的帧
             frameRate:8, //帧速率，动画播放速度
             repeat:0,//重复次数
