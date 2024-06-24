@@ -82,7 +82,7 @@ export class BattleMenu {
         this._queuedInfoPanelCallback = undefined
         this._queuedInfoPanelMessage = []
         this._waitingForPlayerInput = false
-        this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN
+        this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN 
         this._selectedBattleMenuOption = BATTLE_MENU_OPTION.FIGHT
         this._selectedAttackMenuOption = ATTACK_MOVE_OPTION.MOVE_1
         this._quequeMessagesSkipAnimation = false
@@ -135,7 +135,7 @@ export class BattleMenu {
         this._moveSelectionSubBattleMenuPhaserContainerGameObject.setAlpha(0)
     }
 
-    handlePlayerInput(input:'OK'|'CANCEL'| DirectionType){
+    handlePlayerInput(input:'OK'|'CANCEL'| DirectionType,battlestate:string){
         console.log(input)
         if(this._quequeMessagesAnimationPlaying && input === 'OK') return
         if(this._waitingForPlayerInput && (input === 'CANCEL' || input === 'OK')){
@@ -146,7 +146,9 @@ export class BattleMenu {
             this._switchToMainBattelMenu()
             return
         }
+        
         if(input === 'OK'){
+            if(battlestate !== 'PLAYER_INPUT') return
             if(this._activeBattleMenu === ACTIVE_BATTLE_MENU.BATTLE_MAIN){
                 this._handlePlayerChooseMainBattelOption()
                 return

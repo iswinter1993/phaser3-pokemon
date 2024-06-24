@@ -92,6 +92,7 @@ export class BattleScene extends Scene {
         this._cursorkeys = this.input.keyboard?.createCursorKeys();
 
         const akt = new IceShard(this,{x:745,y:140})
+        akt.playAnimation()
     }
     update(time: number, delta: number): void {
         this._battleStateMachine.update()
@@ -103,7 +104,7 @@ export class BattleScene extends Scene {
             || this._battleStateMachine.currentStateName === BATTLE_STATES.POST_ATTACK_CHECK
             || this._battleStateMachine.currentStateName === BATTLE_STATES.FLEE_ATTEMPT
         )){
-            this._battleMenu.handlePlayerInput('OK')
+            this._battleMenu.handlePlayerInput('OK',this._battleStateMachine.currentStateName)
             return
         }
 
@@ -111,7 +112,7 @@ export class BattleScene extends Scene {
             return
         }
         if(wasSpaceKeyPressed){
-            this._battleMenu.handlePlayerInput('OK')
+            this._battleMenu.handlePlayerInput('OK',this._battleStateMachine.currentStateName)
             //判断玩家选择的招式，并更新文本
             if(this._battleMenu.selectedAttack === undefined){
                 return
@@ -126,7 +127,7 @@ export class BattleScene extends Scene {
         }
         const wasShiftKeyPressed = Phaser.Input.Keyboard.JustDown(this._cursorkeys?.shift)
         if(wasShiftKeyPressed){
-            this._battleMenu.handlePlayerInput('CANCEL')
+            this._battleMenu.handlePlayerInput('CANCEL',this._battleStateMachine.currentStateName)
             return
         }
         
@@ -141,7 +142,7 @@ export class BattleScene extends Scene {
             selectedDirection = DIRECTION.DOWN
         }
         if(selectedDirection !== DIRECTION.NONE){
-            this._battleMenu.handlePlayerInput(selectedDirection)
+            this._battleMenu.handlePlayerInput(selectedDirection,this._battleStateMachine.currentStateName)
         }
     }
      
