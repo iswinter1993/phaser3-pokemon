@@ -1,3 +1,4 @@
+import { AttackKeys } from './../battle/attacks/attack-keys';
 import { Scene } from "phaser"
 export type Monster = {
     name:string,
@@ -29,5 +30,5 @@ export type Coordinate = {
 export type Attack = {
     id:number,
     name:string,
-    animationName:string
+    animationName:AttackKeys
 }

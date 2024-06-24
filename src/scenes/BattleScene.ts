@@ -1,6 +1,7 @@
+import { ATTACK_TARGET } from './../battle/attacks/attack-manager';
 import { Scene } from "phaser";
-import { BATTLLE_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
-import { IceShard } from "../battle/attacks/ice-shard";
+import { MONSTER_ASSET_KEYS } from "../assets/asset-keys";
+import { AttackManager } from "../battle/attacks/attack-manager";
 import { Background } from "../battle/background";
 import { EnemyBattleMonster } from "../battle/monsters/enemy-battle-monster";
 import { PlayerBattleMonster } from "../battle/monsters/player-battle-monster";
@@ -30,6 +31,7 @@ export class BattleScene extends Scene {
     _activePlayerMonster:PlayerBattleMonster;
     _activePlayerAttackIndex:number;
     _battleStateMachine:StateMachine;
+    _attackManager:AttackManager
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -54,7 +56,7 @@ export class BattleScene extends Scene {
                     assetKey:MONSTER_ASSET_KEYS.CARNODUSK,
                     maxHp:25,
                     currentHp:25,
-                    baseAttack:25,
+                    baseAttack:5,
                     attackIds:[1],
                     currentLevel:5
                 },
@@ -73,7 +75,7 @@ export class BattleScene extends Scene {
                 assetKey:MONSTER_ASSET_KEYS.IGUANIGNITE,
                 maxHp:25,
                 currentHp:25,
-                baseAttack:25,
+                baseAttack:5,
                 attackIds:[2,1],
                 currentLevel:5
             },
@@ -87,12 +89,11 @@ export class BattleScene extends Scene {
         this._battleMenu = new BattleMenu(this,this._activePlayerMonster)
         
         this._createBattleStateMachine()
+
+        this._attackManager = new AttackManager(this,SKIP_BATTLE_ANIMATIONS)
         
         //创建键盘 上下左右,空格 shift等热键 事件
         this._cursorkeys = this.input.keyboard?.createCursorKeys();
-
-        const akt = new IceShard(this,{x:745,y:140})
-        akt.playAnimation()
     }
     update(time: number, delta: number): void {
         this._battleStateMachine.update()
@@ -151,9 +152,11 @@ export class BattleScene extends Scene {
         this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activePlayerMonster.name} used ${this._activePlayerMonster.attacks[this._activePlayerAttackIndex].name}`,()=>{
             //引入时间插件
             this.time.delayedCall(500,()=>{
-                this._activeEnemyMonster.playTakeDamageAnimation(()=>{
-                    this._activeEnemyMonster.takeDamage(this._activePlayerMonster.baseAttack,()=>{
-                        this._enemyAttck()
+                this._attackManager.playAttackAnimation(this._activePlayerMonster.attacks[this._activePlayerAttackIndex].animationName,ATTACK_TARGET.ENEMY,()=>{
+                    this._activeEnemyMonster.playTakeDamageAnimation(()=>{
+                        this._activeEnemyMonster.takeDamage(this._activePlayerMonster.baseAttack,()=>{
+                            this._enemyAttck()
+                        })
                     })
                 })
             })
@@ -168,9 +171,11 @@ export class BattleScene extends Scene {
         }
         this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activeEnemyMonster.name} used ${this._activeEnemyMonster.attacks[0].name}`,()=>{
             this.time.delayedCall(500,()=>{
-                this._activePlayerMonster.playTakeDamageAnimation(()=>{
-                    this._activePlayerMonster.takeDamage(this._activeEnemyMonster.baseAttack,()=>{
-                        this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                this._attackManager.playAttackAnimation(this._activeEnemyMonster.attacks[0].animationName,ATTACK_TARGET.PLAYER,()=>{
+                    this._activePlayerMonster.playTakeDamageAnimation(()=>{
+                        this._activePlayerMonster.takeDamage(this._activeEnemyMonster.baseAttack,()=>{
+                            this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                        })
                     })
                 })
             })

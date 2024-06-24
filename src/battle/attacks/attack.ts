@@ -20,7 +20,7 @@ export class Attack {
      * 
      * @param callback 
      */
-    playAnimation(callback:()=>void){
+    playAnimation(callback?:()=>void){
         throw new Error('playAnimation方法未实现')
     }
 }
