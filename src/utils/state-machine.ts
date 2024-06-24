@@ -49,7 +49,7 @@ export class StateMachine {
             return
         }
 
-        //name判断是不是当前状态
+        //判断当前状态
         if(this._isCurrentState(name)){
             return
         }

@@ -1,7 +1,8 @@
 import { Scene } from "phaser";
 import { BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, DATA_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS, UI_ASSET_KEYS } from "../assets/asset-keys";
+import { WebFontFileLoader } from "../assets/web-font-file-loader";
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from "../assets/font-keys";
-import * as WebFont from '../lib/webfontloader'
+
 export class Preloader extends Scene {
     constructor () {
         //通过构造函数创建场景，super函数中字符串为场景的key
@@ -57,7 +58,10 @@ export class Preloader extends Scene {
          * 招式json
          */
         this.load.json(DATA_ASSET_KEYS.ATTACKS,`${dataAssetPath}/attacks.json`)
-        
+        /**
+         * 加载字体文件
+         */
+        this.load.addFile(new WebFontFileLoader(this.load,[KENNEY_FUTURE_NARROW_FONT_NAME]))
         
     }
 
@@ -66,18 +70,7 @@ export class Preloader extends Scene {
         // console.log(this.textures.get(BATTLE_BACKGROUND_ASSET_KEYS.FOREST))
         // this.add.image(0,0,BATTLE_BACKGROUND_ASSET_KEYS.FOREST).setOrigin(0,0)
         
-        /**
-         * 加载字体
-         */
-         WebFont.default.load({
-             custom:{
-                 families:[KENNEY_FUTURE_NARROW_FONT_NAME]
-             },
-             active:()=>{
-                 console.log('font 已加载')
-                 this.scene.start('BattleScene')
-             }
-         })
+         this.scene.start('BattleScene')
     }
 
     update(){
