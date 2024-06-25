@@ -18,13 +18,13 @@
     - [x] implement each state
     - [x] add item, flee, and monster states
     - [x] player input improvements
- - [ ] battle scene polish
+ - [x] battle scene polish
     - [x] text animations
     - [x] monster animations
     - [x] skip animations
     - [x] attack animations
-    - [ ] scene transitions
-    - [ ] custom fonts
+    - [x] scene transitions
+    - [x] custom fonts
 
 ## World Scene:
   - [ ] load level background

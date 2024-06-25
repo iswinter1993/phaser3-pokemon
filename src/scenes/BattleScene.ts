@@ -1,3 +1,4 @@
+import { createSceneTransition } from './../utils/scene-transition';
 import { ATTACK_TARGET } from './../battle/attacks/attack-manager';
 import { Scene } from "phaser";
 import { MONSTER_ASSET_KEYS } from "../assets/asset-keys";
@@ -232,8 +233,11 @@ export class BattleScene extends Scene {
             name:BATTLE_STATES.INTRO,
             onEnter:()=>{
                 //等待任意场景设置并且转换动画完成
-                this.time.delayedCall(500,()=>{
-                    this._battleStateMachine.setState(BATTLE_STATES.PRE_BATTLE_INFO)
+                createSceneTransition(this,{
+                    skipSceneTransition:false,
+                    callback:()=>{
+                        this._battleStateMachine.setState(BATTLE_STATES.PRE_BATTLE_INFO)
+                    }
                 })
             }
         })
