@@ -33,7 +33,7 @@ export class StateMachine {
     update(){
         // console.log(this._changingStateQueque)
         if(this._changingStateQueque.length > 0) {
-            this.setState(this._changingStateQueque.shift())
+            this.setState(this._changingStateQueque.shift()||'')
             return
         }
     }
