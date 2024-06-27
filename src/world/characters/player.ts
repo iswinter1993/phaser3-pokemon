@@ -16,4 +16,5 @@ export class Player extends Character {
             assetFrame:7
         })
     }
+    
 }

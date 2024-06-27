@@ -11,6 +11,7 @@ import { BattleMenu } from "../battle/ui/menu/battle-menu";
 import { DIRECTION, DirectionType } from "../common/direction";
 import { SKIP_BATTLE_ANIMATIONS } from "../config";
 import { StateMachine } from "../utils/state-machine";
+import { Controls } from '../utils/controls';
 
 const BATTLE_STATES = Object.freeze({
     INTRO:'INTRO',
@@ -33,6 +34,7 @@ export class BattleScene extends Scene {
     _activePlayerAttackIndex:number;
     _battleStateMachine:StateMachine;
     _attackManager:AttackManager
+    _controls:Controls
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -94,12 +96,13 @@ export class BattleScene extends Scene {
         this._attackManager = new AttackManager(this,SKIP_BATTLE_ANIMATIONS)
         
         //创建键盘 上下左右,空格 shift等热键 事件
-        this._cursorkeys = this.input.keyboard?.createCursorKeys();
+        this._controls = new Controls(this)
+
     }
     update(time: number, delta: number): void {
         this._battleStateMachine.update()
         //空格键是否按下
-        const wasSpaceKeyPressed = Phaser.Input.Keyboard.JustDown(this._cursorkeys?.space)
+        const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
         //基于当前战斗状态，限制玩家输入
         //如果我们不在正确的状态，提前返回不处理输入
         if(wasSpaceKeyPressed && (this._battleStateMachine.currentStateName === BATTLE_STATES.PRE_BATTLE_INFO
@@ -127,22 +130,13 @@ export class BattleScene extends Scene {
 
             return
         }
-        const wasShiftKeyPressed = Phaser.Input.Keyboard.JustDown(this._cursorkeys?.shift)
+        const wasShiftKeyPressed = this._controls.wasBackKeyPressed()
         if(wasShiftKeyPressed){
             this._battleMenu.handlePlayerInput('CANCEL',this._battleStateMachine.currentStateName)
             return
         }
         
-        let selectedDirection:DirectionType = DIRECTION.NONE
-        if(this._cursorkeys?.left.isDown){
-            selectedDirection = DIRECTION.LEFT
-        } else if(this._cursorkeys?.right.isDown){
-            selectedDirection = DIRECTION.RIGHT
-        } else if(this._cursorkeys?.up.isDown){
-            selectedDirection = DIRECTION.UP
-        } else if(this._cursorkeys?.down.isDown){
-            selectedDirection = DIRECTION.DOWN
-        }
+        let selectedDirection:DirectionType = this._controls.getDirectionKeyJustPressed()
         if(selectedDirection !== DIRECTION.NONE){
             this._battleMenu.handlePlayerInput(selectedDirection,this._battleStateMachine.currentStateName)
         }
