@@ -27,9 +27,9 @@
     - [x] custom fonts
 
 ## World Scene:
-  - [ ] load level background
-  - [ ] create player
-  - [ ] handle player input
+  - [x] load level background
+  - [x] create player
+  - [x] handle player input
   - [ ] camera movement
   - [ ] handle grid based movement
   - [ ] handle collisions
