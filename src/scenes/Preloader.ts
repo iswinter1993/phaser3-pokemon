@@ -1,3 +1,5 @@
+import { Animation } from './../types/typedef';
+import { DataUtils } from './../utils/data-utils';
 import { Scene } from "phaser";
 import { ATTACK_ASSET_KEYS, BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, CHARACTER_ASSET_KEYS, DATA_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS, UI_ASSET_KEYS, WORLD_ASSET_KEYS } from "../assets/asset-keys";
 import { WebFontFileLoader } from "../assets/web-font-file-loader";
@@ -98,6 +100,10 @@ export class Preloader extends Scene {
             frameWidth:16,
             frameHeight:16
         })
+        /**
+         * 加载动画json
+         */
+        this.load.json(DATA_ASSET_KEYS.ANIMATIONS,`${dataAssetPath}/animations.json`)
         
     }
 
@@ -106,10 +112,35 @@ export class Preloader extends Scene {
         // console.log(this.textures.get(BATTLE_BACKGROUND_ASSET_KEYS.FOREST))
         // this.add.image(0,0,BATTLE_BACKGROUND_ASSET_KEYS.FOREST).setOrigin(0,0)
         
-         this.scene.start('WorldScene')
+        this.scene.start('WorldScene')
+        this._createAnimations()
+         
     }
 
     update(){
        
+    }
+
+    _createAnimations(){
+        const animations = DataUtils.getAnimations(this)
+        animations.forEach((animation:Animation) => {
+            const {
+                key,
+                frames,
+                frameRate,
+                repeat,
+                delay,
+                yoyo,
+                assetKey
+            } = animation
+            this.anims.create({
+                key: key,
+                frames:this.anims.generateFrameNumbers(assetKey,{frames}),
+                frameRate,//帧速率
+                delay,
+                repeat,
+                yoyo //动画应该有yoyo吗？ （反向回到起点）然后再重复？
+             })
+        });
     }
 }

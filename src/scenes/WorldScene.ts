@@ -22,7 +22,8 @@ export class WorldScene extends Scene {
 
         this._player = new Player({
             scene:this,
-            position:PLAYER_POSITION
+            position:PLAYER_POSITION,
+            direction:DIRECTION.DOWN
         })
 
         this._controls = new Controls(this)

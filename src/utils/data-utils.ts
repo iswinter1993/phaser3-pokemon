@@ -1,6 +1,6 @@
 import { Scene } from "phaser";
 import { DATA_ASSET_KEYS } from "../assets/asset-keys";
-import { Attack } from "../types/typedef";
+import { Animation, Attack } from "../types/typedef";
 
 export class DataUtils {
     /**
@@ -15,5 +15,10 @@ export class DataUtils {
          */
         const data:Attack[] = scene.cache.json.get(DATA_ASSET_KEYS.ATTACKS)
         return data.find( attack => attack.id === attackId)
+    }
+
+    static getAnimations(scene:Scene){
+        const data:Animation[] = scene.cache.json.get(DATA_ASSET_KEYS.ANIMATIONS)
+        return data
     }
 }

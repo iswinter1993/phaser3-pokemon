@@ -32,3 +32,13 @@ export type Attack = {
     name:string,
     animationName:AttackKeys
 }
+
+export type Animation = {
+    key:string,
+    frames?:number[],
+    frameRate:number,
+    repeat:number,
+    delay:number,
+    yoyo:boolean,
+    assetKey:string
+  }
