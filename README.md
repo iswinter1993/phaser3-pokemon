@@ -1,8 +1,11 @@
 类pokemon游戏
 
 ## 运行
+
 > npm i
+
 > npm run dev
+
 ## Battle System:
   - [x] load game assets
   - [x] create battle scene layout
