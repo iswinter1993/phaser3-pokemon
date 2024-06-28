@@ -15,7 +15,14 @@ export class Player extends Character {
         super({
             ...config,
             assetKey:CHARACTER_ASSET_KEYS.PLAYER,
-            assetFrame:7
+            origin:{x:0,y:0.2},
+            idleFrameConfig:{
+                DOWN:7,
+                NONE:7,
+                UP:1,
+                LEFT:10,
+                RIGHT:4
+            }
         })
     }
 

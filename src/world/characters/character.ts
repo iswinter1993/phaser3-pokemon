@@ -8,12 +8,21 @@ import { TILE_SIZE } from '../../config';
 type CharacterConfig = {
     scene:Scene,
     assetKey:string,
-    assetFrame?:number,
+    idleFrameConfig:CharacterIdleFrameConfig,//空闲帧
     position:Coordinate,
     direction:DirectionType,
+    origin?:Coordinate,
     spriteGridMovementFinishedCallback?:()=>void
 }
 
+
+type CharacterIdleFrameConfig = {
+    DOWN:number,
+    UP:number,
+    LEFT:number,
+    RIGHT:number,
+    NONE:number
+}
 export class Character {
     _scene:Scene
     _phaserGameObject:GameObjects.Sprite
@@ -23,6 +32,8 @@ export class Character {
     _targetPosition:Coordinate
     //之前的位置
     _previousTargetPosition:Coordinate
+    _idleFrameConfig:CharacterIdleFrameConfig
+    _origin:Coordinate
     _spriteGridMovementFinishedCallback:(()=>void) | undefined
     constructor(config:CharacterConfig){
         this._scene = config.scene
@@ -30,7 +41,9 @@ export class Character {
         this._isMoving = false
         this._targetPosition = {...config.position}
         this._previousTargetPosition = {...config.position}
-        this._phaserGameObject = this._scene.add.sprite(config.position.x,config.position.y,config.assetKey,config.assetFrame||0).setOrigin(0)
+        this._idleFrameConfig = config.idleFrameConfig
+        this._origin = config.origin || {x:0,y:0}
+        this._phaserGameObject = this._scene.add.sprite(config.position.x,config.position.y,config.assetKey,this._getIdleFrame()).setOrigin(this._origin.x,this._origin.y)
         this._spriteGridMovementFinishedCallback = config.spriteGridMovementFinishedCallback
     }
 
@@ -50,6 +63,43 @@ export class Character {
         this._moveSprite(direction)
 
         
+    }
+
+    update(time: any){
+        if(this._isMoving){
+            return
+        }
+        //获取当前动画的空闲帧
+        const idleFrame = this._phaserGameObject.anims.currentAnim?.frames[1].frame.name
+        this._phaserGameObject.anims.stop()
+        if(!idleFrame){
+            return
+        }
+        switch (this._direction) {
+            case DIRECTION.DOWN:
+                this._phaserGameObject.setFrame(idleFrame)
+                break;
+            case DIRECTION.UP:
+                this._phaserGameObject.setFrame(idleFrame)
+                break;
+            case DIRECTION.LEFT:
+                this._phaserGameObject.setFrame(idleFrame)
+                break;
+            case DIRECTION.RIGHT:
+                this._phaserGameObject.setFrame(idleFrame)
+                break;
+            case DIRECTION.NONE:
+                
+                break;
+        
+            default:
+                break;
+        }
+    }
+
+
+    _getIdleFrame(){
+        return this._idleFrameConfig[this._direction]
     }
 
     _moveSprite(direction:DirectionType){

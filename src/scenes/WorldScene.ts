@@ -29,10 +29,11 @@ export class WorldScene extends Scene {
         this._controls = new Controls(this)
     }
 
-    update() {
+    update(time: any) {
         const selectedDirection = this._controls.getDirectionKeyJustPressed()
         if(selectedDirection !== DIRECTION.NONE){
             this._player.moveCharacter(selectedDirection)
         }
+        this._player.update(time)
     }
 }
