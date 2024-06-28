@@ -3,7 +3,6 @@ import { GameObjects } from 'phaser';
 import { Scene } from 'phaser';
 import { Coordinate } from '../../types/typedef';
 import { DIRECTION, DirectionType } from '../../common/direction';
-import { TILE_SIZE } from '../../config';
 
 type CharacterConfig = {
     scene:Scene,
@@ -45,6 +44,11 @@ export class Character {
         this._origin = config.origin || {x:0,y:0}
         this._phaserGameObject = this._scene.add.sprite(config.position.x,config.position.y,config.assetKey,this._getIdleFrame()).setOrigin(this._origin.x,this._origin.y)
         this._spriteGridMovementFinishedCallback = config.spriteGridMovementFinishedCallback
+    }
+
+
+    get sprite():GameObjects.Sprite{
+        return this._phaserGameObject
     }
 
     get isMoving():boolean{

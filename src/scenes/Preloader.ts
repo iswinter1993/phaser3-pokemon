@@ -120,7 +120,9 @@ export class Preloader extends Scene {
     update(){
        
     }
-
+    /**
+     * 创建animation.json中的所有动画，包括攻击动画
+     */
     _createAnimations(){
         const animations = DataUtils.getAnimations(this)
         animations.forEach((animation:Animation) => {

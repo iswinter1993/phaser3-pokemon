@@ -18,27 +18,7 @@ export class IceShard extends Attack {
          *   @param frame — An optional frame from the Texture this Game Object is rendering with.渲染这个游戏对象的纹理中的一个可选帧。
          */
 
-        //创建动画
-        this._scene.anims.create({
-            key:ATTACK_ASSET_KEYS.ICE_SHARD,
-            frames:this._scene.anims.generateFrameNumbers(ATTACK_ASSET_KEYS.ICE_SHARD,{
-                start:0,
-                end:7
-            }), //生成帧数组，可以指定开始和结束的帧
-            frameRate:8, //帧速率，动画播放速度
-            repeat:0,//重复次数
-            delay:0
-        })
-        this._scene.anims.create({
-            key:ATTACK_ASSET_KEYS.ICE_SHARD_START,
-            frames:this._scene.anims.generateFrameNumbers(ATTACK_ASSET_KEYS.ICE_SHARD_START,{
-                start:0,
-                end:8
-            }), //生成帧数组，可以指定开始和结束的帧
-            frameRate:8, //帧速率，动画播放速度
-            repeat:0,//重复次数
-            delay:0
-        })
+      
         
         //创建攻击对象
         this._attackGameObject = this._scene.add.sprite(this._position.x, this._position.y, ATTACK_ASSET_KEYS.ICE_SHARD, 0 )

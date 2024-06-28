@@ -11,16 +11,6 @@ export class Slash extends Attack {
     constructor(scene:Scene,position:Coordinate){
         super(scene,position)
 
-        this._scene.anims.create({
-            key:ATTACK_ASSET_KEYS.SLASH,
-            frames:this._scene.anims.generateFrameNumbers(ATTACK_ASSET_KEYS.SLASH,{
-                start:0,
-                end:4
-            }),
-            frameRate:4,
-            delay:0,
-            repeat:0
-        })
 
         this._attackGameObject1 = this._scene.add.sprite(0,0,ATTACK_ASSET_KEYS.SLASH,0)
         .setOrigin(0.5)

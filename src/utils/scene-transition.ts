@@ -27,8 +27,7 @@ export const createSceneTransition = (scene:Scene,option?:OptionType) => {
     //fillRectShape - 填充给定的矩形。
     //setDepth - 等于 z-index
     //  fillStyle:{color:0x0000} 设置矩形填充颜色
-    const g = scene.add
-    .graphics(
+    const g = scene.add.graphics(
     //     {
     //     fillStyle:{color:0x0000}
     // }
