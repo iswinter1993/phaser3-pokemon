@@ -1,4 +1,4 @@
-import { Scene } from 'phaser';
+import { Scene, Tilemaps } from 'phaser';
 import { CHARACTER_ASSET_KEYS } from '../../assets/asset-keys';
 import { DIRECTION, DirectionType } from '../../common/direction';
 import { Coordinate } from '../../types/typedef';
@@ -7,7 +7,8 @@ import { Character } from "./character";
 type PlayerConfig = {
     scene:Scene,
     position:Coordinate,
-    direction:DirectionType
+    direction:DirectionType,
+    collisionLayer?:Tilemaps.TilemapLayer
 }
 
 export class Player extends Character {

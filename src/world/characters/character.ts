@@ -1,5 +1,5 @@
 import { getTargetPositionFromGameObjectPositionAndDirection } from './../../utils/grid-utils';
-import { GameObjects } from 'phaser';
+import { GameObjects, Tilemaps } from 'phaser';
 import { Scene } from 'phaser';
 import { Coordinate } from '../../types/typedef';
 import { DIRECTION, DirectionType } from '../../common/direction';
@@ -11,7 +11,8 @@ type CharacterConfig = {
     position:Coordinate,
     direction:DirectionType,
     origin?:Coordinate,
-    spriteGridMovementFinishedCallback?:()=>void
+    spriteGridMovementFinishedCallback?:()=>void,
+    collisionLayer?:Tilemaps.TilemapLayer
 }
 
 
@@ -31,9 +32,12 @@ export class Character {
     _targetPosition:Coordinate
     //之前的位置
     _previousTargetPosition:Coordinate
+    //空闲帧
     _idleFrameConfig:CharacterIdleFrameConfig
     _origin:Coordinate
     _spriteGridMovementFinishedCallback:(()=>void) | undefined
+    //实现碰撞，是否可以发生碰撞,碰撞图层
+    _collisionLayer?:Tilemaps.TilemapLayer 
     constructor(config:CharacterConfig){
         this._scene = config.scene
         this._direction = config.direction
@@ -42,6 +46,7 @@ export class Character {
         this._previousTargetPosition = {...config.position}
         this._idleFrameConfig = config.idleFrameConfig
         this._origin = config.origin || {x:0,y:0}
+        this._collisionLayer = config.collisionLayer
         this._phaserGameObject = this._scene.add.sprite(config.position.x,config.position.y,config.assetKey,this._getIdleFrame()).setOrigin(this._origin.x,this._origin.y)
         this._spriteGridMovementFinishedCallback = config.spriteGridMovementFinishedCallback
     }
@@ -108,7 +113,7 @@ export class Character {
 
     _moveSprite(direction:DirectionType){
         this._direction = direction
-        if(this._isBlockTile()){
+        if(this._isBlockingTile()){
             return
         }
         this._isMoving = true
@@ -119,8 +124,13 @@ export class Character {
      * 是否阻塞,碰撞逻辑
      * @returns boolean
      */
-    _isBlockTile(){
-        return false
+    _isBlockingTile(){
+        if(this._direction === DIRECTION.NONE){
+            return
+        }
+        const targetPosition = {...this._targetPosition}
+        const updatePosition = getTargetPositionFromGameObjectPositionAndDirection(targetPosition,this._direction)
+        return this._doesPositionCollideWithCollisionLayer(updatePosition)
     }
 
     _handleSpriteMovement(){
@@ -157,5 +167,21 @@ export class Character {
             }
         })
 
+    }
+
+    /**
+     * 通过位置坐标和碰撞图层，判断当前场景中，此坐标是否有碰撞图层
+     * @param position 
+     * @returns 
+     */
+    _doesPositionCollideWithCollisionLayer(position:Coordinate){
+        if(!this._collisionLayer){
+            return false
+        }
+        const {x,y} = position
+        //通过 x,y 获取当前场景中，此坐标是否有碰撞图层, index为-1时没有碰撞图层
+        const tile = this._collisionLayer.getTileAtWorldXY(x,y,true)
+        console.log('是否有碰撞图层',tile.index)
+        return tile.index !== -1
     }
 }
