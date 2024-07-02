@@ -41,11 +41,11 @@
   - [x] load level background
   - [x] create player
   - [x] handle player input
-  - [ ] camera movement
-  - [ ] handle grid based movement
-  - [ ] handle collisions
-  - [ ] add wild monster encounter logic
-  - [ ] store player position in data manager
+  - [x] camera movement
+  - [x] handle grid based movement
+  - [x] handle collisions
+  - [x] add wild monster encounter logic
+  - [x] store player position in data manager
 
 ## Level Development With Tiled:
   - [ ] Basic level design concepts
