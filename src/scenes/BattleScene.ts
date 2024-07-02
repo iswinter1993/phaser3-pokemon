@@ -78,7 +78,7 @@ export class BattleScene extends Scene {
                 assetKey:MONSTER_ASSET_KEYS.IGUANIGNITE,
                 maxHp:25,
                 currentHp:25,
-                baseAttack:5,
+                baseAttack:25,
                 attackIds:[2,1],
                 currentLevel:5
             },
@@ -217,7 +217,7 @@ export class BattleScene extends Scene {
         //注册一个时间监听 淡出动画完成
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
             //完成回调
-            this.scene.start('world')
+            this.scene.start('WorldScene')
         })
     }
 

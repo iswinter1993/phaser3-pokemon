@@ -32,7 +32,10 @@ export class Controls {
         return Input.Keyboard.JustDown(this._cursorKeys.shift)
 
     }
-
+    /**
+     * 只返回一次按下方向键
+     * @returns 
+     */
     getDirectionKeyJustPressed(){
         if(this._cursorKeys === undefined){
             return DIRECTION.NONE
@@ -52,7 +55,10 @@ export class Controls {
         return selectedDirection
 
     }
-
+    /**
+     * 按下方向键一直有返回
+     * @returns 
+     */
     getDirectionKeyPressedDown(){
         if(this._cursorKeys === undefined){
             return DIRECTION.NONE

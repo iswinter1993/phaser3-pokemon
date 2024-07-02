@@ -89,11 +89,12 @@ export class Preloader extends Scene {
          * load world assets
          */
         this.load.image(WORLD_ASSET_KEYS.WORLD_BACKGROUND,`${monsterTamerAssetPath}/map/level_background.png`)
-        //加载地图上的碰撞块
+        //加载地图上的碰撞块数据
         this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.WORLD_MAIN_LEVEL,`assets/data/level.json`)
         //加载地图上碰撞块的图层
         this.load.image(WORLD_ASSET_KEYS.WORLD_COLLISION,`${monsterTamerAssetPath}/map/collision.png`)
         this.load.image(WORLD_ASSET_KEYS.WORLD_FOREGROUND,`${monsterTamerAssetPath}/map/level_foreground.png`)
+        this.load.image(WORLD_ASSET_KEYS.WORLD_ENCOUNTER_ZONE,`${monsterTamerAssetPath}/map/encounter.png`)
         /**
          * load characters image
          */

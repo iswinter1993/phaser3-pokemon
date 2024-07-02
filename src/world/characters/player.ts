@@ -8,7 +8,8 @@ type PlayerConfig = {
     scene:Scene,
     position:Coordinate,
     direction:DirectionType,
-    collisionLayer?:Tilemaps.TilemapLayer
+    collisionLayer?:Tilemaps.TilemapLayer,
+    spriteGridMovementFinishedCallback?:()=>void
 }
 
 export class Player extends Character {
