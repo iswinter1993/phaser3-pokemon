@@ -1,8 +1,12 @@
 类pokemon游戏
 
-## 运行
+## 本地运行
+
+安装
 
 > npm i
+
+运行
 
 > npm run dev
 
