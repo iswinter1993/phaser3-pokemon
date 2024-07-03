@@ -13,7 +13,7 @@
 ## Battle System:
   - [x] load game assets
   - [x] create battle scene layout
-  - [x] create dialog menu 创建对话框菜单
+  - [x] create dialog menu 
   - [x] create option menu
   - [x] create monster attack move list
   - [x] handle player input
