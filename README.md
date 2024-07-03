@@ -48,16 +48,16 @@
   - [x] store player position in data manager
 
 ## Level Development With Tiled:
-  - [ ] Basic level design concepts
-  - [ ] Add collision layer
-  - [ ] Add custom types to Tiled
-  - [ ] Add game objects
-  - [ ] Add npcs
-  - [ ] Exporting level images and JSON
+  - [x] Basic level design concepts
+  - [x] Add collision layer
+  - [x] Add custom types to Tiled
+  - [x] Add game objects
+  - [x] Add npcs
+  - [x] Exporting level images and JSON
 
 ## World Scene Part 2:
-  - [ ] add interactive game objects
-  - [ ] dialog ui component
+  - [x] add interactive game objects
+  - [x] dialog ui component
   - [ ] add npcs
   - [ ] add npc dialog
   - [ ] add npc movement
