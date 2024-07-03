@@ -38,7 +38,7 @@ export class StateMachine {
         }
     }
     /**
-     * 
+     * 设置已有状态
      * @param name 
      */
     setState(name:string){
@@ -80,7 +80,7 @@ export class StateMachine {
 
     }
     /**
-     * 
+     * 添加状态
      * @param state 
      */
     addState(state:State){

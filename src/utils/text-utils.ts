@@ -26,3 +26,6 @@ export const animateText = (scene:Scene,targets:GameObjects.Text,text:string,con
         }
     })
 }
+
+export const CANNOT_READ_SIGN_TEXT = '你不能从这个方向读取' 
+export const SAMPLE_TEXT = '与NPC交谈获取帮助'

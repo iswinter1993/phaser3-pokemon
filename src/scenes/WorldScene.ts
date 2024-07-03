@@ -1,3 +1,4 @@
+import { getTargetPositionFromGameObjectPositionAndDirection } from './../utils/grid-utils';
 import { TILE_COLLISION_LAYER_ALPHA } from './../config';
 import { Scene, Tilemaps } from 'phaser';
 import { WORLD_ASSET_KEYS } from '../assets/asset-keys';
@@ -6,7 +7,15 @@ import { TILE_SIZE } from '../config';
 import { Controls } from '../utils/controls';
 import { Player } from '../world/characters/player';
 import { dataManager, DATA_MANAGER_STORE_KEYS } from '../utils/data-manager';
+import { CANNOT_READ_SIGN_TEXT, SAMPLE_TEXT } from '../utils/text-utils';
+import { DialogUi } from '../world/dialog-ui';
 
+
+type TiledObjectType = {
+    name:string,
+    type:string,
+    value:any
+}
 
 export class WorldScene extends Scene {
     _player:Player
@@ -15,6 +24,8 @@ export class WorldScene extends Scene {
     _encounterLayer:Tilemaps.TilemapLayer | null
     //是否遭遇怪兽
     _wildMonsterEncountered:boolean
+    _signObjectLayer:Tilemaps.ObjectLayer | null
+    _dialogUi:DialogUi
     constructor(){
         super('WorldScene')
     }
@@ -32,8 +43,6 @@ export class WorldScene extends Scene {
         this.cameras.main.setZoom(0.8)
         //设置相机中心点
         this.cameras.main.centerOn(6*64,22*64)
-
-
 
 
         //创建碰撞地图
@@ -68,6 +77,15 @@ export class WorldScene extends Scene {
         }
         this._encounterLayer.setAlpha(TILE_COLLISION_LAYER_ALPHA).setDepth(2)
 
+        //创建 交互对象层
+        this._signObjectLayer = map.getObjectLayer('Sign')
+        if(!this._signObjectLayer){
+            console.log('Sign 交互对象层不存在')
+            return
+        }
+        
+        console.log(this._signObjectLayer)
+
 
         this.add.image(0,0,WORLD_ASSET_KEYS.WORLD_BACKGROUND,0).setOrigin(0)
 
@@ -85,11 +103,14 @@ export class WorldScene extends Scene {
 
         //设置屋顶，树尖的遮挡图片
         this.add.image(0,0,WORLD_ASSET_KEYS.WORLD_FOREGROUND,0).setOrigin(0)
-
+        //创建控制实例
         this._controls = new Controls(this)
+        //创建对话框实例
+        this._dialogUi = new DialogUi(this,1280)
 
         //相机淡入效果
         this.cameras.main.fadeIn(1000,0,0,0)
+
     }
 
     update(time: any) {
@@ -101,9 +122,17 @@ export class WorldScene extends Scene {
         if(selectedDirection !== DIRECTION.NONE){
             this._player.moveCharacter(selectedDirection)
         }
+
+        if(this._controls.wasSpaceKeyPressed() && !this._player.isMoving){
+            this._handlePlayerInteraction()
+        }
+
         this._player.update(time)
     }
-
+    /**
+     * 玩家移动更新位置
+     * @returns 
+     */
     _handlePlayerMovementUpdate(){
         dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_POSITION,{
             x:this._player.sprite.x,
@@ -130,6 +159,45 @@ export class WorldScene extends Scene {
                 this.scene.start('BattleScene')
             })
 
+        }
+
+    }
+    /**
+     * 玩家交互
+     */
+    _handlePlayerInteraction(){
+
+        if(this._dialogUi.isVisible){
+            this._dialogUi.hideDialogModal()
+            return
+        }
+        this._dialogUi.showDialogModal()
+        const {x,y} = this._player.sprite
+        const targetPosition = getTargetPositionFromGameObjectPositionAndDirection({x,y},this._player.direction)
+        if(!this._signObjectLayer){
+            return
+        }
+        //获取 交互对象层 的对象
+        const nearbySign = this._signObjectLayer.objects.find(object=>{
+            if(!object.x || !object.y){
+                return
+            }
+            return object.x === targetPosition.x && (object.y - TILE_SIZE) === targetPosition.y
+        })
+
+        console.log(nearbySign)
+        if(nearbySign){
+            const props:TiledObjectType[] = nearbySign.properties
+            const msg = props.find((prop:TiledObjectType) => prop.name === 'message')?.value
+
+            const usePlaceholderText = this._player.direction !== DIRECTION.UP
+            let textToShow = CANNOT_READ_SIGN_TEXT
+
+            if(!usePlaceholderText){
+                textToShow = msg || SAMPLE_TEXT
+            }
+            
+            console.log(textToShow)
         }
 
     }

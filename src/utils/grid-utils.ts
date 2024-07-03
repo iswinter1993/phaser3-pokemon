@@ -3,7 +3,7 @@ import { TILE_SIZE } from "../config";
 import { Coordinate } from "../types/typedef"
 
 /**
- * 获取目标位置的坐标
+ * 通过当前位置，方向，获取下一步的坐标
  * @param currentPosition 
  * @param direction 
  * @returns
