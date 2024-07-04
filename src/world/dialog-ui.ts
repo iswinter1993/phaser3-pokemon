@@ -1,7 +1,7 @@
 import { BATTLE_UI_TEXT_STYLE } from './../battle/ui/menu/battle-menu-config';
 import { GameObjects, Scene, Tweens } from 'phaser';
 import { UI_ASSET_KEYS } from '../assets/asset-keys';
-import { CANNOT_READ_SIGN_TEXT } from '../utils/text-utils';
+import { animateText, CANNOT_READ_SIGN_TEXT } from '../utils/text-utils';
 export class DialogUi {
 
     _scene:Scene
@@ -48,7 +48,21 @@ export class DialogUi {
     get isVisible () {
         return this._isVisible
     }
-    showDialogModal(){
+
+    get isAnimationPlaying(){
+        return this._textAnimationPlaying
+    }
+
+    get moreMessageToShow(){
+        return this._messageToShow.length > 0
+    }
+
+    /**
+     * 显示弹框
+     * @param message 
+     */
+    showDialogModal(message: string[]){
+        this._messageToShow = [...message]
         //获取相机可视区域矩形的 位置 大小等信息 
         const {x,bottom} = this._scene.cameras.main.worldView
         const startX = x + this._padding
@@ -57,6 +71,23 @@ export class DialogUi {
         this._userInputCursorTween.restart()
         this._container.setAlpha(1)
         this._isVisible = true
+
+        this.showNextMessage()
+    }
+
+    showNextMessage(){
+        if(this._messageToShow.length === 0){
+            return
+        }
+        this._uiText.setText('').setAlpha(1)
+        const message = this._messageToShow.shift() || ''
+        animateText(this._scene,this._uiText,message,{
+            delay:50,
+            callback:()=>{
+                this._textAnimationPlaying = false
+            }
+        })
+        this._textAnimationPlaying = true
     }
 
     hideDialogModal(){

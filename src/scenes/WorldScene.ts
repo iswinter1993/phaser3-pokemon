@@ -119,7 +119,7 @@ export class WorldScene extends Scene {
             return
         }
         const selectedDirection = this._controls.getDirectionKeyPressedDown()
-        if(selectedDirection !== DIRECTION.NONE){
+        if(selectedDirection !== DIRECTION.NONE && !this._isPlayerInputLocked()){
             this._player.moveCharacter(selectedDirection)
         }
 
@@ -166,18 +166,26 @@ export class WorldScene extends Scene {
      * 玩家交互
      */
     _handlePlayerInteraction(){
-
-        if(this._dialogUi.isVisible){
+        if(this._dialogUi.isAnimationPlaying){
+            return
+        }
+        if(this._dialogUi.isVisible && !this._dialogUi.moreMessageToShow){
             this._dialogUi.hideDialogModal()
             return
         }
-        this._dialogUi.showDialogModal()
+        //如果弹框正在显示，并且还有消息，调用showNextMessage方法 获取下一条信息
+        if(this._dialogUi.isVisible && this._dialogUi.moreMessageToShow){
+            this._dialogUi.showNextMessage()
+            return
+        }
+
         const {x,y} = this._player.sprite
+        //通过当前位置，方向，获取下一步的坐标
         const targetPosition = getTargetPositionFromGameObjectPositionAndDirection({x,y},this._player.direction)
         if(!this._signObjectLayer){
             return
         }
-        //获取 交互对象层 的对象
+        //获取 交互对象层 的对象 , 检查玩家朝向是否有交互对象层
         const nearbySign = this._signObjectLayer.objects.find(object=>{
             if(!object.x || !object.y){
                 return
@@ -189,16 +197,21 @@ export class WorldScene extends Scene {
         if(nearbySign){
             const props:TiledObjectType[] = nearbySign.properties
             const msg = props.find((prop:TiledObjectType) => prop.name === 'message')?.value
-
+            //检查玩家朝向是否向上
             const usePlaceholderText = this._player.direction !== DIRECTION.UP
             let textToShow = CANNOT_READ_SIGN_TEXT
 
             if(!usePlaceholderText){
                 textToShow = msg || SAMPLE_TEXT
             }
-            
+            this._dialogUi.showDialogModal([textToShow])
             console.log(textToShow)
+            return
         }
 
+    }
+    //弹框是否在显示
+    _isPlayerInputLocked () {
+        return this._dialogUi.isVisible
     }
 }
