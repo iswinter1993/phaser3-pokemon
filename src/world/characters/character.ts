@@ -12,11 +12,12 @@ type CharacterConfig = {
     direction:DirectionType,
     origin?:Coordinate,
     spriteGridMovementFinishedCallback?:()=>void,
-    collisionLayer?:Tilemaps.TilemapLayer
+    collisionLayer?:Tilemaps.TilemapLayer,
+    otherCharactersToCheckForCollisionsWith?:Character[]
 }
 
 
-type CharacterIdleFrameConfig = {
+export type CharacterIdleFrameConfig = {
     DOWN:number,
     UP:number,
     LEFT:number,
@@ -38,6 +39,8 @@ export class Character {
     _spriteGridMovementFinishedCallback:(()=>void) | undefined
     //实现碰撞，是否可以发生碰撞,碰撞图层
     _collisionLayer?:Tilemaps.TilemapLayer 
+    //检查与其他角色的碰撞
+    _otherCharactersToCheckForCollisionsWith:Character[]
     constructor(config:CharacterConfig){
         this._scene = config.scene
         this._direction = config.direction
@@ -47,6 +50,7 @@ export class Character {
         this._idleFrameConfig = config.idleFrameConfig
         this._origin = config.origin || {x:0,y:0}
         this._collisionLayer = config.collisionLayer
+        this._otherCharactersToCheckForCollisionsWith = config?.otherCharactersToCheckForCollisionsWith || []
         this._phaserGameObject = this._scene.add.sprite(config.position.x,config.position.y,config.assetKey,this._getIdleFrame()).setOrigin(this._origin.x,this._origin.y)
         this._spriteGridMovementFinishedCallback = config.spriteGridMovementFinishedCallback
     }
@@ -64,6 +68,11 @@ export class Character {
         return this._direction
     }
 
+    //添加检查的角色
+    addCharacterToCheckForCollisionsWith(character:Character){
+        this._otherCharactersToCheckForCollisionsWith.push(character)
+    }
+
     moveCharacter(direction:DirectionType){
         if(this._isMoving){
             return
@@ -71,7 +80,6 @@ export class Character {
 
         this._moveSprite(direction)
 
-        
     }
 
     update(time: any){
@@ -130,7 +138,7 @@ export class Character {
         }
         const targetPosition = {...this._targetPosition}
         const updatePosition = getTargetPositionFromGameObjectPositionAndDirection(targetPosition,this._direction)
-        return this._doesPositionCollideWithCollisionLayer(updatePosition)
+        return this._doesPositionCollideWithCollisionLayer(updatePosition) || this._doesPositionCollideWithOtherCharacter(updatePosition)
     }
 
     _handleSpriteMovement(){
@@ -183,5 +191,23 @@ export class Character {
         const tile = this._collisionLayer.getTileAtWorldXY(x,y,true)
         console.log('是否有碰撞图层',tile.index)
         return tile.index !== -1
+    }
+
+    /**
+     * 通过位置坐标和其他角色信息判断是否发生碰撞
+     * @param position 角色下一步要走的位置
+     * @returns 
+     */
+    _doesPositionCollideWithOtherCharacter(position:Coordinate){
+        const {x,y} = position
+        if(this._otherCharactersToCheckForCollisionsWith.length === 0){
+            return false
+        }
+        //判断其他角色是否在要走的位置
+        const collidesWithACharacter = this._otherCharactersToCheckForCollisionsWith.some(character=>{
+            return (character._targetPosition.x === x && character._targetPosition.y === y) || (character._previousTargetPosition.x === x && character._previousTargetPosition.y === y)
+        })
+        console.log('是否有其他角色',collidesWithACharacter)
+        return collidesWithACharacter
     }
 }

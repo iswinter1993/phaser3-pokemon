@@ -9,6 +9,7 @@ import { Player } from '../world/characters/player';
 import { dataManager, DATA_MANAGER_STORE_KEYS } from '../utils/data-manager';
 import { CANNOT_READ_SIGN_TEXT, SAMPLE_TEXT } from '../utils/text-utils';
 import { DialogUi } from '../world/dialog-ui';
+import { NPC } from '../world/characters/npc';
 
 
 type TiledObjectType = {
@@ -16,6 +17,18 @@ type TiledObjectType = {
     type:string,
     value:any
 }
+
+const CUSTOM_TILED_TYPES = Object.freeze({
+    NPC:'npc',
+    NPC_PATH:'npc_path'
+})
+
+const TILED_NPC_PROPERTY = Object.freeze({
+    MESSAGES:'messages',
+    FRAME:'frame',
+    MOVEMENT_PATTERN:"movement_pattern",
+    IS_SPAWN_POINT:'is_spawn_point'
+})
 
 export class WorldScene extends Scene {
     _player:Player
@@ -26,6 +39,9 @@ export class WorldScene extends Scene {
     _wildMonsterEncountered:boolean
     _signObjectLayer:Tilemaps.ObjectLayer | null
     _dialogUi:DialogUi
+    _npc:NPC[]
+    //玩家交互的NPC
+    _npcPlayerIsInteractionWith:NPC | undefined
     constructor(){
         super('WorldScene')
     }
@@ -77,17 +93,18 @@ export class WorldScene extends Scene {
         }
         this._encounterLayer.setAlpha(TILE_COLLISION_LAYER_ALPHA).setDepth(2)
 
-        //创建 交互对象层
+        //创建 广告牌交互对象层
         this._signObjectLayer = map.getObjectLayer('Sign')
         if(!this._signObjectLayer){
             console.log('Sign 交互对象层不存在')
             return
         }
-        
-        console.log(this._signObjectLayer)
-
+      
 
         this.add.image(0,0,WORLD_ASSET_KEYS.WORLD_BACKGROUND,0).setOrigin(0)
+
+        //创建npc
+        this._createNpcsMap(map)
 
         this._player = new Player({
             scene:this,
@@ -96,8 +113,13 @@ export class WorldScene extends Scene {
             collisionLayer:collisionLayer,
             spriteGridMovementFinishedCallback:()=>{
                 this._handlePlayerMovementUpdate()
-            }
+            },
+            otherCharactersToCheckForCollisionsWith:this._npc
         })
+
+
+        this._npc.forEach(npc=>npc.addCharacterToCheckForCollisionsWith(this._player))
+        
         //设置相机跟随目标
         this.cameras.main.startFollow(this._player.sprite)
 
@@ -128,6 +150,7 @@ export class WorldScene extends Scene {
         }
 
         this._player.update(time)
+        this._npc.forEach(npc=>npc.update(time))
     }
     /**
      * 玩家移动更新位置
@@ -171,6 +194,10 @@ export class WorldScene extends Scene {
         }
         if(this._dialogUi.isVisible && !this._dialogUi.moreMessageToShow){
             this._dialogUi.hideDialogModal()
+            if(this._npcPlayerIsInteractionWith){
+                this._npcPlayerIsInteractionWith.isTalkingToPlayer = false
+                this._npcPlayerIsInteractionWith = undefined
+            }
             return
         }
         //如果弹框正在显示，并且还有消息，调用showNextMessage方法 获取下一条信息
@@ -209,9 +236,54 @@ export class WorldScene extends Scene {
             return
         }
 
+
+        const nearbyNPC = this._npc.find(npc=>{
+            return npc.sprite.x === targetPosition.x && npc.sprite.y === targetPosition.y
+        })
+        if(nearbyNPC){
+            const msg:string[] = nearbyNPC.message
+            nearbyNPC.facePlayer(this._player.direction)
+            nearbyNPC.isTalkingToPlayer = true
+            //玩家交互的NPC
+            this._npcPlayerIsInteractionWith = nearbyNPC
+            this._dialogUi.showDialogModal(msg)
+            console.log(msg)
+            return
+        }
+
     }
     //弹框是否在显示
     _isPlayerInputLocked () {
         return this._dialogUi.isVisible
+    }
+    /**
+     * 创建npc
+     * @param map 
+     */
+    _createNpcsMap(map:Tilemaps.Tilemap){
+        this._npc = []
+        //创建npc交互对象层
+        const npcLayers = map.getObjectLayerNames().filter(layerName => layerName.includes('NPC'))
+        npcLayers.forEach(layerName=>{
+            const layer = map.getObjectLayer(layerName)
+            const npcObject = layer?.objects.find(obj=>obj.type === CUSTOM_TILED_TYPES.NPC)
+            console.log(npcObject)
+            if(!npcObject || npcObject.x === undefined || npcObject.y === undefined){
+                return
+            }
+
+            const [ frame, messages, movement_pattern ] = npcObject.properties
+
+            const npcMessages = messages.value?.split('::') || []
+
+            const npc = new NPC({
+                scene:this, 
+                position:{x:npcObject.x,y:npcObject.y - TILE_SIZE}, 
+                direction:DIRECTION.DOWN, 
+                frame:Number(frame.value || '0'),
+                message:npcMessages
+            })
+            this._npc.push(npc)
+        })
     }
 }

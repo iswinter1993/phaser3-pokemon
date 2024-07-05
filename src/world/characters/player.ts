@@ -9,7 +9,8 @@ type PlayerConfig = {
     position:Coordinate,
     direction:DirectionType,
     collisionLayer?:Tilemaps.TilemapLayer,
-    spriteGridMovementFinishedCallback?:()=>void
+    spriteGridMovementFinishedCallback?:()=>void,
+    otherCharactersToCheckForCollisionsWith?:Character[]
 }
 
 export class Player extends Character {

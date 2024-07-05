@@ -74,7 +74,10 @@ export class DialogUi {
 
         this.showNextMessage()
     }
-
+    /**
+     * 显示下一条信息
+     * @returns 
+     */
     showNextMessage(){
         if(this._messageToShow.length === 0){
             return
