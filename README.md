@@ -63,7 +63,7 @@
   - [x] add npc movement
 
 ## Title Screen:
-  - [ ] create basic title screen
+  - [x] create basic title screen
   - [ ] add options menu
   - [ ] save & loading options
   - [ ] connecting option data to battle scene
