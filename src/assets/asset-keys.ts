@@ -21,7 +21,8 @@ export const HEALTH_BAR_ASSET_KEYS = Object.freeze({
 })
 
 export const UI_ASSET_KEYS = Object.freeze({
-    CURSOR:'CURSOR'
+    CURSOR:'CURSOR',
+    MENU_BACKGROUND:'MENU_BACKGROUND'
 })
 
 export const DATA_ASSET_KEYS = Object.freeze({
@@ -47,5 +48,11 @@ export const WORLD_ASSET_KEYS = Object.freeze({
 export const CHARACTER_ASSET_KEYS = Object.freeze({
     PLAYER:'PLAYER',
     NPC:'NPC'
+})
+
+export const TITLE_ASSET_KEYS = Object.freeze({
+    BACKGROUND:'BACKGROUND',
+    TITLE:'TITLE',
+    PANEL:'PANEL'
 })
 

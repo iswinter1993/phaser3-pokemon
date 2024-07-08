@@ -1,7 +1,7 @@
 import { Animation } from './../types/typedef';
 import { DataUtils } from './../utils/data-utils';
 import { Scene } from "phaser";
-import { ATTACK_ASSET_KEYS, BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, CHARACTER_ASSET_KEYS, DATA_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS, UI_ASSET_KEYS, WORLD_ASSET_KEYS } from "../assets/asset-keys";
+import { ATTACK_ASSET_KEYS, BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, CHARACTER_ASSET_KEYS, DATA_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS, TITLE_ASSET_KEYS, UI_ASSET_KEYS, WORLD_ASSET_KEYS } from "../assets/asset-keys";
 import { WebFontFileLoader } from "../assets/web-font-file-loader";
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from "../assets/font-keys";
 
@@ -110,13 +110,21 @@ export class Preloader extends Scene {
          * 加载动画json
          */
         this.load.json(DATA_ASSET_KEYS.ANIMATIONS,`${dataAssetPath}/animations.json`)
+
+        /**
+         * 加载title scene 资源
+         */
+        this.load.image(TITLE_ASSET_KEYS.BACKGROUND,`${monsterTamerAssetPath}/ui/title/background.png`)
+        this.load.image(TITLE_ASSET_KEYS.PANEL,`${monsterTamerAssetPath}/ui/title/title_background.png`)
+        this.load.image(TITLE_ASSET_KEYS.TITLE,`${monsterTamerAssetPath}/ui/title/title_text.png`)
+        this.load.image(UI_ASSET_KEYS.MENU_BACKGROUND,`${kenneysAssetPath}/ui-space-expansion/glassPanel.png`)
         
     }
 
     create(){
         console.log('Preloader >>> create')
         
-        this.scene.start('WorldScene')
+        this.scene.start('TitleScene')
         this._createAnimations()
          
     }
