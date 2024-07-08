@@ -263,7 +263,7 @@ export class WorldScene extends Scene {
     _createNpcsMap(map:Tilemaps.Tilemap){
         this._npc = []
         //创建npc交互对象层
-        const npcLayers = map.getObjectLayerNames().filter(layerName => layerName.includes('NPC'))
+        const npcLayers = map.getObjectLayerNames().filter(layerName => layerName.includes('NPC'))//获取包含NPC的图层名字
         npcLayers.forEach(layerName=>{
             const layer = map.getObjectLayer(layerName)
             const npcObject = layer?.objects.find(obj=>obj.type === CUSTOM_TILED_TYPES.NPC)
@@ -272,7 +272,27 @@ export class WorldScene extends Scene {
                 return
             }
 
+            //获取 可以移动npc的路径
+            const pathObject = layer?.objects.filter(obj => {
+                return obj.type === CUSTOM_TILED_TYPES.NPC_PATH
+            })
+
+            const npcPath:any = {
+                0:{x:npcObject.x,y:npcObject.y - TILE_SIZE}
+            } 
+            pathObject?.forEach(obj=>{
+                if(obj.x === undefined || obj.y === undefined){
+                    return
+                }
+                npcPath[Number(obj.name)] = {x:obj.x,y:obj.y - TILE_SIZE}
+            })
+
+            console.log(npcPath)
+
+
+
             const [ frame, messages, movement_pattern ] = npcObject.properties
+            console.log(movement_pattern)
 
             const npcMessages = messages.value?.split('::') || []
 
@@ -281,7 +301,9 @@ export class WorldScene extends Scene {
                 position:{x:npcObject.x,y:npcObject.y - TILE_SIZE}, 
                 direction:DIRECTION.DOWN, 
                 frame:Number(frame.value || '0'),
-                message:npcMessages
+                message:npcMessages,
+                npcPath,
+                movementPattern:movement_pattern.value || 'IDLE'
             })
             this._npc.push(npc)
         })
