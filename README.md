@@ -58,9 +58,9 @@
 ## World Scene Part 2:
   - [x] add interactive game objects
   - [x] dialog ui component
-  - [ ] add npcs
-  - [ ] add npc dialog
-  - [ ] add npc movement
+  - [x] add npcs
+  - [x] add npc dialog
+  - [x] add npc movement
 
 ## Title Screen:
   - [ ] create basic title screen
