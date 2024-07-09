@@ -46,7 +46,8 @@ export class WorldScene extends Scene {
         super('WorldScene')
     }
 
-    inin(){
+    init(){
+        console.log('init World Scene')
         this._wildMonsterEncountered = false
     }
 
@@ -140,6 +141,7 @@ export class WorldScene extends Scene {
             this._player.update(time)
             return
         }
+         
         const selectedDirection = this._controls.getDirectionKeyPressedDown()
         if(selectedDirection !== DIRECTION.NONE && !this._isPlayerInputLocked()){
             this._player.moveCharacter(selectedDirection)

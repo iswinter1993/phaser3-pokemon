@@ -1,6 +1,8 @@
-import { GameObjects, Scene } from 'phaser';
+import { Cameras, GameObjects, Scene, Textures } from 'phaser';
 import { TITLE_ASSET_KEYS, UI_ASSET_KEYS } from '../assets/asset-keys';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../assets/font-keys';
+import { DIRECTION, DirectionType } from '../common/direction';
+import { Controls } from '../utils/controls';
 
 export const MENU_TEXT_STYLE:Phaser.Types.GameObjects.Text.TextStyle = Object.freeze({
     color:'#4D4A49',
@@ -9,27 +11,48 @@ export const MENU_TEXT_STYLE:Phaser.Types.GameObjects.Text.TextStyle = Object.fr
 }) 
 
 const PLAYER_INPUT_CURSOR_POSITION = Object.freeze({
-    x:150
+    x:150,
+    y:41
+})
+
+type MainMenuOptions = keyof typeof MAIN_MENU_OPTIONS
+
+const MAIN_MENU_OPTIONS = Object.freeze({
+    NEW_GAME:'NEW_GAME',
+    CONTINUE:'CONTINUE',
+    OPTIONS:'OPTIONS'
 })
 
 export class TitleScene extends Scene {
     _mainMenuCursorPhaserImageGameObject:GameObjects.Image
+    _controls:Controls
+    _selectMenuOption:MainMenuOptions
+    //是否有存档
+    _isContinueButtonEnable:boolean
     constructor(){
         super('TitleScene')
     }
     create(){
         console.log('Title Scene 创建')
+        this._selectMenuOption = MAIN_MENU_OPTIONS.NEW_GAME
+        this._isContinueButtonEnable = false
         //create Title Scene background
         this.add.image(0,0,TITLE_ASSET_KEYS.BACKGROUND).setOrigin(0).setScale(0.58)
         this.add.image(this.scale.width/2,150,TITLE_ASSET_KEYS.PANEL).setScale(0.25).setAlpha(0.5)
         this.add.image(this.scale.width/2,150,TITLE_ASSET_KEYS.TITLE).setScale(0.55).setAlpha(0.5)
         //create menu
-        const menuWidth = 500
-        const menuBg = this.add.image(125,0,UI_ASSET_KEYS.MENU_BACKGROUND).setOrigin(0).setScale(2.4,2)
+        const menuWidth = 500      
+
+        //使用9片图片切割法缩放图片,只在webgl中有效
+        const menuBg = this.add.nineslice(125,0,UI_ASSET_KEYS.MENU_BACKGROUND,0,menuWidth/2,200,10,10,10,10).setOrigin(0)
+        
         const menuBgContainer = this.add.container(0,0,[menuBg])
 
         const newGameText = this.add.text(menuWidth/2,40,'New Game',MENU_TEXT_STYLE).setOrigin(0.5)
         const continueText = this.add.text(menuWidth/2,90,'Continue',MENU_TEXT_STYLE).setOrigin(0.5)
+        if(!this._isContinueButtonEnable){
+            continueText.setAlpha(0.5)
+        }
         const optionsText = this.add.text(menuWidth/2,140,'Options',MENU_TEXT_STYLE).setOrigin(0.5)
         const menuContainer = this.add.container(0,0,[
             menuBgContainer,
@@ -39,9 +62,8 @@ export class TitleScene extends Scene {
         ])
         menuContainer.setPosition(this.scale.width/2 - menuWidth/2,300)
         //create cursors
-        this._mainMenuCursorPhaserImageGameObject = this.add.image(PLAYER_INPUT_CURSOR_POSITION.x,41,UI_ASSET_KEYS.CURSOR).setOrigin(0.5).setScale(2.5)
+        this._mainMenuCursorPhaserImageGameObject = this.add.image(PLAYER_INPUT_CURSOR_POSITION.x,PLAYER_INPUT_CURSOR_POSITION.y,UI_ASSET_KEYS.CURSOR).setOrigin(0.5).setScale(2.5)
         menuBgContainer.add(this._mainMenuCursorPhaserImageGameObject)
-        //add in fade effect
         this.tweens.add({
             targets:this._mainMenuCursorPhaserImageGameObject,
             x:{
@@ -53,6 +75,111 @@ export class TitleScene extends Scene {
             delay:0,
             duration:500
         })
+        //add in fade effect
+        this.cameras.main.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
+            switch (this._selectMenuOption) {
+                case MAIN_MENU_OPTIONS.NEW_GAME:
+                    this.scene.start('WorldScene')
+                    break;
+                case MAIN_MENU_OPTIONS.CONTINUE:
+                    break;
+                case MAIN_MENU_OPTIONS.OPTIONS:
+                    break;
+                default:
+                    break;
+            }
+            this._controls.lockInput = false
+        })
 
+
+        //create controls
+        this._controls = new Controls(this)
+
+    }
+    update(time: number, delta: number): void {
+        if(this._controls.isInputLocked){
+            return
+        }
+        const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
+        if(wasSpaceKeyPressed){
+            this.cameras.main.fadeOut(500,0,0,0)
+            this._controls.lockInput = true
+            return
+        }
+        const selectedDirection = this._controls.getDirectionKeyJustPressed()
+        if(selectedDirection !== DIRECTION.NONE){
+            this._moveMenuSelectCursor(selectedDirection)
+        }
+    }
+    /**
+     * 
+     * @param direction 
+     */
+    _moveMenuSelectCursor(direction:DirectionType){
+        this._updateSelectMenuOptionFromInput(direction)
+        switch (this._selectMenuOption) {
+            case MAIN_MENU_OPTIONS.NEW_GAME:
+                this._mainMenuCursorPhaserImageGameObject.setY(PLAYER_INPUT_CURSOR_POSITION.y)
+                break;
+            case MAIN_MENU_OPTIONS.CONTINUE:
+                this._mainMenuCursorPhaserImageGameObject.setY(91)
+                break;
+            case MAIN_MENU_OPTIONS.OPTIONS:
+                this._mainMenuCursorPhaserImageGameObject.setY(141)
+                break;
+        
+            default:
+                break;
+        }
+    }
+    /**
+     * 
+     * @param direction 
+     * @returns 
+     */
+    _updateSelectMenuOptionFromInput(direction:DirectionType){
+        switch (direction) {
+            case DIRECTION.DOWN:
+                if(this._selectMenuOption === MAIN_MENU_OPTIONS.OPTIONS){
+                    return
+                }
+                if(this._selectMenuOption === MAIN_MENU_OPTIONS.CONTINUE){
+                    this._selectMenuOption = MAIN_MENU_OPTIONS.OPTIONS
+                    return
+                }
+                if(this._selectMenuOption === MAIN_MENU_OPTIONS.NEW_GAME && this._isContinueButtonEnable){
+                    this._selectMenuOption = MAIN_MENU_OPTIONS.CONTINUE
+                    return
+                }
+
+                this._selectMenuOption = MAIN_MENU_OPTIONS.OPTIONS
+                
+                break;
+            case DIRECTION.UP:
+                if(this._selectMenuOption === MAIN_MENU_OPTIONS.OPTIONS && this._isContinueButtonEnable){
+                    this._selectMenuOption = MAIN_MENU_OPTIONS.CONTINUE
+                    return
+                }
+                if(this._selectMenuOption === MAIN_MENU_OPTIONS.CONTINUE){
+                    this._selectMenuOption = MAIN_MENU_OPTIONS.NEW_GAME
+                    return
+                }
+                if(this._selectMenuOption === MAIN_MENU_OPTIONS.NEW_GAME){
+                    return
+                }
+                this._selectMenuOption = MAIN_MENU_OPTIONS.NEW_GAME
+                break;
+            case DIRECTION.LEFT:
+        
+                break;
+            case DIRECTION.RIGHT:
+    
+                break;
+            case DIRECTION.NONE:
+
+                break;
+            default:
+                break;
+        }
     }
 }
