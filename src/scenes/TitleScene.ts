@@ -43,7 +43,7 @@ export class TitleScene extends Scene {
         //create menu
         const menuWidth = 500      
 
-        //使用9片图片切割法缩放图片,只在webgl中有效
+        //使用图片9分法切割缩放纹理图片,phaser3自带nineslice的只在webgl中有效，utils文件中有自定义实现webgl和canvas都能有效
         const menuBg = this.add.nineslice(125,0,UI_ASSET_KEYS.MENU_BACKGROUND,0,menuWidth/2,200,10,10,10,10).setOrigin(0)
         
         const menuBgContainer = this.add.container(0,0,[menuBg])
@@ -84,6 +84,7 @@ export class TitleScene extends Scene {
                 case MAIN_MENU_OPTIONS.CONTINUE:
                     break;
                 case MAIN_MENU_OPTIONS.OPTIONS:
+                    this.scene.start('OptionScene')
                     break;
                 default:
                     break;

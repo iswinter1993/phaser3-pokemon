@@ -1,7 +1,8 @@
 
 
-import { Game, Types } from "phaser";
+import { Game } from "phaser";
 import { BattleScene } from "./scenes/BattleScene";
+import { OptionScene } from "./scenes/OptionScene";
 import  {Preloader}  from './scenes/Preloader'
 import { TitleScene } from "./scenes/TitleScene";
 import { WorldScene } from "./scenes/WorldScene";
@@ -24,6 +25,7 @@ export default new Game({
     scene:[
         Preloader,
         TitleScene,
+        OptionScene,
         BattleScene,
         WorldScene
     ]

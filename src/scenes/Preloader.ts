@@ -59,6 +59,7 @@ export class Preloader extends Scene {
          * 光标
          */
         this.load.image(UI_ASSET_KEYS.CURSOR,`${monsterTamerAssetPath}/ui/cursor.png`)
+        this.load.image(UI_ASSET_KEYS.CURSOR_WHITE,`${monsterTamerAssetPath}/ui/cursor_white.png`)
         /**
          * 招式json
          */
@@ -124,7 +125,7 @@ export class Preloader extends Scene {
     create(){
         console.log('Preloader >>> create')
         
-        this.scene.start('TitleScene')
+        this.scene.start('OptionScene')
         this._createAnimations()
          
     }
