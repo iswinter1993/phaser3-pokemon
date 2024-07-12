@@ -530,7 +530,7 @@ export class OptionScene extends Scene {
     }
 
     _updateSoundOptionTextGameObjects(){
-        const soundOptionTextGameObjects = this._soundOptionTextGameObjects.getChildren()
+        const soundOptionTextGameObjects = this._soundOptionTextGameObjects.getChildren() as GameObjects.Text[]
         soundOptionTextGameObjects.forEach(obj=>{
             obj.setColor(TEXT_FONT_COLOR.NOT_SELECTED)
         })
