@@ -119,7 +119,8 @@ export class Preloader extends Scene {
         this.load.image(TITLE_ASSET_KEYS.PANEL,`${monsterTamerAssetPath}/ui/title/title_background.png`)
         this.load.image(TITLE_ASSET_KEYS.TITLE,`${monsterTamerAssetPath}/ui/title/title_text.png`)
         this.load.image(UI_ASSET_KEYS.MENU_BACKGROUND,`${kenneysAssetPath}/ui-space-expansion/glassPanel.png`)
-        
+        this.load.image(UI_ASSET_KEYS.MENU_BACKGROUND_GREEN,`${kenneysAssetPath}/ui-space-expansion/glassPanel_green.png`)
+        this.load.image(UI_ASSET_KEYS.MENU_BACKGROUND_PURPLE,`${kenneysAssetPath}/ui-space-expansion/glassPanel_purple.png`)
     }
 
     create(){
