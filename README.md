@@ -64,7 +64,7 @@
 
 ## Title Screen:
   - [x] create basic title screen
-  - [ ] add options menu
+  - [x] add options menu
   - [ ] save & loading options
   - [ ] connecting option data to battle scene
 
