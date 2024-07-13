@@ -5,6 +5,7 @@ import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../assets/font-keys';
 import { DIRECTION, DirectionType } from '../common/direction';
 import { BattleSceneOptions, OptionMenuOptions, OPTION_MENU_OPTIONS, TextSpeedOptions } from '../common/option';
 import { Controls } from '../utils/controls';
+import { DATA_MANAGER_STORE_KEYS, dataManager } from '../utils/data-manager';
 
 const OPTION_TEXT_STYLE:Phaser.Types.GameObjects.Text.TextStyle = Object.freeze({
     color:'#FFF',
@@ -57,12 +58,12 @@ export class OptionScene extends Scene {
 
     init(){
         this._selectedOptionMenu = OPTION_MENU_OPTIONS.TEXT_SPEED
-        this._selectedTextSpeedOption = TEXT_SPEED_OPTIONS.MID
-        this._selectedBattleSceneOption = BATTLE_SCENE_OPTIONS.ON
-        this._selectedBattleStyleOption = BATTLE_STYLE_OPTIONS.SHIFT
-        this._selectedSoundOption = SOUND_OPTIONS.ON
-        this._selectedVolumeOption = 4
-        this._selectedMenuColorOption = 0
+        this._selectedTextSpeedOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_TEXT_SPEED)
+        this._selectedBattleSceneOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_SCENE)
+        this._selectedBattleStyleOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_STYLE)
+        this._selectedSoundOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_SOUND)
+        this._selectedVolumeOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME)
+        this._selectedMenuColorOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR)
     }
 
     create(){
@@ -170,9 +171,22 @@ export class OptionScene extends Scene {
 
         if(this._controls.wasSpaceKeyPressed() && this._selectedOptionMenu === OPTION_MENU_OPTIONS.CONFIRM){
             this._controls.lockInput = true
+            this._updateOptionDataInDataManager()
             this.cameras.main.fadeOut(500,0,0,0)
             return
         }
+    }
+
+    _updateOptionDataInDataManager(){
+        dataManager.store.set({
+            [DATA_MANAGER_STORE_KEYS.OPTIONS_TEXT_SPEED]:this._selectedTextSpeedOption,
+            [DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_SCENE]:this._selectedBattleSceneOption,
+            [DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_STYLE]:this._selectedBattleStyleOption,
+            [DATA_MANAGER_STORE_KEYS.OPTIONS_SOUND]:this._selectedSoundOption,
+            [DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME]:this._selectedVolumeOption,
+            [DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR]:this._selectedMenuColorOption
+        })
+        dataManager.saveData()
     }
 
     _moveOptionMenuCursor(direction:DirectionType){

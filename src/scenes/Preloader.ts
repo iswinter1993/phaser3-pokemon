@@ -4,6 +4,7 @@ import { Scene } from "phaser";
 import { ATTACK_ASSET_KEYS, BATTLE_BACKGROUND_ASSET_KEYS, BATTLLE_ASSET_KEYS, CHARACTER_ASSET_KEYS, DATA_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS, MONSTER_ASSET_KEYS, TITLE_ASSET_KEYS, UI_ASSET_KEYS, WORLD_ASSET_KEYS } from "../assets/asset-keys";
 import { WebFontFileLoader } from "../assets/web-font-file-loader";
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from "../assets/font-keys";
+import { dataManager } from '../utils/data-manager';
 
 export class Preloader extends Scene {
     constructor () {
@@ -126,8 +127,9 @@ export class Preloader extends Scene {
     create(){
         console.log('Preloader >>> create')
         
-        this.scene.start('OptionScene')
         this._createAnimations()
+        dataManager.loadData()
+        this.scene.start('OptionScene')
          
     }
 
