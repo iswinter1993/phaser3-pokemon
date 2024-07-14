@@ -9,9 +9,10 @@ import { PlayerBattleMonster } from "../battle/monsters/player-battle-monster";
 import { HealthBar } from "../battle/ui/health-bar";
 import { BattleMenu } from "../battle/ui/menu/battle-menu";
 import { DIRECTION, DirectionType } from "../common/direction";
-import { SKIP_BATTLE_ANIMATIONS } from "../config";
 import { StateMachine } from "../utils/state-machine";
 import { Controls } from '../utils/controls';
+import { DATA_MANAGER_STORE_KEYS, dataManager } from '../utils/data-manager';
+import { BATTLE_SCENE_OPTIONS } from '../common/option';
 
 const BATTLE_STATES = Object.freeze({
     INTRO:'INTRO',
@@ -35,6 +36,7 @@ export class BattleScene extends Scene {
     _battleStateMachine:StateMachine;
     _attackManager:AttackManager
     _controls:Controls
+    _skipAnimations:boolean
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -42,6 +44,12 @@ export class BattleScene extends Scene {
 
     init(){
         this._activePlayerAttackIndex = -1
+        const chosenBattleSceneOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_SCENE)
+        if(chosenBattleSceneOption === undefined || chosenBattleSceneOption === BATTLE_SCENE_OPTIONS.ON){
+            this._skipAnimations = false
+            return
+        }
+        this._skipAnimations = true
     }
 
     preload(){}
@@ -65,7 +73,7 @@ export class BattleScene extends Scene {
                 },
                 scaleHealthBarBackgroundImageByY:0.8,
                 healthBarComponentPosition:{x:0,y:0},
-                skipBattleAnimations:SKIP_BATTLE_ANIMATIONS
+                skipBattleAnimations:this._skipAnimations
             }
         )
         // this.add.image(768,144,MONSTER_ASSET_KEYS.CARNODUSK,0) //没有动画，最后参数设置为0
@@ -84,16 +92,16 @@ export class BattleScene extends Scene {
             },
             scaleHealthBarBackgroundImageByY:1,
             healthBarComponentPosition:{x:556,y:318},
-            skipBattleAnimations:SKIP_BATTLE_ANIMATIONS
+            skipBattleAnimations:this._skipAnimations
         })
        
         
         //创建信息框
-        this._battleMenu = new BattleMenu(this,this._activePlayerMonster)
+        this._battleMenu = new BattleMenu(this,this._activePlayerMonster,this._skipAnimations)
         
         this._createBattleStateMachine()
 
-        this._attackManager = new AttackManager(this,SKIP_BATTLE_ANIMATIONS)
+        this._attackManager = new AttackManager(this,this._skipAnimations)
         
         //创建键盘 上下左右,空格 shift等热键 事件
         this._controls = new Controls(this)
@@ -155,8 +163,7 @@ export class BattleScene extends Scene {
                     })
                 })
             })
-        },
-        SKIP_BATTLE_ANIMATIONS
+        }
         )
     }
     _enemyAttck(){
@@ -174,8 +181,7 @@ export class BattleScene extends Scene {
                     })
                 })
             })
-        },
-        SKIP_BATTLE_ANIMATIONS
+        }
         )
     }
     /**
@@ -190,8 +196,7 @@ export class BattleScene extends Scene {
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`,'You have gained some exp!'],()=>{
                     //过渡下个状态
                     this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
-                },
-                SKIP_BATTLE_ANIMATIONS
+                }
                 )
             })
             return
@@ -201,8 +206,7 @@ export class BattleScene extends Scene {
             this._activePlayerMonster.playDeathAnimation(()=>{
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
                     this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
-                },
-                SKIP_BATTLE_ANIMATIONS
+                }
                 )
             })
             return
@@ -246,8 +250,7 @@ export class BattleScene extends Scene {
                             this.time.delayedCall(800,()=>{
                                 this._battleStateMachine.setState(BATTLE_STATES.BRING_OUT_MONSTER)
                             })
-                        },
-                        SKIP_BATTLE_ANIMATIONS
+                        }
                         )
                     })
             }
@@ -268,8 +271,7 @@ export class BattleScene extends Scene {
                             this.time.delayedCall(800,()=>{
                                 this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
                             })
-                        },
-                        SKIP_BATTLE_ANIMATIONS
+                        }
                         )
                     })
             }
@@ -322,8 +324,7 @@ export class BattleScene extends Scene {
             onEnter:()=>{
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput([`You got away safely!`],()=>{
                     this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
-                },
-                SKIP_BATTLE_ANIMATIONS
+                }
                 )
             }
         })

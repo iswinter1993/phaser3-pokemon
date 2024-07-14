@@ -5,7 +5,7 @@ import { ActiveBattleMenu, ACTIVE_BATTLE_MENU, AttackMoveOption, ATTACK_MOVE_OPT
 import { BATTLE_UI_TEXT_STYLE } from './battle-menu-config';
 import { PlayerBattleMonster } from '../../monsters/player-battle-monster';
 import { animateText } from '../../../utils/text-utils';
-import { SKIP_BATTLE_ANIMATIONS } from '../../../config';
+import { dataManager } from '../../../utils/data-manager';
 
 
 const BATTLE_MENU_CURSOR_POS =Object.freeze({
@@ -69,13 +69,13 @@ export class BattleMenu {
      /**
       * 是否跳过文字动画
       */
-     _quequeMessagesSkipAnimation:boolean
+     _skipAnimations:boolean
      /**
       * 文字动画是否正在播放
       */
      _quequeMessagesAnimationPlaying:boolean
 
-    constructor(scene: Scene, activePlayerMonster:PlayerBattleMonster){
+    constructor(scene: Scene, activePlayerMonster:PlayerBattleMonster,skipAnimations=false){
         this._scene = scene
         this._activePlayerMonster = activePlayerMonster
         this._selectedAttackIndex = undefined
@@ -85,7 +85,7 @@ export class BattleMenu {
         this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_MAIN 
         this._selectedBattleMenuOption = BATTLE_MENU_OPTION.FIGHT
         this._selectedAttackMenuOption = ATTACK_MOVE_OPTION.MOVE_1
-        this._quequeMessagesSkipAnimation = false
+        this._skipAnimations = skipAnimations
         this._quequeMessagesAnimationPlaying = false
         this._init()
     }
@@ -171,13 +171,12 @@ export class BattleMenu {
      * 
      * @param message 
      * @param callback 
-     * @param skipAnimation 是否跳过文字动画
+     * 
      */
-    updateInfoPaneMessageNoInputRequired(message:string,callback?:()=>void, skipAnimation = false){
+    updateInfoPaneMessageNoInputRequired(message:string,callback?:()=>void){
         //因为要设置文字动画，所以先设置为空。
         this._battleTextGameObjectLine1.setText('').setAlpha(1)
-        this._quequeMessagesSkipAnimation = skipAnimation
-        if(skipAnimation){
+        if(this._skipAnimations){
             this._battleTextGameObjectLine1.setText(message)
             this._waitingForPlayerInput = false
             if(callback){
@@ -187,7 +186,9 @@ export class BattleMenu {
         }
 
         //TODO animate message
-        animateText(this._scene,this._battleTextGameObjectLine1,message,{callback:()=>{
+        animateText(this._scene,this._battleTextGameObjectLine1,message,{
+            delay:dataManager.getAnimatedTextSpeed(),
+            callback:()=>{
             this._waitingForPlayerInput = false
             if(callback){
                 callback()
@@ -201,10 +202,9 @@ export class BattleMenu {
      * @param callback 
      * @param skipAnimation 是否跳过文字动画
      */
-    updateInfoPaneMessageAndWaitForInput(message:string[],callback?:(()=>void)|undefined,skipAnimation = false){
+    updateInfoPaneMessageAndWaitForInput(message:string[],callback?:(()=>void)|undefined){
         this._queuedInfoPanelMessage = message
         this._queuedInfoPanelCallback = callback
-        this._quequeMessagesSkipAnimation = skipAnimation
         
         this._updateInfoPanelWithMessage()
     }
@@ -229,7 +229,7 @@ export class BattleMenu {
         //消息队列中还有没显示的信息，获取第一条显示，并且在消息队列中删除,等待玩家输入
         const messageToDisplay = this._queuedInfoPanelMessage.shift() || ''
         console.log(messageToDisplay)
-        if(this._quequeMessagesSkipAnimation){
+        if(this._skipAnimations){
             this._battleTextGameObjectLine1.setText(messageToDisplay)
             this._waitingForPlayerInput = true
             this._quequeMessagesAnimationPlaying = false
@@ -238,7 +238,7 @@ export class BattleMenu {
         }
         this._quequeMessagesAnimationPlaying = true
         animateText(this._scene,this._battleTextGameObjectLine1,messageToDisplay,{
-            delay:50,
+            delay:dataManager.getAnimatedTextSpeed(),
             callback:()=>{
                 this.playInputCursorAnimate()
                 this._waitingForPlayerInput = true
@@ -518,17 +518,17 @@ export class BattleMenu {
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.SWITCH){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_SWITCH
-            this.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],this._switchToMainBattelMenu,SKIP_BATTLE_ANIMATIONS)
+            this.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],this._switchToMainBattelMenu)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.ITEM){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_ITEM
-            this.updateInfoPaneMessageAndWaitForInput(['Your bag is empty...'],this._switchToMainBattelMenu,SKIP_BATTLE_ANIMATIONS)
+            this.updateInfoPaneMessageAndWaitForInput(['Your bag is empty...'],this._switchToMainBattelMenu)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.FLEE){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_FLEE
-            this.updateInfoPaneMessageAndWaitForInput(['You fail to run away...'],this._switchToMainBattelMenu,SKIP_BATTLE_ANIMATIONS)
+            this.updateInfoPaneMessageAndWaitForInput(['You fail to run away...'],this._switchToMainBattelMenu)
             return
         }
     }

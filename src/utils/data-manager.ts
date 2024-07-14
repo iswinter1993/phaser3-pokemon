@@ -1,6 +1,6 @@
 import { DIRECTION, DirectionType } from './../common/direction';
 import { Data, Events } from "phaser";
-import { TILE_SIZE } from "../config";
+import { TEXT_SPEED, TILE_SIZE } from "../config";
 import { BATTLE_SCENE_OPTIONS, BATTLE_STYLE_OPTIONS, BattleSceneOptions, BattleStyleOptions, MenuColorOptions, SOUND_OPTIONS, SoundOptions, TEXT_SPEED_OPTIONS, TextSpeedOptions, VolumeOptions } from '../common/option';
 
 const LOCALSTORAGE_KEY = 'MONSTER_STORAGE_KEY'
@@ -92,6 +92,14 @@ export class DataManager extends Events.EventEmitter {
         }
         const dataToSave = this._getGlobalState()
         localStorage.setItem(LOCALSTORAGE_KEY,JSON.stringify(dataToSave))
+    }
+
+    getAnimatedTextSpeed(){
+        const speed:TextSpeedOptions = this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_TEXT_SPEED)
+        if(speed === undefined){
+            return TEXT_SPEED.MID
+        }
+        return TEXT_SPEED[speed]
     }
 
     _updateDataManager(data:GlobalState){

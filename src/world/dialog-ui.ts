@@ -2,6 +2,7 @@ import { BATTLE_UI_TEXT_STYLE } from './../battle/ui/menu/battle-menu-config';
 import { GameObjects, Scene, Tweens } from 'phaser';
 import { UI_ASSET_KEYS } from '../assets/asset-keys';
 import { animateText, CANNOT_READ_SIGN_TEXT } from '../utils/text-utils';
+import { dataManager } from '../utils/data-manager';
 export class DialogUi {
 
     _scene:Scene
@@ -85,7 +86,7 @@ export class DialogUi {
         this._uiText.setText('').setAlpha(1)
         const message = this._messageToShow.shift() || ''
         animateText(this._scene,this._uiText,message,{
-            delay:50,
+            delay:dataManager.getAnimatedTextSpeed(),
             callback:()=>{
                 this._textAnimationPlaying = false
             }
