@@ -13,7 +13,8 @@ type CharacterConfig = {
     origin?:Coordinate,
     spriteGridMovementFinishedCallback?:()=>void,
     collisionLayer?:Tilemaps.TilemapLayer,
-    otherCharactersToCheckForCollisionsWith?:Character[]
+    otherCharactersToCheckForCollisionsWith?:Character[],
+    spriteChangeDirectionCallback?:()=>void
 }
 
 
@@ -41,6 +42,9 @@ export class Character {
     _collisionLayer?:Tilemaps.TilemapLayer 
     //检查与其他角色的碰撞
     _otherCharactersToCheckForCollisionsWith:Character[]
+
+    _spriteChangeDirectionCallback:(()=>void) | undefined
+
     constructor(config:CharacterConfig){
         this._scene = config.scene
         this._direction = config.direction
@@ -53,6 +57,7 @@ export class Character {
         this._otherCharactersToCheckForCollisionsWith = config?.otherCharactersToCheckForCollisionsWith || []
         this._phaserGameObject = this._scene.add.sprite(config.position.x,config.position.y,config.assetKey,this._getIdleFrame()).setOrigin(this._origin.x,this._origin.y)
         this._spriteGridMovementFinishedCallback = config.spriteGridMovementFinishedCallback
+        this._spriteChangeDirectionCallback = config.spriteChangeDirectionCallback
     }
 
 
@@ -120,7 +125,15 @@ export class Character {
     }
 
     _moveSprite(direction:DirectionType){
+        const changedDirection = this._direction !== direction
         this._direction = direction
+
+        if(changedDirection){
+            if(this._spriteChangeDirectionCallback){
+                this._spriteChangeDirectionCallback()
+            }
+        }
+
         if(this._isBlockingTile()){
             return
         }

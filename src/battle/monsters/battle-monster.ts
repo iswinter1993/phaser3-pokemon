@@ -29,6 +29,9 @@ export class BattleMonster {
         this._monsterAttacks = []
         this._phaserGameObject = this._scene.add.image(position.x,position.y,this._monsterDetails.assetKey,this._monsterDetails.assetFrame||0).setAlpha(0)
         this._creatHealthBarComponents(config.scaleHealthBarBackgroundImageByY,config.healthBarComponentPosition)
+        this._healthBar.setMeterPercentageAnimated(this._currentHealth/this._maxHealth,{
+            skipBattleAnimations:true
+        })
         /**
          * 通过 attackId 获取招式数据
          */

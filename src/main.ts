@@ -4,6 +4,7 @@ import { Game } from "phaser";
 import { BattleScene } from "./scenes/BattleScene";
 import { OptionScene } from "./scenes/OptionScene";
 import  {Preloader}  from './scenes/Preloader'
+import { TestScene } from "./scenes/TestScene";
 import { TitleScene } from "./scenes/TitleScene";
 import { WorldScene } from "./scenes/WorldScene";
 //  Find out more information about the Game Config at:
@@ -27,7 +28,8 @@ export default new Game({
         TitleScene,
         OptionScene,
         BattleScene,
-        WorldScene
+        WorldScene,
+        TestScene
     ]
 });
 

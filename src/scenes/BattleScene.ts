@@ -105,10 +105,16 @@ export class BattleScene extends Scene {
         
         //创建键盘 上下左右,空格 shift等热键 事件
         this._controls = new Controls(this)
+        this._controls.lockInput = true
 
     }
     update(time: number, delta: number): void {
         this._battleStateMachine.update()
+
+        if(this._controls.isInputLocked) {
+            return
+        }
+
         //空格键是否按下
         const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
         //基于当前战斗状态，限制玩家输入
@@ -117,7 +123,7 @@ export class BattleScene extends Scene {
             || this._battleStateMachine.currentStateName === BATTLE_STATES.POST_ATTACK_CHECK
             || this._battleStateMachine.currentStateName === BATTLE_STATES.FLEE_ATTEMPT
         )){
-            this._battleMenu.handlePlayerInput('OK',this._battleStateMachine.currentStateName)
+            this._battleMenu.handlePlayerInput('OK')
             return
         }
 
@@ -125,7 +131,7 @@ export class BattleScene extends Scene {
             return
         }
         if(wasSpaceKeyPressed){
-            this._battleMenu.handlePlayerInput('OK',this._battleStateMachine.currentStateName)
+            this._battleMenu.handlePlayerInput('OK')
             //判断玩家选择的招式，并更新文本
             if(this._battleMenu.selectedAttack === undefined){
                 return
@@ -140,13 +146,13 @@ export class BattleScene extends Scene {
         }
         const wasShiftKeyPressed = this._controls.wasBackKeyPressed()
         if(wasShiftKeyPressed){
-            this._battleMenu.handlePlayerInput('CANCEL',this._battleStateMachine.currentStateName)
+            this._battleMenu.handlePlayerInput('CANCEL')
             return
         }
         
         let selectedDirection:DirectionType = this._controls.getDirectionKeyJustPressed()
         if(selectedDirection !== DIRECTION.NONE){
-            this._battleMenu.handlePlayerInput(selectedDirection,this._battleStateMachine.currentStateName)
+            this._battleMenu.handlePlayerInput(selectedDirection)
         }
     }
      
@@ -245,11 +251,10 @@ export class BattleScene extends Scene {
                 //等待敌方怪兽出现在场景中并通知玩家相关信息
                     this._activeEnemyMonster.playMonsterAppearAnimation(()=>{
                         this._activeEnemyMonster.playMonsterHealthAppearAnimation(()=>{})
+                        this._controls.lockInput = false
                         this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} appear!`],()=>{
                             //等待文本动画完成 并跳转下一个状态
-                            this.time.delayedCall(800,()=>{
-                                this._battleStateMachine.setState(BATTLE_STATES.BRING_OUT_MONSTER)
-                            })
+                            this._battleStateMachine.setState(BATTLE_STATES.BRING_OUT_MONSTER)
                         }
                         )
                     })

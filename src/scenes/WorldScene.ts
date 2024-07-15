@@ -115,6 +115,9 @@ export class WorldScene extends Scene {
             spriteGridMovementFinishedCallback:()=>{
                 this._handlePlayerMovementUpdate()
             },
+            spriteChangeDirectionCallback:()=>{
+                this._handlePlayerDirectionUpdate()
+            },
             otherCharactersToCheckForCollisionsWith:this._npc
         })
 
@@ -253,6 +256,11 @@ export class WorldScene extends Scene {
             return
         }
 
+    }
+
+    _handlePlayerDirectionUpdate(){
+        console.log(this._player.direction)
+        dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_DIRECTION,this._player.direction)
     }
     //弹框是否在显示
     _isPlayerInputLocked () {

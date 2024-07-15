@@ -75,10 +75,18 @@ export class HealthBar {
      */
     setMeterPercentageAnimated(percent:number,options?: any){
         const width = this._fullWidth * percent
+        if(options?.skipBattleAnimations){
+            this._setMeterPercentage(percent)
+            if(options?.callback){
+                options.callback()
+            }
+            return
+        }
+ 
         this._scene.tweens.add({
             targets:this._mid,
             displayWidth:width,
-            duration: options?.duration || 1000,
+            duration: options?.duration || options?.duration === 0 ? 0 : 1000,
             ease:'Sine.Out',
             onUpdate:() => {
                 this._rightCap.x = this._mid.x + this._mid.displayWidth
