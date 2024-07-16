@@ -1,3 +1,4 @@
+import { Menu } from './../world/menu/menu';
 import { getTargetPositionFromGameObjectPositionAndDirection } from './../utils/grid-utils';
 import { TILE_COLLISION_LAYER_ALPHA } from './../config';
 import { Scene, Tilemaps } from 'phaser';
@@ -42,6 +43,8 @@ export class WorldScene extends Scene {
     _npc:NPC[]
     //玩家交互的NPC
     _npcPlayerIsInteractionWith:NPC | undefined
+
+    _menu:Menu
     constructor(){
         super('WorldScene')
     }
@@ -136,6 +139,8 @@ export class WorldScene extends Scene {
 
         //相机淡入效果
         this.cameras.main.fadeIn(1000,0,0,0)
+        //创建菜单
+        this._menu = new Menu(this)
 
     }
 
@@ -146,12 +151,53 @@ export class WorldScene extends Scene {
         }
          
         const selectedDirection = this._controls.getDirectionKeyPressedDown()
+        const selectedJustDirection = this._controls.getDirectionKeyJustPressed()
+        const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
+
         if(selectedDirection !== DIRECTION.NONE && !this._isPlayerInputLocked()){
             this._player.moveCharacter(selectedDirection)
         }
 
-        if(this._controls.wasSpaceKeyPressed() && !this._player.isMoving){
+        
+        if(wasSpaceKeyPressed && !this._player.isMoving && !this._menu.isVisible){
             this._handlePlayerInteraction()
+        }
+
+        if(this._controls.wasEnterKeyPressed() && !this._player.isMoving){
+            console.log('enter key pressed')
+            if(this._dialogUi.isVisible){
+                return
+            }
+
+            if(this._menu.isVisible){
+                this._menu.hide()
+                return
+            }
+            this._menu.show()
+        }
+        if(this._menu.isVisible){
+            if(selectedJustDirection !== DIRECTION.NONE){
+                this._menu.handlePlayerInput(selectedJustDirection)
+
+            }
+            
+            if(wasSpaceKeyPressed){
+                console.log(wasSpaceKeyPressed, this._controls.wasSpaceKeyPressed())
+                this._menu.handlePlayerInput('OK')
+                if(this._menu.selectedOption === 'SAVE'){
+                    dataManager.saveData()
+                    this._menu.hide()
+                    this._dialogUi.showDialogModal(['Game progress has been saved'])
+                }
+                if(this._menu.selectedOption === 'EXIT'){
+                    this._menu.hide()
+                }
+            }
+
+            if(this._controls.wasBackKeyPressed()){
+                this._menu.hide()
+                return
+            }
         }
 
         this._player.update(time)
@@ -264,7 +310,7 @@ export class WorldScene extends Scene {
     }
     //弹框是否在显示
     _isPlayerInputLocked () {
-        return this._dialogUi.isVisible
+        return this._dialogUi.isVisible || this._menu.isVisible || this._controls.isInputLocked
     }
     /**
      * 创建npc

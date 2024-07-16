@@ -129,7 +129,7 @@ export class Preloader extends Scene {
         
         this._createAnimations()
         dataManager.loadData()
-        this.scene.start('TestScene')
+        this.scene.start('WorldScene')
          
     }
 

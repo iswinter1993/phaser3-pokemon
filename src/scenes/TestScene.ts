@@ -71,14 +71,10 @@ export class TestScene extends Scene {
     })
 
     enemyMonsterFolder.addBinding(this.#enemyMonster,'x',{
-      min:0,
-      max:1024,
-      step:1
+      readonly:true
     })
     enemyMonsterFolder.addBinding(this.#enemyMonster,'y',{
-      min:0,
-      max:576,
-      step:1
+      readonly:true
     })
 
     const f2Params = {

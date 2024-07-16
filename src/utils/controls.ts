@@ -4,9 +4,11 @@ export class Controls {
     _scene:Scene
     _cursorKeys:Types.Input.Keyboard.CursorKeys | undefined
     _lockPlayerInput:boolean
+    _enterKey:Input.Keyboard.Key | undefined
     constructor(scene:Scene){
         this._scene = scene
         this._cursorKeys = this._scene.input.keyboard?.createCursorKeys()
+        this._enterKey = this._scene.input.keyboard?.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER)
         this._lockPlayerInput = false
     }
 
@@ -23,6 +25,13 @@ export class Controls {
             return false
         }
         return Input.Keyboard.JustDown(this._cursorKeys.space)
+    }
+
+    wasEnterKeyPressed(){
+        if(this._enterKey === undefined){
+            return false
+        }
+        return Input.Keyboard.JustDown(this._enterKey)
     }
 
     wasBackKeyPressed(){
