@@ -65,27 +65,27 @@
 ## Title Screen:
   - [x] create basic title screen
   - [x] add options menu
-  - [ ] save & loading options
-  - [ ] connecting option data to battle scene
+  - [x] save & loading options
+  - [x] connecting option data to battle scene
 
 ## Bug Fixes Part 1:
-  - [ ] battle scene - health bar value when battle starts
-  - [ ] health bar - animation when value of delay is provided
-  - [ ] battle scene - at battle start player can provide input
-  - [ ] world scene - player movement, handle when only sprite direction changes
+  - [x] battle scene - health bar value when battle starts
+  - [x] health bar - animation when value of delay is provided
+  - [x] battle scene - at battle start player can provide input
+  - [x] world scene - player movement, handle when only sprite direction changes
 
 ## Tools Part 1:
-  - [ ] using tweakpane for testing
-    - [ ] tweakpane basics
-    - [ ] positioning game objects
-    - [ ] monster attacks
-    - [ ] animations
-  - [ ] util function for moving game objects
+  - [x] using tweakpane for testing
+    - [x] tweakpane basics
+    - [x] positioning game objects
+    - [x] monster attacks
+    - [x] animations
+  - [x] util function for moving game objects
 
 ## Saving & Loading:
-  - [ ] add game menu with option to save game
-  - [ ] update menu scene with continue option to load game
-  - [ ] on new game, we should reset the player data (pos, monsters, etc)
+  - [x] add game menu with option to save game
+  - [x] update menu scene with continue option to load game
+  - [x] on new game, we should reset the player data (pos, monsters, etc)
 
 ## Monster Party & Monster Detail Scenes:
   - [ ] create monster party scene
