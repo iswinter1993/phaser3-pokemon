@@ -1,8 +1,12 @@
+import { DATA_MANAGER_STORE_KEYS } from './../../utils/data-manager';
 import { DIRECTION } from './../../common/direction';
 import { Scene, GameObjects } from 'phaser';
 import { UI_ASSET_KEYS } from '../../assets/asset-keys';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../../assets/font-keys';
 import { DirectionType } from '../../common/direction';
+import { dataManager } from '../../utils/data-manager';
+import { MENU_COLOR } from './menu-config';
+import { MenuColorOptions } from '../../common/option';
 
 export const MENU_TEXT_STYLE:Phaser.Types.GameObjects.Text.TextStyle = Object.freeze({
     color:'#FFFFFF',
@@ -103,9 +107,10 @@ export class Menu {
 
     _createGraphics(){
         const g = this._scene.add.graphics()
-        g.fillStyle(0x32454c,1)
+        const menuColor = this._getMenuColorFromDataManager()
+        g.fillStyle(menuColor.main,1)
         g.fillRect(1,0,this._width - 1,this._height - 1)
-        g.lineStyle(8,0x6d9aa8,1)
+        g.lineStyle(8,menuColor.border,1)
         g.strokeRect(0,0,this._width,this._height)
         g.setAlpha(0.9)
         return g
@@ -143,5 +148,13 @@ export class Menu {
         const y = 28 + this._padding + this._selectedMenuOptionIndex * 50
         console.log(this._availabelMenuOptions[this._selectedMenuOptionIndex])
         this._userInputCursor.setY(y)
+    }
+
+    _getMenuColorFromDataManager():{main:number,border:number}{
+        const menucolor = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR) as MenuColorOptions
+        if(menucolor ===undefined){
+            return MENU_COLOR[0]
+        }
+        return MENU_COLOR[menucolor]
     }
 }

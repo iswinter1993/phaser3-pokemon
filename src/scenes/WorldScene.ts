@@ -141,6 +141,9 @@ export class WorldScene extends Scene {
         this.cameras.main.fadeIn(1000,0,0,0)
         //创建菜单
         this._menu = new Menu(this)
+        
+        //游戏已开始
+        dataManager.store.set(DATA_MANAGER_STORE_KEYS.GAME_STARTED,true)
 
     }
 

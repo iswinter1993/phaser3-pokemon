@@ -1,3 +1,4 @@
+import { dataManager, DATA_MANAGER_STORE_KEYS } from './../utils/data-manager';
 import { Cameras, GameObjects, Scene, Textures } from 'phaser';
 import { TITLE_ASSET_KEYS, UI_ASSET_KEYS } from '../assets/asset-keys';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../assets/font-keys';
@@ -35,7 +36,7 @@ export class TitleScene extends Scene {
     create(){
         console.log('Title Scene 创建')
         this._selectMenuOption = MAIN_MENU_OPTIONS.NEW_GAME
-        this._isContinueButtonEnable = false
+        this._isContinueButtonEnable = dataManager.store.get(DATA_MANAGER_STORE_KEYS.GAME_STARTED) || false
         //create Title Scene background
         this.add.image(0,0,TITLE_ASSET_KEYS.BACKGROUND).setOrigin(0).setScale(0.58)
         this.add.image(this.scale.width/2,150,TITLE_ASSET_KEYS.PANEL).setScale(0.25).setAlpha(0.5)
@@ -79,9 +80,11 @@ export class TitleScene extends Scene {
         this.cameras.main.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
             switch (this._selectMenuOption) {
                 case MAIN_MENU_OPTIONS.NEW_GAME:
-                    this.scene.start('WorldScene')
-                    break;
                 case MAIN_MENU_OPTIONS.CONTINUE:
+                    if(this._selectMenuOption === MAIN_MENU_OPTIONS.NEW_GAME){
+                        dataManager.startNewGame()
+                    }
+                    this.scene.start('WorldScene')
                     break;
                 case MAIN_MENU_OPTIONS.OPTIONS:
                     this.scene.start('OptionScene')

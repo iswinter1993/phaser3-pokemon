@@ -20,7 +20,8 @@ type GlobalState = {
         volume:VolumeOptions
         menuColor:MenuColorOptions
 
-    }
+    },
+    gameStarted:boolean
 }
 
 const initialState:GlobalState = {
@@ -38,7 +39,8 @@ const initialState:GlobalState = {
         sound:SOUND_OPTIONS.ON,
         volume:4,
         menuColor:0
-    }
+    },
+    gameStarted:false
 }
 
 
@@ -50,7 +52,8 @@ export const DATA_MANAGER_STORE_KEYS = Object.freeze({
     OPTIONS_BATTLE_STYLE:'OPTIONS_BATTLE_STYLE',
     OPTIONS_SOUND:'OPTIONS_SOUND',
     OPTIONS_VOLUME:'OPTIONS_VOLUME',
-    OPTIONS_MENU_COLOR:'OPTIONS_MENU_COLOR'
+    OPTIONS_MENU_COLOR:'OPTIONS_MENU_COLOR',
+    GAME_STARTED:'GAME_STARTED'
 })
 
 export class DataManager extends Events.EventEmitter {
@@ -102,6 +105,18 @@ export class DataManager extends Events.EventEmitter {
         return TEXT_SPEED[speed]
     }
 
+    startNewGame(){
+        //获取设置相关数据，重置玩家数据
+        const exsitingData = this._getGlobalState()
+        exsitingData.player = {...initialState.player}
+        exsitingData.gameStarted = initialState.gameStarted
+        console.log(exsitingData)
+
+        this._store.reset()
+        this._updateDataManager(exsitingData)
+        this.saveData()
+    }
+
     _updateDataManager(data:GlobalState){
         this._store.set({
             [DATA_MANAGER_STORE_KEYS.PLAYER_POSITION]:data.player.position,
@@ -111,7 +126,8 @@ export class DataManager extends Events.EventEmitter {
             [DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_STYLE]:data.options.battleStyle,
             [DATA_MANAGER_STORE_KEYS.OPTIONS_SOUND]:data.options.sound,
             [DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME]:data.options.volume,
-            [DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR]:data.options.menuColor
+            [DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR]:data.options.menuColor,
+            [DATA_MANAGER_STORE_KEYS.GAME_STARTED]:data.gameStarted
         })
     }
     _getGlobalState(){
@@ -127,7 +143,8 @@ export class DataManager extends Events.EventEmitter {
                 sound:this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_SOUND),
                 volume:this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME),
                 menuColor:this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR)
-            }
+            },
+            gameStarted:this._store.get(DATA_MANAGER_STORE_KEYS.GAME_STARTED)
         }
     }
 }
