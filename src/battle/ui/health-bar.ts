@@ -18,8 +18,8 @@ export class HealthBar {
      * @param x 
      * @param y 
      */
-    constructor(scene:Scene,x:number,y:number){
-        this._fullWidth = 360
+    constructor(scene:Scene,x:number,y:number,width=360){
+        this._fullWidth = width
         this._scaleY = 0.7
         this._scene = scene
         this._healthBarContainer = this._scene.add.container(x,y,[])

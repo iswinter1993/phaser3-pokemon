@@ -1,3 +1,4 @@
+import { BaseScene } from './BaseScene';
 import { createSceneTransition } from './../utils/scene-transition';
 import { ATTACK_TARGET } from './../battle/attacks/attack-manager';
 import { Scene } from "phaser";
@@ -25,7 +26,7 @@ const BATTLE_STATES = Object.freeze({
     FINISHED:'FINISHED',
     FLEE_ATTEMPT:'FLEE_ATTEMPT'
 })
-export class BattleScene extends Scene {
+export class BattleScene extends BaseScene {
     _battleMenu:BattleMenu;
     _cursorkeys: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
     _playerHealthBar:HealthBar;
@@ -35,7 +36,6 @@ export class BattleScene extends Scene {
     _activePlayerAttackIndex:number;
     _battleStateMachine:StateMachine;
     _attackManager:AttackManager
-    _controls:Controls
     _skipAnimations:boolean
     constructor(){
         super('BattleScene')
@@ -43,6 +43,7 @@ export class BattleScene extends Scene {
     }
 
     init(){
+        super.init()
         this._activePlayerAttackIndex = -1
         const chosenBattleSceneOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_SCENE)
         if(chosenBattleSceneOption === undefined || chosenBattleSceneOption === BATTLE_SCENE_OPTIONS.ON){
@@ -52,9 +53,8 @@ export class BattleScene extends Scene {
         this._skipAnimations = true
     }
 
-    preload(){}
-
     create(){
+        super.init()
         // create main background
         const background = new Background(this)
         background.showForest()
@@ -63,6 +63,8 @@ export class BattleScene extends Scene {
             {
                 scene:this,
                 monsterDetails:{
+                    id:2,
+                    monsterId:2,
                     name:MONSTER_ASSET_KEYS.CARNODUSK,
                     assetKey:MONSTER_ASSET_KEYS.CARNODUSK,
                     maxHp:25,
@@ -81,15 +83,7 @@ export class BattleScene extends Scene {
         //render player health bar 玩家健康条
         this._activePlayerMonster = new PlayerBattleMonster({
             scene:this,
-            monsterDetails:{
-                name:MONSTER_ASSET_KEYS.IGUANIGNITE,
-                assetKey:MONSTER_ASSET_KEYS.IGUANIGNITE,
-                maxHp:25,
-                currentHp:25,
-                baseAttack:25,
-                attackIds:[2,1],
-                currentLevel:5
-            },
+            monsterDetails:dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0],
             scaleHealthBarBackgroundImageByY:1,
             healthBarComponentPosition:{x:556,y:318},
             skipBattleAnimations:this._skipAnimations
@@ -104,7 +98,7 @@ export class BattleScene extends Scene {
         this._attackManager = new AttackManager(this,this._skipAnimations)
         
         //创建键盘 上下左右,空格 shift等热键 事件
-        this._controls = new Controls(this)
+        // this._controls 已在BaseScene中创建
         this._controls.lockInput = true
 
     }

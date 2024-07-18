@@ -1,3 +1,5 @@
+import { MONSTER_PARTY_ASSET_KEYS } from './../assets/asset-keys';
+import { BaseScene } from './BaseScene';
 import { Animation } from './../types/typedef';
 import { DataUtils } from './../utils/data-utils';
 import { Scene } from "phaser";
@@ -6,7 +8,7 @@ import { WebFontFileLoader } from "../assets/web-font-file-loader";
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from "../assets/font-keys";
 import { dataManager } from '../utils/data-manager';
 
-export class Preloader extends Scene {
+export class Preloader extends BaseScene {
     constructor () {
         //通过构造函数创建场景，super函数中字符串为场景的key
         super({
@@ -17,7 +19,7 @@ export class Preloader extends Scene {
     }
     //生命周期init，preload，create，update
     init(){
-        console.log('Preloader >>> init')
+        super.init()
         this.load.on('progress',(progress: any)=>{
             console.log('listen progress:',progress)
         })
@@ -27,13 +29,13 @@ export class Preloader extends Scene {
     }
 
     preload(){
+        super.preload()
         const monsterTamerAssetPath = 'assets/images/monster-tamer'
         const kenneysAssetPath = 'assets/images/kenneys-assets'
         const dataAssetPath = 'assets/data'
         const pimenAssetPath = 'assets/images/pimen'
         const axulArtAssetPath = 'assets/images/axulart'
         const pbGamesAssetPath = 'assets/images/parabellum-games'
-        console.log('Preloader >>> preload')
         /**
          * battle background assets
          */
@@ -122,14 +124,21 @@ export class Preloader extends Scene {
         this.load.image(UI_ASSET_KEYS.MENU_BACKGROUND,`${kenneysAssetPath}/ui-space-expansion/glassPanel.png`)
         this.load.image(UI_ASSET_KEYS.MENU_BACKGROUND_GREEN,`${kenneysAssetPath}/ui-space-expansion/glassPanel_green.png`)
         this.load.image(UI_ASSET_KEYS.MENU_BACKGROUND_PURPLE,`${kenneysAssetPath}/ui-space-expansion/glassPanel_purple.png`)
+        /**
+         * 加载monster party资源
+         */
+        this.load.image(UI_ASSET_KEYS.BLUE_BUTTON,`${kenneysAssetPath}/ui-pack/blue_button01.png`)
+        this.load.image(UI_ASSET_KEYS.BLUE_BUTTON_SELECTED,`${kenneysAssetPath}/ui-pack/blue_button00.png`)
+        this.load.image(MONSTER_PARTY_ASSET_KEYS.PARTY_BACKGROUND,`${monsterTamerAssetPath}/ui/monster-party/background.png`)
+        this.load.image(MONSTER_PARTY_ASSET_KEYS.MONSTER_DETAILS_BACKGROUND,`${monsterTamerAssetPath}/ui/monster-party/monster-details-background.png`)
     }
 
     create(){
-        console.log('Preloader >>> create')
+        super.create()
         
         this._createAnimations()
         dataManager.loadData()
-        this.scene.start('TitleScene')
+        this.scene.start('MonsterPartyScene')
          
     }
 

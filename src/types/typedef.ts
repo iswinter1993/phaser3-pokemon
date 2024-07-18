@@ -1,6 +1,10 @@
 import { AttackKeys } from './../battle/attacks/attack-keys';
 import { Scene } from "phaser"
 export type Monster = {
+    //怪兽个体的唯一id
+    id:number,
+    //怪兽种类id
+    monsterId:number
     name:string,
     assetKey:string,
     assetFrame?:number,

@@ -1,9 +1,16 @@
+import { Monster } from './../types/typedef';
 import { DIRECTION, DirectionType } from './../common/direction';
 import { Data, Events } from "phaser";
 import { TEXT_SPEED, TILE_SIZE } from "../config";
 import { BATTLE_SCENE_OPTIONS, BATTLE_STYLE_OPTIONS, BattleSceneOptions, BattleStyleOptions, MenuColorOptions, SOUND_OPTIONS, SoundOptions, TEXT_SPEED_OPTIONS, TextSpeedOptions, VolumeOptions } from '../common/option';
+import { MONSTER_ASSET_KEYS } from '../assets/asset-keys';
 
 const LOCALSTORAGE_KEY = 'MONSTER_STORAGE_KEY'
+
+type MonsterData = {
+    inParty:Monster[]
+}
+
 type GlobalState = {
     player:{
         position:{
@@ -21,7 +28,8 @@ type GlobalState = {
         menuColor:MenuColorOptions
 
     },
-    gameStarted:boolean
+    gameStarted:boolean,
+    monster:MonsterData
 }
 
 const initialState:GlobalState = {
@@ -40,7 +48,20 @@ const initialState:GlobalState = {
         volume:4,
         menuColor:0
     },
-    gameStarted:false
+    gameStarted:false,
+    monster:{
+        inParty:[{
+            id:1,
+            monsterId:1,
+            name:MONSTER_ASSET_KEYS.IGUANIGNITE,
+            assetKey:MONSTER_ASSET_KEYS.IGUANIGNITE,
+            maxHp:25,
+            currentHp:25,
+            baseAttack:25,
+            attackIds:[2,1],
+            currentLevel:5
+        }]
+    }
 }
 
 
@@ -53,7 +74,8 @@ export const DATA_MANAGER_STORE_KEYS = Object.freeze({
     OPTIONS_SOUND:'OPTIONS_SOUND',
     OPTIONS_VOLUME:'OPTIONS_VOLUME',
     OPTIONS_MENU_COLOR:'OPTIONS_MENU_COLOR',
-    GAME_STARTED:'GAME_STARTED'
+    GAME_STARTED:'GAME_STARTED',
+    MONSTER_IN_PARTY:'MONSTER_IN_PARTY'
 })
 
 export class DataManager extends Events.EventEmitter {
@@ -110,6 +132,7 @@ export class DataManager extends Events.EventEmitter {
         const exsitingData = this._getGlobalState()
         exsitingData.player = {...initialState.player}
         exsitingData.gameStarted = initialState.gameStarted
+        exsitingData.monster.inParty = [...initialState.monster.inParty]
         console.log(exsitingData)
 
         this._store.reset()
@@ -127,7 +150,8 @@ export class DataManager extends Events.EventEmitter {
             [DATA_MANAGER_STORE_KEYS.OPTIONS_SOUND]:data.options.sound,
             [DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME]:data.options.volume,
             [DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR]:data.options.menuColor,
-            [DATA_MANAGER_STORE_KEYS.GAME_STARTED]:data.gameStarted
+            [DATA_MANAGER_STORE_KEYS.GAME_STARTED]:data.gameStarted,
+            [DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY]:data.monster.inParty
         })
     }
     _getGlobalState(){
@@ -144,7 +168,10 @@ export class DataManager extends Events.EventEmitter {
                 volume:this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME),
                 menuColor:this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR)
             },
-            gameStarted:this._store.get(DATA_MANAGER_STORE_KEYS.GAME_STARTED)
+            gameStarted:this._store.get(DATA_MANAGER_STORE_KEYS.GAME_STARTED),
+            monster:{
+                inParty:[...this._store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)]
+            }
         }
     }
 }

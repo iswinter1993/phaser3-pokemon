@@ -1,3 +1,4 @@
+import { BaseScene } from './BaseScene';
 import { BattleStyleOptions, BATTLE_SCENE_OPTIONS, BATTLE_STYLE_OPTIONS, MenuColorOptions, SoundOptions, SOUND_OPTIONS, TEXT_SPEED_OPTIONS, VolumeOptions } from './../common/option';
 import { Scene, GameObjects, Cameras } from 'phaser';
 import { UI_ASSET_KEYS } from '../assets/asset-keys';
@@ -29,7 +30,7 @@ const TEXT_FONT_COLOR = Object.freeze({
     SELECTED:'#FF2222'
 })
 
-export class OptionScene extends Scene {
+export class OptionScene extends BaseScene {
 
     _mainContainer:GameObjects.Container
     _nineSliceMainContainer:GameObjects.NineSlice
@@ -43,7 +44,6 @@ export class OptionScene extends Scene {
     _infoContainer:GameObjects.NineSlice
     _selectedOptionInfoMsgTextGameObjects:GameObjects.Text
     _optionsMenuCursor:GameObjects.Rectangle
-    _controls:Controls
     _selectedOptionMenu:OptionMenuOptions
     _selectedTextSpeedOption:TextSpeedOptions
     _selectedBattleSceneOption:BattleSceneOptions
@@ -57,6 +57,7 @@ export class OptionScene extends Scene {
     }
 
     init(){
+        super.init()
         this._selectedOptionMenu = OPTION_MENU_OPTIONS.TEXT_SPEED
         this._selectedTextSpeedOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_TEXT_SPEED)
         this._selectedBattleSceneOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_SCENE)
@@ -67,7 +68,7 @@ export class OptionScene extends Scene {
     }
 
     create(){
-        console.log('create OptionScene')
+        super.create()
         //create main options container
         const {width,height} = this.scale
         const optionWidth = width - 200
@@ -139,7 +140,6 @@ export class OptionScene extends Scene {
 
         this._optionsMenuCursor = this.add.rectangle(110,70,optionWidth - 20,40,0xffffff,0).setStrokeStyle(4,0xe4434a,1).setOrigin(0)
 
-        this._controls = new Controls(this)
         this.cameras.main.once(Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
             this.scene.start('TitleScene')
         })

@@ -1,3 +1,4 @@
+import { BaseScene } from './BaseScene';
 import { Menu } from './../world/menu/menu';
 import { getTargetPositionFromGameObjectPositionAndDirection } from './../utils/grid-utils';
 import { TILE_COLLISION_LAYER_ALPHA } from './../config';
@@ -31,9 +32,8 @@ const TILED_NPC_PROPERTY = Object.freeze({
     IS_SPAWN_POINT:'is_spawn_point'
 })
 
-export class WorldScene extends Scene {
+export class WorldScene extends BaseScene {
     _player:Player
-    _controls:Controls
     //遭遇怪图层
     _encounterLayer:Tilemaps.TilemapLayer | null
     //是否遭遇怪兽
@@ -50,12 +50,12 @@ export class WorldScene extends Scene {
     }
 
     init(){
-        console.log('init World Scene')
+        super.init()
         this._wildMonsterEncountered = false
     }
 
     create(){
-        console.log('create World Scene')
+        super.create()
 
         //设置相机边界，超出不跟随目标
         this.cameras.main.setBounds(0,0,1280,2176)
@@ -132,8 +132,6 @@ export class WorldScene extends Scene {
 
         //设置屋顶，树尖的遮挡图片
         this.add.image(0,0,WORLD_ASSET_KEYS.WORLD_FOREGROUND,0).setOrigin(0)
-        //创建控制实例
-        this._controls = new Controls(this)
         //创建对话框实例
         this._dialogUi = new DialogUi(this,1280)
 
@@ -141,7 +139,7 @@ export class WorldScene extends Scene {
         this.cameras.main.fadeIn(1000,0,0,0)
         //创建菜单
         this._menu = new Menu(this)
-        
+
         //游戏已开始
         dataManager.store.set(DATA_MANAGER_STORE_KEYS.GAME_STARTED,true)
 

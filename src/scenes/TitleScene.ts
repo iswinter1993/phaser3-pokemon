@@ -1,3 +1,4 @@
+import { BaseScene } from './BaseScene';
 import { dataManager, DATA_MANAGER_STORE_KEYS } from './../utils/data-manager';
 import { Cameras, GameObjects, Scene, Textures } from 'phaser';
 import { TITLE_ASSET_KEYS, UI_ASSET_KEYS } from '../assets/asset-keys';
@@ -24,9 +25,9 @@ const MAIN_MENU_OPTIONS = Object.freeze({
     OPTIONS:'OPTIONS'
 })
 
-export class TitleScene extends Scene {
+export class TitleScene extends BaseScene {
     _mainMenuCursorPhaserImageGameObject:GameObjects.Image
-    _controls:Controls
+    // _controls:Controls   BaseScene中已经创建
     _selectMenuOption:MainMenuOptions
     //是否有存档
     _isContinueButtonEnable:boolean
@@ -34,7 +35,7 @@ export class TitleScene extends Scene {
         super('TitleScene')
     }
     create(){
-        console.log('Title Scene 创建')
+        super.create()
         this._selectMenuOption = MAIN_MENU_OPTIONS.NEW_GAME
         this._isContinueButtonEnable = dataManager.store.get(DATA_MANAGER_STORE_KEYS.GAME_STARTED) || false
         //create Title Scene background
@@ -95,9 +96,6 @@ export class TitleScene extends Scene {
             this._controls.lockInput = false
         })
 
-
-        //create controls
-        this._controls = new Controls(this)
 
     }
     update(time: number, delta: number): void {
