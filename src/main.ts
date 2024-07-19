@@ -2,6 +2,7 @@
 
 import { Game } from "phaser";
 import { BattleScene } from "./scenes/BattleScene";
+import { MonsterDetailScene } from "./scenes/MonsterDetailScene";
 import { MonsterPartyScene } from "./scenes/MonsterPartyScene";
 import { OptionScene } from "./scenes/OptionScene";
 import  {Preloader}  from './scenes/Preloader'
@@ -31,7 +32,8 @@ export default new Game({
         BattleScene,
         WorldScene,
         TestScene,
-        MonsterPartyScene
+        MonsterPartyScene,
+        MonsterDetailScene
     ]
 });
 

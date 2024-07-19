@@ -87,7 +87,7 @@ export class MonsterPartyScene extends BaseScene {
                 this._goBackToPreviousScene()
                 return
             }
-            //TODO
+            this.scene.start('MonsterDetailScene')
             return
         }
         const selectedDirection = this._controls.getDirectionKeyJustPressed()

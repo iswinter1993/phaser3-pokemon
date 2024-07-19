@@ -138,7 +138,7 @@ export class Preloader extends BaseScene {
         
         this._createAnimations()
         dataManager.loadData()
-        this.scene.start('MonsterPartyScene')
+        this.scene.start('MonsterDetailScene')
          
     }
 
