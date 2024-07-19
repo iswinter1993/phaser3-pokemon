@@ -1,3 +1,4 @@
+import { DIRECTION, DirectionType } from './../common/direction';
 import { dataManager, DATA_MANAGER_STORE_KEYS } from './../utils/data-manager';
 import { UI_ASSET_KEYS, MONSTER_PARTY_ASSET_KEYS, BATTLLE_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS } from './../assets/asset-keys';
 import { HealthBar } from './../battle/ui/health-bar';
@@ -67,14 +68,33 @@ export class MonsterPartyScene extends BaseScene {
             const y = isEven ? MONSTER_PARTY_POSITION.EVEN.y + MONSTER_PARTY_POSITION.increment * Math.floor(index / 2) : MONSTER_PARTY_POSITION.ODD.y + MONSTER_PARTY_POSITION.increment * Math.floor(index / 2)
             this._createMonster(x,y,monster)
         })
-        // this._createMonster(0,10,dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0])
-        // this.add.image(0,10,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND,0).setOrigin(0).setScale(1.1,1.2)
-        // this.add.image(510,40,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND,0).setOrigin(0).setScale(1.1,1.2).setAlpha(0.7)
-        // this.add.image(0,160,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND,0).setOrigin(0).setScale(1.1,1.2).setAlpha(0.7)
-        // this.add.image(510,190,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND,0).setOrigin(0).setScale(1.1,1.2).setAlpha(0.7)
-        // this.add.image(0,310,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND,0).setOrigin(0).setScale(1.1,1.2).setAlpha(0.7)
-        // this.add.image(510,340,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND,0).setOrigin(0).setScale(1.1,1.2).setAlpha(0.35)
+        this._movePlayerInputCursor(DIRECTION.NONE)
+     
 
+    }
+
+    update(time: number, delta: number): void {
+        if(this._controls.isInputLocked){
+            return
+        }
+        if(this._controls.wasBackKeyPressed()){
+            this._goBackToPreviousScene()
+            return
+        }
+        const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
+        if(wasSpaceKeyPressed){
+            if(this._selectedPartyMonsterIndex === -1){
+                this._goBackToPreviousScene()
+                return
+            }
+            //TODO
+            return
+        }
+        const selectedDirection = this._controls.getDirectionKeyJustPressed()
+        if(selectedDirection !== DIRECTION.NONE){
+            this._movePlayerInputCursor(selectedDirection)
+            this._updateInfoContainerText()
+        }
     }
 
     _updateInfoContainerText(){
@@ -95,7 +115,7 @@ export class MonsterPartyScene extends BaseScene {
     _createMonster(x:number,y:number,monsterDetails:Monster){
         const container = this.add.container(x,y,[])
         const background = this.add.image(0,0,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND,0).setOrigin(0).setScale(1.1,1.2)
-
+        this._monstersPartyBackgrounds.push(background)
         const leftCapShadow = this.add.image(160,67,HEALTH_BAR_ASSET_KEYS.LEFT_CAP_SHADOW,0).setOrigin(0).setAlpha(0.5)
         const middleShadow = this.add.image(leftCapShadow.x + leftCapShadow.width,67,HEALTH_BAR_ASSET_KEYS.MIDDLE_SHADOW,0).setOrigin(0).setAlpha(0.5)
         middleShadow.displayWidth = 285
@@ -149,6 +169,85 @@ export class MonsterPartyScene extends BaseScene {
             healthBarNumberHpTextGameObject
         ])
         return container
+    }
+
+    _goBackToPreviousScene(){
+        this._controls.lockInput = true
+        this.scene.start('WorldScene')
+    }
+
+
+    _movePlayerInputCursor(direction:DirectionType){
+        switch (direction) {
+            case DIRECTION.DOWN:
+                if(this._selectedPartyMonsterIndex === -1){
+                    break
+                }else{
+                    this._selectedPartyMonsterIndex += 2
+                    if(this._selectedPartyMonsterIndex > this._monsters.length - 1){
+                        this._selectedPartyMonsterIndex = -1
+                    }
+    
+                    if(this._selectedPartyMonsterIndex === -1){
+                        this._cancelButton.setTexture(UI_ASSET_KEYS.BLUE_BUTTON_SELECTED,0).setAlpha(1)
+                        break;
+                    }
+                }
+                // this._monstersPartyBackgrounds[this._selectedPartyMonsterIndex].setAlpha(1)
+                break;
+            case DIRECTION.UP:
+                if(this._selectedPartyMonsterIndex === -1){
+                    this._selectedPartyMonsterIndex = this._monsters.length - 1
+                    this._cancelButton.setTexture(UI_ASSET_KEYS.BLUE_BUTTON,0).setAlpha(0.7)
+                }else{
+
+                    this._selectedPartyMonsterIndex -= 2
+                    if(this._selectedPartyMonsterIndex < 0 ){
+                        this._selectedPartyMonsterIndex = 0
+                    }
+                    
+    
+                    if(this._selectedPartyMonsterIndex === -1){
+                        this._cancelButton.setTexture(UI_ASSET_KEYS.BLUE_BUTTON_SELECTED,0).setAlpha(1)
+                        break;
+                    }
+                }
+                // this._monstersPartyBackgrounds[this._selectedPartyMonsterIndex].setAlpha(1)
+                break;
+            case DIRECTION.LEFT:
+                if(this._selectedPartyMonsterIndex === -1){
+                    break
+                }else{
+                    this._selectedPartyMonsterIndex -= 1
+                    if(this._selectedPartyMonsterIndex < 0){
+                        this._selectedPartyMonsterIndex = this._monsters.length - 1
+                    }
+                }
+                break;
+            case DIRECTION.RIGHT:
+                if(this._selectedPartyMonsterIndex === -1){
+                    break
+                }else{
+                    this._selectedPartyMonsterIndex += 1
+                    if(this._selectedPartyMonsterIndex > this._monsters.length - 1){
+                        this._selectedPartyMonsterIndex = 0
+                    }
+                }
+                break;
+            case DIRECTION.NONE:
+
+                break;
+        
+            default:
+                break;
+        }
+        this._monstersPartyBackgrounds[this._selectedPartyMonsterIndex]?.setAlpha(1)
+        this._monstersPartyBackgrounds.forEach((obj,index)=>{
+            if(this._selectedPartyMonsterIndex === index){
+                return
+            }
+            obj.setAlpha(0.7)
+        })
     }
 
 }
