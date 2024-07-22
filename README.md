@@ -88,11 +88,11 @@
   - [x] on new game, we should reset the player data (pos, monsters, etc)
 
 ## Monster Party & Monster Detail Scenes:
-  - [ ] create monster party scene
-  - [ ] allow player to select a monster in the scene
-  - [ ] create monster detail scene
-  - [ ] connect monster detail scene to monster party scene
-  - [ ] add game menu option for viewing monster party scene
+  - [x] create monster party scene
+  - [x] allow player to select a monster in the scene
+  - [x] create monster detail scene
+  - [x] connect monster detail scene to monster party scene
+  - [x] add game menu option for viewing monster party scene
 
 ## Inventory:
   - [ ] create class for items and inventory
