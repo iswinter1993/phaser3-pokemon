@@ -1,4 +1,4 @@
-import { MONSTER_PARTY_ASSET_KEYS } from './../assets/asset-keys';
+import { MONSTER_PARTY_ASSET_KEYS, INVENTORY_ASSET_KEYS } from './../assets/asset-keys';
 import { BaseScene } from './BaseScene';
 import { Animation } from './../types/typedef';
 import { DataUtils } from './../utils/data-utils';
@@ -131,6 +131,11 @@ export class Preloader extends BaseScene {
         this.load.image(UI_ASSET_KEYS.BLUE_BUTTON_SELECTED,`${kenneysAssetPath}/ui-pack/blue_button00.png`)
         this.load.image(MONSTER_PARTY_ASSET_KEYS.PARTY_BACKGROUND,`${monsterTamerAssetPath}/ui/monster-party/background.png`)
         this.load.image(MONSTER_PARTY_ASSET_KEYS.MONSTER_DETAILS_BACKGROUND,`${monsterTamerAssetPath}/ui/monster-party/monster-details-background.png`)
+        /**
+         * 加载 背包资源
+         */
+        this.load.image(INVENTORY_ASSET_KEYS.INVENTORY_BACKGROUND,`${monsterTamerAssetPath}/ui/inventory/bag_background.png`)
+        this.load.image(INVENTORY_ASSET_KEYS.INVENTORY_BAG,`${monsterTamerAssetPath}/ui/inventory/bag.png`)
     }
 
     create(){
@@ -138,7 +143,7 @@ export class Preloader extends BaseScene {
         
         this._createAnimations()
         dataManager.loadData()
-        this.scene.start('WorldScene')
+        this.scene.start('InventoryScene')
          
     }
 
