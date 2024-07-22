@@ -26,9 +26,12 @@ export class MonsterDetailScene extends BaseScene{
         super('MonsterDetailScene')
     }
 
-    init(): void {
-        super.init()
-        this._monsterDetails = dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0]
+    init(data:any): void {
+        super.init(data)
+        this._monsterDetails = data.monster
+        if(this._monsterDetails === undefined){
+            this._monsterDetails = dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0]
+        }
         this._monsterAttacks = []
         this._monsterDetails.attackIds.forEach(attackId => {
             const attack = DataUtils.getMonsterAttackById(this,attackId)
@@ -70,7 +73,8 @@ export class MonsterDetailScene extends BaseScene{
 
         if(this._controls.wasBackKeyPressed()){
             this._controls.lockInput = true
-            this.scene.start('MonsterPartyScene')
+            this.scene.stop('MonsterDetailScene')
+            this.scene.resume('MonsterPartyScene')
             return
         }
     }

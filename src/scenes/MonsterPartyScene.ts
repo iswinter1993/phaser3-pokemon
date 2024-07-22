@@ -33,8 +33,14 @@ export class MonsterPartyScene extends BaseScene {
     _healthBarTextGameObjects:GameObjects.Text[]
     _selectedPartyMonsterIndex:number
     _monsters:Monster[]
+    _sceneData:any
     constructor(){
         super('MonsterPartyScene')
+      
+    }
+    init(data: any): void {
+        super.init(data)
+        this._sceneData = data
         this._monstersPartyBackgrounds = []
         this._healthBars = []
         this._healthBarTextGameObjects = []
@@ -44,6 +50,7 @@ export class MonsterPartyScene extends BaseScene {
     create(){
         super.create()
         //create background  
+        this.add.rectangle(0,0,this.scale.width,this.scale.height,0x000000,1).setOrigin(0)
         //tileSprite 图片平铺方法
         this.add.tileSprite(0,0,this.scale.width,this.scale.height,MONSTER_PARTY_ASSET_KEYS.PARTY_BACKGROUND,0).setOrigin(0).setAlpha(0.7)
         //create button
@@ -87,7 +94,12 @@ export class MonsterPartyScene extends BaseScene {
                 this._goBackToPreviousScene()
                 return
             }
-            this.scene.start('MonsterDetailScene')
+            this._controls.lockInput = true
+            const sceneDataToPass = {
+                monster:this._monsters[this._selectedPartyMonsterIndex]
+            }
+            this.scene.launch('MonsterDetailScene',sceneDataToPass)
+            this.scene.pause('MonsterPartyScene')
             return
         }
         const selectedDirection = this._controls.getDirectionKeyJustPressed()
@@ -173,7 +185,9 @@ export class MonsterPartyScene extends BaseScene {
 
     _goBackToPreviousScene(){
         this._controls.lockInput = true
-        this.scene.start('WorldScene')
+        
+        this.scene.stop('MonsterPartyScene')
+        this.scene.resume(this._sceneData.previousScene)
     }
 
 

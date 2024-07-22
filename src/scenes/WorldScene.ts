@@ -51,6 +51,7 @@ export class WorldScene extends BaseScene {
 
     init(){
         super.init()
+
         this._wildMonsterEncountered = false
     }
 
@@ -126,6 +127,8 @@ export class WorldScene extends BaseScene {
 
 
         this._npc.forEach(npc=>npc.addCharacterToCheckForCollisionsWith(this._player))
+
+
         
         //设置相机跟随目标
         this.cameras.main.startFollow(this._player.sprite)
@@ -185,6 +188,16 @@ export class WorldScene extends BaseScene {
             if(wasSpaceKeyPressed){
                 console.log(wasSpaceKeyPressed, this._controls.wasSpaceKeyPressed())
                 this._menu.handlePlayerInput('OK')
+                if(this._menu.selectedOption === 'MONSTERS'){
+                    const sceneDataToPass = {
+                        previousScene : 'WorldScene'
+                    }
+                    //另起一个场景，不会关闭当前场景,,,,,场景之间可以传递数据，init方法接收数据
+                    this.scene.launch('MonsterPartyScene',sceneDataToPass)
+                    //暂停当前场景
+                    this.scene.pause()
+                }
+
                 if(this._menu.selectedOption === 'SAVE'){
                     dataManager.saveData()
                     this._menu.hide()
@@ -365,4 +378,5 @@ export class WorldScene extends BaseScene {
             this._npc.push(npc)
         })
     }
+    
 }
