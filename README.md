@@ -95,10 +95,10 @@
   - [x] add game menu option for viewing monster party scene
 
 ## Inventory:
-  - [ ] create class for items and inventory
-  - [ ] create ui screen for viewing items
-  - [ ] update menu to have view bag option
-  - [ ] update data manager to allow saving of inventory items
+  - [x] create class for items and inventory
+  - [x] create ui screen for viewing items
+  - [x] update menu to have view bag option
+  - [x] update data manager to allow saving of inventory items
   - [ ] update ui screen to allow player to use items
 
 ## Battle Scene Part 2:
