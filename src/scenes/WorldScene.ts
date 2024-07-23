@@ -188,14 +188,19 @@ export class WorldScene extends BaseScene {
             if(wasSpaceKeyPressed){
                 console.log(wasSpaceKeyPressed, this._controls.wasSpaceKeyPressed())
                 this._menu.handlePlayerInput('OK')
+                const sceneDataToPass = {
+                    previousScene : 'WorldScene'
+                }
                 if(this._menu.selectedOption === 'MONSTERS'){
-                    const sceneDataToPass = {
-                        previousScene : 'WorldScene'
-                    }
                     //另起一个场景，不会关闭当前场景,,,,,场景之间可以传递数据，init方法接收数据
                     this.scene.launch('MonsterPartyScene',sceneDataToPass)
                     //暂停当前场景
-                    this.scene.pause()
+                    this.scene.pause('WorldScene')
+                }
+
+                if(this._menu.selectedOption === 'BAG'){
+                    this.scene.launch('InventoryScene',sceneDataToPass)
+                    this.scene.pause('WorldScene')
                 }
 
                 if(this._menu.selectedOption === 'SAVE'){

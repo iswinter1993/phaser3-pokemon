@@ -1,6 +1,7 @@
-import { Monster } from './../types/typedef';
+import { DataUtils } from './data-utils';
+import { Monster, Item, Inventory, InventoryItem } from './../types/typedef';
 import { DIRECTION, DirectionType } from './../common/direction';
-import { Data, Events } from "phaser";
+import { Data, Events, Scene } from "phaser";
 import { TEXT_SPEED, TILE_SIZE } from "../config";
 import { BATTLE_SCENE_OPTIONS, BATTLE_STYLE_OPTIONS, BattleSceneOptions, BattleStyleOptions, MenuColorOptions, SOUND_OPTIONS, SoundOptions, TEXT_SPEED_OPTIONS, TextSpeedOptions, VolumeOptions } from '../common/option';
 import { MONSTER_ASSET_KEYS } from '../assets/asset-keys';
@@ -29,7 +30,8 @@ type GlobalState = {
 
     },
     gameStarted:boolean,
-    monster:MonsterData
+    monster:MonsterData,
+    inventory:Inventory
 }
 
 const initialState:GlobalState = {
@@ -61,7 +63,21 @@ const initialState:GlobalState = {
             attackIds:[2,1],
             currentLevel:5
         }]
-    }
+    },
+    inventory:[
+        {
+            item:{
+                id:1
+            },
+            quantity:1
+        },
+        {
+            item:{
+                id:2
+            },
+            quantity:5
+        },
+    ]
 }
 
 
@@ -75,7 +91,8 @@ export const DATA_MANAGER_STORE_KEYS = Object.freeze({
     OPTIONS_VOLUME:'OPTIONS_VOLUME',
     OPTIONS_MENU_COLOR:'OPTIONS_MENU_COLOR',
     GAME_STARTED:'GAME_STARTED',
-    MONSTER_IN_PARTY:'MONSTER_IN_PARTY'
+    MONSTER_IN_PARTY:'MONSTER_IN_PARTY',
+    INVENTORY:'INVENTORY'
 })
 
 export class DataManager extends Events.EventEmitter {
@@ -119,6 +136,41 @@ export class DataManager extends Events.EventEmitter {
         localStorage.setItem(LOCALSTORAGE_KEY,JSON.stringify(dataToSave))
     }
 
+   /**
+    * 通过id获取背包数据
+    * @param scene 
+    * @returns
+    */
+    getInventory(scene:Scene):InventoryItem[]{
+        const items:InventoryItem[] = []
+        const inventory = this._store.get(DATA_MANAGER_STORE_KEYS.INVENTORY) as Inventory
+        inventory.forEach((baseItem,index)=>{
+            const item = DataUtils.getItemById(scene,baseItem.item.id) as Item
+            const inventoryItem:InventoryItem = {
+                item:item,
+                quantity:baseItem.quantity
+            }
+            items.push(inventoryItem)
+        })
+        return items
+    }
+    /**
+     * 更新背包数据
+     * @param items 
+     */
+    updateInventory(items:InventoryItem[]){
+        const inventory = items.map(item=>{
+            return {
+                item:{
+                    id:item.item.id
+                },
+                quantity:item.quantity
+            }
+        })
+
+        this._store.set(DATA_MANAGER_STORE_KEYS.INVENTORY,inventory)
+    }
+
     getAnimatedTextSpeed(){
         const speed:TextSpeedOptions = this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_TEXT_SPEED)
         if(speed === undefined){
@@ -133,6 +185,7 @@ export class DataManager extends Events.EventEmitter {
         exsitingData.player = {...initialState.player}
         exsitingData.gameStarted = initialState.gameStarted
         exsitingData.monster.inParty = [...initialState.monster.inParty]
+        exsitingData.inventory = initialState.inventory
         console.log(exsitingData)
 
         this._store.reset()
@@ -151,7 +204,8 @@ export class DataManager extends Events.EventEmitter {
             [DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME]:data.options.volume,
             [DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR]:data.options.menuColor,
             [DATA_MANAGER_STORE_KEYS.GAME_STARTED]:data.gameStarted,
-            [DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY]:data.monster.inParty
+            [DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY]:data.monster.inParty,
+            [DATA_MANAGER_STORE_KEYS.INVENTORY]:data.inventory
         })
     }
     _getGlobalState(){
@@ -171,7 +225,8 @@ export class DataManager extends Events.EventEmitter {
             gameStarted:this._store.get(DATA_MANAGER_STORE_KEYS.GAME_STARTED),
             monster:{
                 inParty:[...this._store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)]
-            }
+            },
+            inventory:this._store.get(DATA_MANAGER_STORE_KEYS.INVENTORY)
         }
     }
 }

@@ -46,3 +46,36 @@ export type Animation = {
     yoyo:boolean,
     assetKey:string
   }
+
+  const Effect = Object.freeze({
+    HEAL_30:'HEAL_30'
+  })
+
+  type ItemEffect = keyof typeof Effect
+
+  export type Item = {
+    id:number,
+    name:string,
+    description:string
+    effect:ItemEffect
+}
+
+//data manager中的库存数据类型
+type BaseInventoryItem = {
+    item:{
+        id:number
+    },
+    quantity:number
+}
+/**
+ * data manager中的库存数据类型
+ */
+export type Inventory = BaseInventoryItem[]
+
+/**
+ * 场景中的库存数据类型
+ */
+export type InventoryItem = {
+    item:Item,
+    quantity:number
+}

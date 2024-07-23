@@ -136,6 +136,7 @@ export class Preloader extends BaseScene {
          */
         this.load.image(INVENTORY_ASSET_KEYS.INVENTORY_BACKGROUND,`${monsterTamerAssetPath}/ui/inventory/bag_background.png`)
         this.load.image(INVENTORY_ASSET_KEYS.INVENTORY_BAG,`${monsterTamerAssetPath}/ui/inventory/bag.png`)
+        this.load.json(DATA_ASSET_KEYS.ITEM,`${dataAssetPath}/items.json`)
     }
 
     create(){
@@ -143,7 +144,7 @@ export class Preloader extends BaseScene {
         
         this._createAnimations()
         dataManager.loadData()
-        this.scene.start('InventoryScene')
+        this.scene.start('TitleScene')
          
     }
 

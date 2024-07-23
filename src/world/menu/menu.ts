@@ -41,7 +41,7 @@ export class Menu {
     _userInputCursor:GameObjects.Image
     constructor(scene:Scene){
         this._scene = scene
-        this._availabelMenuOptions = [MENU_OPTIONS.MONSTERS,MENU_OPTIONS.SAVE,MENU_OPTIONS.EXIT]
+        this._availabelMenuOptions = [MENU_OPTIONS.MONSTERS,MENU_OPTIONS.BAG,MENU_OPTIONS.SAVE,MENU_OPTIONS.EXIT]
         this._menuOptionsTextGameObjects = []
         this._selectedMenuOptionIndex = 0
         this._padding = 4

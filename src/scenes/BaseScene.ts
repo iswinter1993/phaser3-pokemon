@@ -21,6 +21,9 @@ export class BaseScene extends Scene {
         this.events.on(Phaser.Scenes.Events.RESUME,this.handleSceneResume,this)
         //监听调用scene.stop方法时，清理上面的监听事件
         this.events.once(Phaser.Scenes.Events.SHUTDOWN,this.handleSceneResumeClear,this)
+
+        //场景层级问题，需要将场景提升到顶部
+        this.scene.bringToTop()
     }
     update(time: number, delta: number): void {
         // update
