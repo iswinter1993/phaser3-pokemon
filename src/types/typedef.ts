@@ -47,11 +47,11 @@ export type Animation = {
     assetKey:string
   }
 
-  const Effect = Object.freeze({
+  export const ITEM_EFFECT = Object.freeze({
     HEAL_30:'HEAL_30'
   })
 
-  type ItemEffect = keyof typeof Effect
+  type ItemEffect = keyof typeof ITEM_EFFECT
 
   export type Item = {
     id:number,

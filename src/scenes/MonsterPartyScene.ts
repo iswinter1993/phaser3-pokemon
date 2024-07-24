@@ -1,3 +1,4 @@
+import { ITEM_EFFECT } from './../types/typedef';
 import { DIRECTION, DirectionType } from './../common/direction';
 import { dataManager, DATA_MANAGER_STORE_KEYS } from './../utils/data-manager';
 import { UI_ASSET_KEYS, MONSTER_PARTY_ASSET_KEYS, BATTLLE_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS } from './../assets/asset-keys';
@@ -5,7 +6,7 @@ import { HealthBar } from './../battle/ui/health-bar';
 import { GameObjects } from 'phaser';
 import { BaseScene } from './BaseScene';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../assets/font-keys';
-import { Monster } from '../types/typedef';
+import { Item, Monster } from '../types/typedef';
 
 const UI_TEXT_STYLE = {
     fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME,
@@ -25,6 +26,11 @@ const MONSTER_PARTY_POSITION = Object.freeze({
     increment:150
 })
 
+type MonsterPartySceneData = {
+    previousScene:string,
+    itemSelected?:Item
+}
+
 export class MonsterPartyScene extends BaseScene {
     _monstersPartyBackgrounds:GameObjects.Image[]
     _cancelButton:GameObjects.Image
@@ -33,7 +39,8 @@ export class MonsterPartyScene extends BaseScene {
     _healthBarTextGameObjects:GameObjects.Text[]
     _selectedPartyMonsterIndex:number
     _monsters:Monster[]
-    _sceneData:any
+    _sceneData:MonsterPartySceneData
+    _waitingInput:boolean
     constructor(){
         super('MonsterPartyScene')
       
@@ -46,6 +53,7 @@ export class MonsterPartyScene extends BaseScene {
         this._healthBarTextGameObjects = []
         this._selectedPartyMonsterIndex = 0
         this._monsters = dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)
+        this._waitingInput = false
     }
     create(){
         super.create()
@@ -84,22 +92,42 @@ export class MonsterPartyScene extends BaseScene {
         if(this._controls.isInputLocked){
             return
         }
+        
         if(this._controls.wasBackKeyPressed()){
-            this._goBackToPreviousScene()
+            if(this._waitingInput){
+                this._updateInfoContainerText()
+                this._waitingInput = false
+                return
+            }
+            this._goBackToPreviousScene(false)
             return
         }
         const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
         if(wasSpaceKeyPressed){
             if(this._selectedPartyMonsterIndex === -1){
-                this._goBackToPreviousScene()
+                this._goBackToPreviousScene(false)
                 return
             }
+            if(this._waitingInput){
+                this._updateInfoContainerText()
+                this._waitingInput = false
+                return
+            }
+            if(this._sceneData.previousScene === 'InventoryScene' && this._sceneData.itemSelected){
+                //使用道具
+                this._handleItemUsed()
+                return
+            }
+
             this._controls.lockInput = true
             const sceneDataToPass = {
                 monster:this._monsters[this._selectedPartyMonsterIndex]
             }
             this.scene.launch('MonsterDetailScene',sceneDataToPass)
             this.scene.pause('MonsterPartyScene')
+            return
+        }
+        if(this._waitingInput){
             return
         }
         const selectedDirection = this._controls.getDirectionKeyJustPressed()
@@ -183,11 +211,15 @@ export class MonsterPartyScene extends BaseScene {
         return container
     }
 
-    _goBackToPreviousScene(){
+    /**
+     * 
+     * @param itemUsed 是否使用道具
+     */
+    _goBackToPreviousScene(itemUsed:boolean){
         this._controls.lockInput = true
         
         this.scene.stop('MonsterPartyScene')
-        this.scene.resume(this._sceneData.previousScene)
+        this.scene.resume(this._sceneData.previousScene,{itemUsed})
     }
 
 
@@ -261,6 +293,54 @@ export class MonsterPartyScene extends BaseScene {
                 return
             }
             obj.setAlpha(0.7)
+        })
+    }
+
+    _handleItemUsed(){
+        switch (this._sceneData.itemSelected?.effect) {
+            case ITEM_EFFECT.HEAL_30:
+                this._handleHealthItemUsed(30)
+                break;
+        
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 治疗
+     * @param amount 
+     */
+    _handleHealthItemUsed(amount:number){
+        const maxHp = this._monsters[this._selectedPartyMonsterIndex].maxHp
+        //判断怪兽是否死亡
+        if(this._monsters[this._selectedPartyMonsterIndex].currentHp === 0){
+            this._infoTextGameObject.setText('cannot heal dead monster.')
+            this._waitingInput = true
+            return
+        }
+        //判断怪兽是否满血
+        if(this._monsters[this._selectedPartyMonsterIndex].currentHp === maxHp){
+            this._infoTextGameObject.setText('Monster is already healed.')
+            this._waitingInput = true
+            return
+        }
+
+        this._controls.lockInput = true
+        this._monsters[this._selectedPartyMonsterIndex].currentHp += amount
+        if(this._monsters[this._selectedPartyMonsterIndex].currentHp > maxHp){
+            this._monsters[this._selectedPartyMonsterIndex].currentHp = maxHp
+        }
+        this._infoTextGameObject.setText(`Healed monster by ${amount} HP.`)
+        const currentHp = this._monsters[this._selectedPartyMonsterIndex].currentHp
+        this._healthBars[this._selectedPartyMonsterIndex].setMeterPercentageAnimated(currentHp/maxHp,{
+            callback:()=>{
+                this._healthBarTextGameObjects[this._selectedPartyMonsterIndex].setText(`${currentHp}/${maxHp}`)
+                dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._monsters)
+                this.time.delayedCall(300,()=>{
+                    this._goBackToPreviousScene(true)
+                })
+            }
         })
     }
 

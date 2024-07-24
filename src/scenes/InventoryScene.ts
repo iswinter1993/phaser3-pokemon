@@ -2,14 +2,18 @@ import { Item } from './../types/typedef';
 import { dataManager } from './../utils/data-manager';
 import { DIRECTION, DirectionType } from './../common/direction';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from './../assets/font-keys';
-import { GameObjects } from 'phaser';
+import { GameObjects, Scene } from 'phaser';
 import { INVENTORY_ASSET_KEYS, UI_ASSET_KEYS } from './../assets/asset-keys';
 import { BaseScene } from './BaseScene';
 //背包场景
 type Inventory = {
     item:Item,
     quantity:number
-    gameObjects:any
+    gameObjects:{
+        itemName:GameObjects.Text | undefined,
+        quantity:GameObjects.Text | undefined,
+        quantitySign:GameObjects.Text | undefined
+    }
 }
 
 const INVENTORY_ITEM_POSITION = Object.freeze({
@@ -17,9 +21,23 @@ const INVENTORY_ITEM_POSITION = Object.freeze({
     y:14,
     space:50
 })
+
+type InventorySceneData = {
+    previousScene:string
+}
+
+type InventorySceneWasResumeData = {
+    itemUsed:boolean
+}
+
+type InventorySceneItemUsedData = {
+    itemUsed:boolean,
+    item?:Item
+}
+
 const CANCEL_TEXT_DESC = 'Close you bag'
 export class InventoryScene extends BaseScene{
-    _sceneData:any
+    _sceneData:InventorySceneData
     _nineContainer:GameObjects.Container
     _selectedInventoryText:GameObjects.Text
     _userInputCursor:GameObjects.Image
@@ -36,7 +54,11 @@ export class InventoryScene extends BaseScene{
             return{
                 item:inventoryItem.item,
                 quantity:inventoryItem.quantity,
-                gameObjects:{}
+                gameObjects:{
+                    itemName:undefined,
+                    quantity:undefined,
+                    quantitySign:undefined
+                }
             }
         })
         this._selectedInventoryOptionIndex = 0
@@ -119,18 +141,24 @@ export class InventoryScene extends BaseScene{
             return
         }
         if(this._controls.wasBackKeyPressed()){
-            this._goBackToPreviousScene()
+            this._goBackToPreviousScene(false)
             return
         }
         const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
         if(wasSpaceKeyPressed){
             if(this._isCancelButtonSelected()){
-                this._goBackToPreviousScene()
+                this._goBackToPreviousScene(false)
                 return
             }
+
+            if(this._inventory[this._selectedInventoryOptionIndex].quantity < 1){
+                return
+            }
+
             this._controls.lockInput = true
             const sceneDataToPass = {
-                previousScene:'InventoryScene'
+                previousScene:'InventoryScene',
+                itemSelected:this._inventory[this._selectedInventoryOptionIndex].item
             }
             this.scene.launch('MonsterPartyScene',sceneDataToPass)
             this.scene.pause('InventoryScene')
@@ -154,10 +182,19 @@ export class InventoryScene extends BaseScene{
         return this._selectedInventoryOptionIndex === this._inventory.length
     }
 
-    _goBackToPreviousScene(){
+    /**
+     * 返回上一个场景并通知使用的道具数据
+     * @param wasItemUsed 
+     * @param item 
+     */
+    _goBackToPreviousScene(wasItemUsed:boolean,item?:Item){
         this._controls.lockInput = true
         this.scene.stop('InventoryScene')
-        this.scene.resume(this._sceneData.previousScene)
+        const sceneDataToPass:InventorySceneItemUsedData = {
+            itemUsed:wasItemUsed,
+            item
+        }
+        this.scene.resume(this._sceneData.previousScene,sceneDataToPass)
     }
 
     _movePlayerInputCursor(direction:DirectionType){
@@ -190,6 +227,27 @@ export class InventoryScene extends BaseScene{
         }
         const y = 30 + this._selectedInventoryOptionIndex * 50
         this._userInputCursor.setY(y)
+    }
+    /**
+     * 监听回调
+     * @param sys 系统数据
+     * @param data 我们返回的数据
+     */
+     handleSceneResume(sys:Scene,data:InventorySceneWasResumeData){
+        super.handleSceneResume(sys,data)
+        if(!data||!data.itemUsed){
+            return
+        }
+
+        const selectedItem = this._inventory[this._selectedInventoryOptionIndex]
+        selectedItem.quantity -= 1
+        selectedItem.gameObjects.quantity?.setText(`${selectedItem.quantity}`)
+        dataManager.updateInventory(this._inventory)
+
+        //在战斗中使用道具
+        if(this._sceneData.previousScene === 'BattleScene'){
+            this._goBackToPreviousScene(data.itemUsed,selectedItem.item)
+        }
     }
 }
 

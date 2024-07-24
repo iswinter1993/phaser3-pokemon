@@ -97,9 +97,6 @@ export class BattleScene extends BaseScene {
 
         this._attackManager = new AttackManager(this,this._skipAnimations)
         
-        //创建键盘 上下左右,空格 shift等热键 事件
-        // this._controls 已在BaseScene中创建
-        this._controls.lockInput = true
 
     }
     update(time: number, delta: number): void {
