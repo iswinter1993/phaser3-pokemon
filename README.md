@@ -99,7 +99,7 @@
   - [x] create ui screen for viewing items
   - [x] update menu to have view bag option
   - [x] update data manager to allow saving of inventory items
-  - [ ] update ui screen to allow player to use items
+  - [x] update ui screen to allow player to use items
 
 ## Battle Scene Part 2:
   - [ ] using items
