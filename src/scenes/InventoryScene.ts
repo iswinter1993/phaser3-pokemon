@@ -6,7 +6,7 @@ import { GameObjects, Scene } from 'phaser';
 import { INVENTORY_ASSET_KEYS, UI_ASSET_KEYS } from './../assets/asset-keys';
 import { BaseScene } from './BaseScene';
 //背包场景
-type Inventory = {
+export type Inventory = {
     item:Item,
     quantity:number
     gameObjects:{
@@ -22,15 +22,15 @@ const INVENTORY_ITEM_POSITION = Object.freeze({
     space:50
 })
 
-type InventorySceneData = {
+export type InventorySceneData = {
     previousScene:string
 }
 
-type InventorySceneWasResumeData = {
+export type InventorySceneWasResumeData = {
     itemUsed:boolean
 }
 
-type InventorySceneItemUsedData = {
+export type InventorySceneItemUsedData = {
     itemUsed:boolean,
     item?:Item
 }

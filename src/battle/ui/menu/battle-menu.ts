@@ -1,3 +1,4 @@
+import { InventorySceneData } from './../../../scenes/InventoryScene';
 import { DIRECTION, DirectionType } from './../../../common/direction';
 import { GameObjects, Scene, Tweens } from "phaser";
 import { MONSTER_ASSET_KEYS, UI_ASSET_KEYS } from "../../../assets/asset-keys";
@@ -88,6 +89,12 @@ export class BattleMenu {
         this._skipAnimations = skipAnimations
         this._quequeMessagesAnimationPlaying = false
         this._init()
+
+        //不是继承自Scene，所以监听场景resume场景重启事件要单独写一次
+        //监听场景resume场景重启事件，获取返回数据
+        //  this._scene.events.on(Phaser.Scenes.Events.RESUME,this.handleSceneResume,this)
+         //监听调用scene.stop方法时，清理上面的监听事件
+        //  this._scene.events.once(Phaser.Scenes.Events.SHUTDOWN,this.handleSceneResumeClear,this)
     }
     /**
      * 是否在招式选择菜单，选择了招式。
@@ -522,7 +529,12 @@ export class BattleMenu {
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.ITEM){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_ITEM
-            this.updateInfoPaneMessageAndWaitForInput(['Your bag is empty...'],this._switchToMainBattelMenu)
+            const sceneData:InventorySceneData = {
+                previousScene:'BattleScene'
+            }
+            this._scene.scene.launch('InventoryScene',sceneData)
+            this._scene.scene.pause('BattleScene')
+            // this.updateInfoPaneMessageAndWaitForInput(['Your bag is empty...'],this._switchToMainBattelMenu)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.FLEE){
