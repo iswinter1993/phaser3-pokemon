@@ -54,7 +54,7 @@ export class BattleScene extends BaseScene {
     }
 
     create(){
-        super.init()
+        super.create()
         // create main background
         const background = new Background(this)
         background.showForest()
@@ -97,6 +97,9 @@ export class BattleScene extends BaseScene {
 
         this._attackManager = new AttackManager(this,this._skipAnimations)
         
+        //创建键盘 上下左右,空格 shift等热键 事件
+        // this._controls 已在BaseScene中创建
+        this._controls.lockInput = true
 
     }
     update(time: number, delta: number): void {
@@ -123,6 +126,13 @@ export class BattleScene extends BaseScene {
         }
         if(wasSpaceKeyPressed){
             this._battleMenu.handlePlayerInput('OK')
+
+            //玩家是否使用道具
+            if(this._battleMenu.wasItemUsed){
+                this._battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT)
+                return
+            }
+
             //判断玩家选择的招式，并更新文本
             if(this._battleMenu.selectedAttack === undefined){
                 return
@@ -300,7 +310,16 @@ export class BattleScene extends BaseScene {
                 //血条动画，短暂暂停
                 //换成另一只怪兽，重新走这个流程
 
-                this._playerAttack()
+
+                //如果使用了道具，只有敌人攻击
+                if(this._battleMenu.wasItemUsed){
+                    this._activePlayerMonster.updateMonsterHealth(
+                        dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0].currentHp
+                    )
+                    this.time.delayedCall(500,()=>this._enemyAttck())
+                }else{
+                    this._playerAttack()
+                }
             }
         })
         this._battleStateMachine.addState({

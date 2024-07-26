@@ -1,4 +1,4 @@
-import { InventorySceneData } from './../../../scenes/InventoryScene';
+import { InventorySceneData, InventorySceneItemUsedData } from './../../../scenes/InventoryScene';
 import { DIRECTION, DirectionType } from './../../../common/direction';
 import { GameObjects, Scene, Tweens } from "phaser";
 import { MONSTER_ASSET_KEYS, UI_ASSET_KEYS } from "../../../assets/asset-keys";
@@ -75,6 +75,8 @@ export class BattleMenu {
       * 文字动画是否正在播放
       */
      _quequeMessagesAnimationPlaying:boolean
+     //是否使用道具
+     _usedItem:boolean
 
     constructor(scene: Scene, activePlayerMonster:PlayerBattleMonster,skipAnimations=false){
         this._scene = scene
@@ -89,12 +91,14 @@ export class BattleMenu {
         this._skipAnimations = skipAnimations
         this._quequeMessagesAnimationPlaying = false
         this._init()
-
+        this._usedItem = false
         //不是继承自Scene，所以监听场景resume场景重启事件要单独写一次
         //监听场景resume场景重启事件，获取返回数据
-        //  this._scene.events.on(Phaser.Scenes.Events.RESUME,this.handleSceneResume,this)
+         this._scene.events.on(Phaser.Scenes.Events.RESUME,this._handleSceneResume,this)
          //监听调用scene.stop方法时，清理上面的监听事件
-        //  this._scene.events.once(Phaser.Scenes.Events.SHUTDOWN,this.handleSceneResumeClear,this)
+         this._scene.events.once(Phaser.Scenes.Events.SHUTDOWN,()=>{
+            this._scene.events.off(Phaser.Scenes.Events.RESUME,this._handleSceneResume,this)
+         },this)
     }
     /**
      * 是否在招式选择菜单，选择了招式。
@@ -104,6 +108,10 @@ export class BattleMenu {
             return this._selectedAttackIndex
         }
         return undefined
+    }
+
+    get wasItemUsed(){
+        return this._usedItem
     }
 
     playInputCursorAnimate(){
@@ -125,6 +133,7 @@ export class BattleMenu {
         this._battleTextGameObjectLine1.setAlpha(1)
         this._battleTextGameObjectLine2.setAlpha(1)
         this._selectedAttackIndex = undefined
+        this._usedItem = false
         // this._selectedBattleMenuOption = BATTLE_MENU_OPTION.FIGHT
         // this._mainBattleMenuCursorPhaserImageGameObject.setPosition(BATTLE_MENU_CURSOR_POS.x,BATTLE_MENU_CURSOR_POS.y)
     }
@@ -583,4 +592,20 @@ export class BattleMenu {
         this._userInputCursorPhaserTween.pause()
         return this._userInputCursorPhaserImageObject
     }
+    /**
+     * 监听回调
+     * @param sys 系统数据
+     * @param data 我们返回的数据
+     */
+    _handleSceneResume(sys:Scene,data:InventorySceneItemUsedData){
+        console.log(`[${BattleMenu.name}]: has been resumed`,{data})
+        if(!data || !data.itemUsed){
+            this._switchToMainBattelMenu()
+            return
+        }
+
+        this._usedItem = true
+        this.updateInfoPaneMessageAndWaitForInput([`You used following item: ${data.item?.name}`])
+    }
+   
 }

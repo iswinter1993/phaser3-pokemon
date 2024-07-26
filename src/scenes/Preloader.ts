@@ -144,7 +144,7 @@ export class Preloader extends BaseScene {
         
         this._createAnimations()
         dataManager.loadData()
-        this.scene.start('TitleScene')
+        this.scene.start('BattleScene')
          
     }
 
