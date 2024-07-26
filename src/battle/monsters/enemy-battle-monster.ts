@@ -86,4 +86,11 @@ export class EnemyBattleMonster extends BattleMonster {
             }
         })
     }
+    /**
+     * 
+     * @returns 返回招式的随机数
+     */
+    pickRandomMove(){
+        return Phaser.Math.Between(0,this._monsterAttacks.length - 1)
+    }
 }

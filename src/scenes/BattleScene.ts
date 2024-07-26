@@ -37,6 +37,7 @@ export class BattleScene extends BaseScene {
     _battleStateMachine:StateMachine;
     _attackManager:AttackManager
     _skipAnimations:boolean
+    _activeEnemyAttackIndex:number
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -45,6 +46,7 @@ export class BattleScene extends BaseScene {
     init(){
         super.init()
         this._activePlayerAttackIndex = -1
+        this._activeEnemyAttackIndex = -1
         const chosenBattleSceneOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_SCENE)
         if(chosenBattleSceneOption === undefined || chosenBattleSceneOption === BATTLE_SCENE_OPTIONS.ON){
             this._skipAnimations = false
@@ -70,7 +72,7 @@ export class BattleScene extends BaseScene {
                     maxHp:25,
                     currentHp:25,
                     baseAttack:5,
-                    attackIds:[1],
+                    attackIds:[1,2],
                     currentLevel:5
                 },
                 scaleHealthBarBackgroundImageByY:0.8,
@@ -133,6 +135,12 @@ export class BattleScene extends BaseScene {
                 return
             }
 
+            //判断玩家是否逃跑
+            if(this._battleMenu.isAttemptingToFlee){
+                this._battleStateMachine.setState(BATTLE_STATES.FLEE_ATTEMPT)
+                return
+            }
+
             //判断玩家选择的招式，并更新文本
             if(this._battleMenu.selectedAttack === undefined){
                 return
@@ -157,15 +165,24 @@ export class BattleScene extends BaseScene {
         }
     }
      
- 
-    _playerAttack(){
+    /**
+     * 
+     * @param callback ()=>void
+     */
+    _playerAttack(callback:()=>void){
+        //现在攻击时随机的都要判断状态
+        if(this._activePlayerMonster.isFainted){
+
+            callback()
+            return
+        }
         this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activePlayerMonster.name} used ${this._activePlayerMonster.attacks[this._activePlayerAttackIndex].name}`,()=>{
             //引入时间插件
             this.time.delayedCall(500,()=>{
                 this._attackManager.playAttackAnimation(this._activePlayerMonster.attacks[this._activePlayerAttackIndex].animationName,ATTACK_TARGET.ENEMY,()=>{
                     this._activeEnemyMonster.playTakeDamageAnimation(()=>{
                         this._activeEnemyMonster.takeDamage(this._activePlayerMonster.baseAttack,()=>{
-                            this._enemyAttck()
+                            callback()
                         })
                     })
                 })
@@ -173,17 +190,24 @@ export class BattleScene extends BaseScene {
         }
         )
     }
-    _enemyAttck(){
+    /**
+     * 
+     * @param callback ()=>void
+     * @returns 
+     */
+    _enemyAttck(callback:()=>void){
         if(this._activeEnemyMonster.isFainted){
-            this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+
+            callback()
             return
         }
-        this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activeEnemyMonster.name} used ${this._activeEnemyMonster.attacks[0].name}`,()=>{
+        //使用随机招式
+        this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activeEnemyMonster.name} used ${this._activeEnemyMonster.attacks[this._activeEnemyAttackIndex].name}`,()=>{
             this.time.delayedCall(500,()=>{
-                this._attackManager.playAttackAnimation(this._activeEnemyMonster.attacks[0].animationName,ATTACK_TARGET.PLAYER,()=>{
+                this._attackManager.playAttackAnimation(this._activeEnemyMonster.attacks[this._activeEnemyAttackIndex].animationName,ATTACK_TARGET.PLAYER,()=>{
                     this._activePlayerMonster.playTakeDamageAnimation(()=>{
                         this._activePlayerMonster.takeDamage(this._activeEnemyMonster.baseAttack,()=>{
-                            this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                            callback()
                         })
                     })
                 })
@@ -292,6 +316,7 @@ export class BattleScene extends BaseScene {
             name:BATTLE_STATES.ENEMY_INPUT,
             onEnter:()=>{
                 //为敌方随机选择一个招式，并在未来实现AI行为
+                this._activeEnemyAttackIndex = this._activeEnemyMonster.pickRandomMove()
 
                 //不使用this.time.delayedCall函数，this._battleStateMachine.setState不会放到 宏任务队列 中，
                 //所以this._battleStateMachine.setState为同步执行代码没有使用任何队列，会先执行，此时isChangingState会是true，
@@ -316,9 +341,32 @@ export class BattleScene extends BaseScene {
                     this._activePlayerMonster.updateMonsterHealth(
                         dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0].currentHp
                     )
-                    this.time.delayedCall(500,()=>this._enemyAttck())
-                }else{
-                    this._playerAttack()
+                    this.time.delayedCall(500,()=>this._enemyAttck(()=>{
+                        this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                    }))
+
+                }else if(this._battleMenu.isAttemptingToFlee){
+                    //是否试图逃跑
+                    this.time.delayedCall(200,()=>this._enemyAttck(()=>{
+                        this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                    }))
+
+                }
+                else{
+                    const randomNumber = Phaser.Math.Between(0,1)
+                    if(randomNumber === 0){
+                        this._playerAttack(()=>{
+                            this._enemyAttck(()=>{
+                                this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                            })
+                        })
+                    }else{
+                        this._enemyAttck(()=>{
+                            this._playerAttack(()=>{
+                                this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                            })
+                        })
+                    }
                 }
             }
         })
@@ -337,10 +385,18 @@ export class BattleScene extends BaseScene {
         this._battleStateMachine.addState({
             name:BATTLE_STATES.FLEE_ATTEMPT,
             onEnter:()=>{
-                this._battleMenu.updateInfoPaneMessageAndWaitForInput([`You got away safely!`],()=>{
-                    this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+                const randomNumber = Phaser.Math.Between(1,10)
+                if(randomNumber > 5){
+                    this._battleMenu.updateInfoPaneMessageAndWaitForInput([`You got away safely!`],()=>{
+                        this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+                    })
+                }else{
+                    this._battleMenu.updateInfoPaneMessageAndWaitForInput(['You Failed to flee...'],()=>{
+                        this.time.delayedCall(300,()=>{
+                            this._battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT)
+                        })
+                    })
                 }
-                )
             }
         })
         //启动状态机

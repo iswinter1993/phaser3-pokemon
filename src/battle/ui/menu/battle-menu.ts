@@ -77,6 +77,8 @@ export class BattleMenu {
      _quequeMessagesAnimationPlaying:boolean
      //是否使用道具
      _usedItem:boolean
+     //逃跑
+     _fleeAttempt:boolean
 
     constructor(scene: Scene, activePlayerMonster:PlayerBattleMonster,skipAnimations=false){
         this._scene = scene
@@ -92,6 +94,7 @@ export class BattleMenu {
         this._quequeMessagesAnimationPlaying = false
         this._init()
         this._usedItem = false
+        this._fleeAttempt = false
         //不是继承自Scene，所以监听场景resume场景重启事件要单独写一次
         //监听场景resume场景重启事件，获取返回数据
          this._scene.events.on(Phaser.Scenes.Events.RESUME,this._handleSceneResume,this)
@@ -114,6 +117,10 @@ export class BattleMenu {
         return this._usedItem
     }
 
+    get isAttemptingToFlee(){
+        return this._fleeAttempt
+    }
+
     playInputCursorAnimate(){
         this._userInputCursorPhaserImageObject.setPosition(this._battleTextGameObjectLine1.displayWidth + this._userInputCursorPhaserImageObject.displayWidth * 2.7,
             this._userInputCursorPhaserImageObject.y
@@ -134,6 +141,7 @@ export class BattleMenu {
         this._battleTextGameObjectLine2.setAlpha(1)
         this._selectedAttackIndex = undefined
         this._usedItem = false
+        this._fleeAttempt = false
         // this._selectedBattleMenuOption = BATTLE_MENU_OPTION.FIGHT
         // this._mainBattleMenuCursorPhaserImageGameObject.setPosition(BATTLE_MENU_CURSOR_POS.x,BATTLE_MENU_CURSOR_POS.y)
     }
@@ -548,7 +556,7 @@ export class BattleMenu {
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.FLEE){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_FLEE
-            this.updateInfoPaneMessageAndWaitForInput(['You fail to run away...'],this._switchToMainBattelMenu)
+            this._fleeAttempt = true
             return
         }
     }
