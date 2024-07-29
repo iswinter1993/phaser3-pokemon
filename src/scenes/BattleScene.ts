@@ -1,3 +1,4 @@
+import { WorldSceneData } from './WorldScene';
 import { Monster } from './../types/typedef';
 import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
@@ -49,6 +50,8 @@ export class BattleScene extends BaseScene {
     _sceneData:BattleSceneData
     //为了更新datamanage中的数据
     _activePlayerMonsterPartyIndex:number
+    //玩家是否被击倒
+    _playerKnockedOut:boolean
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -72,6 +75,7 @@ export class BattleScene extends BaseScene {
             return
         }
         this._skipAnimations = true
+        this._playerKnockedOut = false
     }
 
     create(){
@@ -248,6 +252,7 @@ export class BattleScene extends BaseScene {
         if(this._activePlayerMonster.isFainted){
             this._activePlayerMonster.playDeathAnimation(()=>{
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
+                    this._playerKnockedOut = true
                     this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
                 }
                 )
@@ -259,12 +264,16 @@ export class BattleScene extends BaseScene {
     }
 
     _transitionToNextScene(){
+
+        const sceneDataToPass:WorldSceneData = {
+            isPlayerKnockOut:this._playerKnockedOut
+        }
         //camare淡出动画效果
         this.cameras.main.fadeOut(600,0,0,0)
         //注册一个时间监听 淡出动画完成
         this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
             //完成回调
-            this.scene.start('WorldScene')
+            this.scene.start('WorldScene',sceneDataToPass)
         })
     }
 

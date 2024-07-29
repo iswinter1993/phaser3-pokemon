@@ -4,11 +4,10 @@ import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
 import { Menu } from './../world/menu/menu';
 import { getTargetPositionFromGameObjectPositionAndDirection } from './../utils/grid-utils';
-import { TILE_COLLISION_LAYER_ALPHA } from './../config';
+import { TILE_COLLISION_LAYER_ALPHA, TILE_SIZE } from './../config';
 import { Scene, Tilemaps } from 'phaser';
 import { WORLD_ASSET_KEYS } from '../assets/asset-keys';
 import { DIRECTION } from '../common/direction';
-import { TILE_SIZE } from '../config';
 import { Controls } from '../utils/controls';
 import { Player } from '../world/characters/player';
 import { dataManager, DATA_MANAGER_STORE_KEYS } from '../utils/data-manager';
@@ -21,6 +20,11 @@ type TiledObjectType = {
     name:string,
     type:string,
     value:any
+}
+
+
+export type WorldSceneData = {
+    isPlayerKnockOut:boolean
 }
 
 const CUSTOM_TILED_TYPES = Object.freeze({
@@ -46,16 +50,30 @@ export class WorldScene extends BaseScene {
     _npc:NPC[]
     //玩家交互的NPC
     _npcPlayerIsInteractionWith:NPC | undefined
-
+    _sceneData:WorldSceneData
     _menu:Menu
     constructor(){
         super('WorldScene')
     }
 
-    init(){
-        super.init()
-
+    init(data:WorldSceneData){
+        super.init(data)
+        this._sceneData = data
+        if(Object.keys(data).length === 0){
+            this._sceneData = {
+                isPlayerKnockOut:false
+            }
+        }
+        console.log('isPlayerKnockOut',this._sceneData)
         this._wildMonsterEncountered = false
+        //如果玩家被打败，更新玩家位置到初始值
+        if(this._sceneData.isPlayerKnockOut){
+            dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_POSITION,{
+                x: 6 * TILE_SIZE,
+                y:21 * TILE_SIZE
+            })
+            dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_DIRECTION,DIRECTION.DOWN)
+        }
     }
 
     create(){
@@ -142,7 +160,16 @@ export class WorldScene extends BaseScene {
         this._dialogUi = new DialogUi(this,1280)
 
         //相机淡入效果
-        this.cameras.main.fadeIn(1000,0,0,0)
+        this.cameras.main.fadeIn(1000,0,0,0,(cameras:any,progress:any)=>{
+            if(progress === 1){
+                //玩家被击败
+                if(this._sceneData.isPlayerKnockOut){
+                    this._healPlayerParty()
+                    this._dialogUi.showDialogModal(['heal your team'])
+                }
+                
+            }
+        })
         //创建菜单
         this._menu = new Menu(this)
 
@@ -389,6 +416,14 @@ export class WorldScene extends BaseScene {
             })
             this._npc.push(npc)
         })
+    }
+
+    _healPlayerParty(){
+        const monsters:Monster[] = dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)
+        monsters.forEach((value,index)=>{
+            value.currentHp = value.maxHp
+        })
+        dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,monsters)
     }
     
 }
