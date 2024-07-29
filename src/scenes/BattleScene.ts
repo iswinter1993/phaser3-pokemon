@@ -1,3 +1,5 @@
+import { Monster } from './../types/typedef';
+import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
 import { createSceneTransition } from './../utils/scene-transition';
 import { ATTACK_TARGET } from './../battle/attacks/attack-manager';
@@ -26,6 +28,12 @@ const BATTLE_STATES = Object.freeze({
     FINISHED:'FINISHED',
     FLEE_ATTEMPT:'FLEE_ATTEMPT'
 })
+
+export type BattleSceneData = {
+    playerMonsters:Monster[],
+    enemyMonsters:Monster[]
+}
+
 export class BattleScene extends BaseScene {
     _battleMenu:BattleMenu;
     _cursorkeys: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
@@ -38,15 +46,26 @@ export class BattleScene extends BaseScene {
     _attackManager:AttackManager
     _skipAnimations:boolean
     _activeEnemyAttackIndex:number
+    _sceneData:BattleSceneData
+    //为了更新datamanage中的数据
+    _activePlayerMonsterPartyIndex:number
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
     }
 
-    init(){
-        super.init()
+    init(data:BattleSceneData){
+        super.init(data)
+        this._sceneData = data
+        if(Object.keys(data).length === 0){
+            this._sceneData = {
+                playerMonsters:[dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0]],
+                enemyMonsters:[DataUtils.getMonsterById(this,2) as Monster]
+            }
+        }
         this._activePlayerAttackIndex = -1
         this._activeEnemyAttackIndex = -1
+        this._activePlayerMonsterPartyIndex = 0
         const chosenBattleSceneOption = dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_SCENE)
         if(chosenBattleSceneOption === undefined || chosenBattleSceneOption === BATTLE_SCENE_OPTIONS.ON){
             this._skipAnimations = false
@@ -64,17 +83,7 @@ export class BattleScene extends BaseScene {
         this._activeEnemyMonster = new EnemyBattleMonster(
             {
                 scene:this,
-                monsterDetails:{
-                    id:2,
-                    monsterId:2,
-                    name:MONSTER_ASSET_KEYS.CARNODUSK,
-                    assetKey:MONSTER_ASSET_KEYS.CARNODUSK,
-                    maxHp:25,
-                    currentHp:25,
-                    baseAttack:5,
-                    attackIds:[1,2],
-                    currentLevel:5
-                },
+                monsterDetails:this._sceneData.enemyMonsters[0],
                 scaleHealthBarBackgroundImageByY:0.8,
                 healthBarComponentPosition:{x:0,y:0},
                 skipBattleAnimations:this._skipAnimations
@@ -85,7 +94,7 @@ export class BattleScene extends BaseScene {
         //render player health bar 玩家健康条
         this._activePlayerMonster = new PlayerBattleMonster({
             scene:this,
-            monsterDetails:dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0],
+            monsterDetails:this._sceneData.playerMonsters[0],
             scaleHealthBarBackgroundImageByY:1,
             healthBarComponentPosition:{x:556,y:318},
             skipBattleAnimations:this._skipAnimations
@@ -219,6 +228,9 @@ export class BattleScene extends BaseScene {
      * 战斗后序列的检查
      */
     _postBattleSequeneCheck(){
+        //确保战斗后的血量保持一致
+        this._sceneData.playerMonsters[this._activePlayerMonsterPartyIndex].currentHp = this._activePlayerMonster.currentHp
+        dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._sceneData.playerMonsters)
         /**
          * 检查敌方是否晕倒
          */

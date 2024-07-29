@@ -1,3 +1,6 @@
+import { Monster } from './../types/typedef';
+import { BattleSceneData } from './BattleScene';
+import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
 import { Menu } from './../world/menu/menu';
 import { getTargetPositionFromGameObjectPositionAndDirection } from './../utils/grid-utils';
@@ -249,7 +252,11 @@ export class WorldScene extends BaseScene {
             console.log('遇到野生怪兽了！')
             this.cameras.main.fadeOut(2000)
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
-                this.scene.start('BattleScene')
+                const sceneDataToPass:BattleSceneData = {
+                    playerMonsters:dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY),
+                    enemyMonsters:[DataUtils.getMonsterById(this,2) as Monster]
+                }
+                this.scene.start('BattleScene',sceneDataToPass)
             })
 
         }

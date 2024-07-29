@@ -1,3 +1,4 @@
+import { Monster } from './../types/typedef';
 import { Scene } from "phaser";
 import { DATA_ASSET_KEYS } from "../assets/asset-keys";
 import { Animation, Attack, Item } from "../types/typedef";
@@ -16,12 +17,22 @@ export class DataUtils {
         const data:Attack[] = scene.cache.json.get(DATA_ASSET_KEYS.ATTACKS)
         return data.find( attack => attack.id === attackId)
     }
-
+    /**
+     * 通过id获取道具
+     * @param scene 
+     * @param itemId 
+     * @returns 
+     */
     static getItemById(scene:Scene,itemId:number){
         const data:Item[] = scene.cache.json.get(DATA_ASSET_KEYS.ITEM)
         return data.find( item => item.id === itemId)
     }
-
+    /**
+     * 通过多个id获取多个道具
+     * @param scene 
+     * @param itemId 
+     * @returns 
+     */
     static getItemsByIds(scene:Scene,itemId:number[]){
         const data:Item[] = scene.cache.json.get(DATA_ASSET_KEYS.ITEM)
         const items:Item[] = []
@@ -34,7 +45,21 @@ export class DataUtils {
         },itemId[0])
         return items
     }
-
+    /**
+     * 通过id获取怪兽
+     * @param scene 
+     * @param monsterId 
+     * @returns 
+     */
+    static getMonsterById(scene:Scene,monsterId:number){
+        const data:Monster[] = scene.cache.json.get(DATA_ASSET_KEYS.MONSTERS)
+        return data.find( monster => monster.id === monsterId)
+    }
+    /**
+     * 获取动画数据
+     * @param scene 
+     * @returns 
+     */
     static getAnimations(scene:Scene){
         const data:Animation[] = scene.cache.json.get(DATA_ASSET_KEYS.ANIMATIONS)
         return data

@@ -109,6 +109,11 @@ export class DataManager extends Events.EventEmitter {
         return this._store
     }
 
+    init(scene:Scene){
+        const startMonster = DataUtils.getMonsterById(scene,1)
+        this._store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,[startMonster])
+    }
+
     loadData(){
         if(typeof Storage === 'undefined'){
             console.warn('local storage is not supported')
@@ -179,7 +184,7 @@ export class DataManager extends Events.EventEmitter {
         return TEXT_SPEED[speed]
     }
 
-    startNewGame(){
+    startNewGame(scene:Scene){
         //获取设置相关数据，重置玩家数据
         const exsitingData = this._getGlobalState()
         exsitingData.player = {...initialState.player}
@@ -190,6 +195,7 @@ export class DataManager extends Events.EventEmitter {
 
         this._store.reset()
         this._updateDataManager(exsitingData)
+        this.init(scene)
         this.saveData()
     }
 

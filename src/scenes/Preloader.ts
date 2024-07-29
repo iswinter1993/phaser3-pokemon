@@ -58,6 +58,7 @@ export class Preloader extends BaseScene {
          */
         this.load.image(MONSTER_ASSET_KEYS.CARNODUSK,`${monsterTamerAssetPath}/monsters/carnodusk.png`)
         this.load.image(MONSTER_ASSET_KEYS.IGUANIGNITE,`${monsterTamerAssetPath}/monsters/iguanignite.png`)
+        this.load.json(DATA_ASSET_KEYS.MONSTERS,`${dataAssetPath}/monsters.json`)
         /**
          * 光标
          */
@@ -143,6 +144,7 @@ export class Preloader extends BaseScene {
         super.create()
         
         this._createAnimations()
+        dataManager.init(this)
         dataManager.loadData()
         this.scene.start('BattleScene')
          

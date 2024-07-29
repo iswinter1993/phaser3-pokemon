@@ -65,6 +65,10 @@ export class BattleMonster {
     get baseAttack ():number {
         return this._monsterDetails.baseAttack
     }
+
+    get currentHp ():number {
+        return this._currentHealth
+    }
     /**
      * 受到伤害更新血量和动画
      * @param damage 

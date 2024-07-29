@@ -83,7 +83,7 @@ export class TitleScene extends BaseScene {
                 case MAIN_MENU_OPTIONS.NEW_GAME:
                 case MAIN_MENU_OPTIONS.CONTINUE:
                     if(this._selectMenuOption === MAIN_MENU_OPTIONS.NEW_GAME){
-                        dataManager.startNewGame()
+                        dataManager.startNewGame(this)
                     }
                     this.scene.start('WorldScene')
                     break;
