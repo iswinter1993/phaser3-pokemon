@@ -102,13 +102,13 @@
   - [x] update ui screen to allow player to use items
 
 ## Battle Scene Part 2:
-  - [ ] using items
-  - [ ] running away
-  - [ ] enemy random attack
-  - [ ] player faint
-  - [ ] attacking order
-  - [ ] update data manager to persist monster data and current stats
-  - [ ] dynamic monster data based on player party and encounter
+  - [x] using items
+  - [x] running away
+  - [x] enemy random attack
+  - [x] player faint
+  - [x] attacking order
+  - [x] update data manager to persist monster data and current stats
+  - [x] dynamic monster data based on player party and encounter
 
 ## Audio:
   - [ ] adding background music
