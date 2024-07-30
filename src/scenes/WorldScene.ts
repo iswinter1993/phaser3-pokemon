@@ -6,7 +6,7 @@ import { Menu } from './../world/menu/menu';
 import { getTargetPositionFromGameObjectPositionAndDirection } from './../utils/grid-utils';
 import { TILE_COLLISION_LAYER_ALPHA, TILE_SIZE } from './../config';
 import { Scene, Tilemaps } from 'phaser';
-import { WORLD_ASSET_KEYS } from '../assets/asset-keys';
+import { AUDIO_ASSET_KEYS, WORLD_ASSET_KEYS } from '../assets/asset-keys';
 import { DIRECTION } from '../common/direction';
 import { Controls } from '../utils/controls';
 import { Player } from '../world/characters/player';
@@ -14,6 +14,7 @@ import { dataManager, DATA_MANAGER_STORE_KEYS } from '../utils/data-manager';
 import { CANNOT_READ_SIGN_TEXT, SAMPLE_TEXT } from '../utils/text-utils';
 import { DialogUi } from '../world/dialog-ui';
 import { NPC } from '../world/characters/npc';
+import { playBackgroundMusic } from '../utils/audio-utils';
 
 
 type TiledObjectType = {
@@ -175,6 +176,8 @@ export class WorldScene extends BaseScene {
 
         //游戏已开始
         dataManager.store.set(DATA_MANAGER_STORE_KEYS.GAME_STARTED,true)
+        
+        playBackgroundMusic(this,AUDIO_ASSET_KEYS.MAIN)
 
     }
 

@@ -5,7 +5,7 @@ import { BaseScene } from './BaseScene';
 import { createSceneTransition } from './../utils/scene-transition';
 import { ATTACK_TARGET } from './../battle/attacks/attack-manager';
 import { Scene } from "phaser";
-import { MONSTER_ASSET_KEYS } from "../assets/asset-keys";
+import { AUDIO_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
 import { AttackManager } from "../battle/attacks/attack-manager";
 import { Background } from "../battle/background";
 import { EnemyBattleMonster } from "../battle/monsters/enemy-battle-monster";
@@ -17,6 +17,7 @@ import { StateMachine } from "../utils/state-machine";
 import { Controls } from '../utils/controls';
 import { DATA_MANAGER_STORE_KEYS, dataManager } from '../utils/data-manager';
 import { BATTLE_SCENE_OPTIONS } from '../common/option';
+import { playBackgroundMusic } from '../utils/audio-utils';
 
 const BATTLE_STATES = Object.freeze({
     INTRO:'INTRO',
@@ -115,6 +116,8 @@ export class BattleScene extends BaseScene {
         //创建键盘 上下左右,空格 shift等热键 事件
         // this._controls 已在BaseScene中创建
         this._controls.lockInput = true
+        //设置声音
+        playBackgroundMusic(this,AUDIO_ASSET_KEYS.BATTLE)
 
     }
     update(time: number, delta: number): void {

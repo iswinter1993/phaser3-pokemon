@@ -1,3 +1,4 @@
+import { AUDIO_ASSET_KEYS } from './../assets/asset-keys';
 import { BaseScene } from './BaseScene';
 import { dataManager, DATA_MANAGER_STORE_KEYS } from './../utils/data-manager';
 import { Cameras, GameObjects, Scene, Textures } from 'phaser';
@@ -5,6 +6,7 @@ import { TITLE_ASSET_KEYS, UI_ASSET_KEYS } from '../assets/asset-keys';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../assets/font-keys';
 import { DIRECTION, DirectionType } from '../common/direction';
 import { Controls } from '../utils/controls';
+import { playBackgroundMusic } from '../utils/audio-utils';
 
 export const MENU_TEXT_STYLE:Phaser.Types.GameObjects.Text.TextStyle = Object.freeze({
     color:'#4D4A49',
@@ -95,6 +97,8 @@ export class TitleScene extends BaseScene {
             }
             this._controls.lockInput = false
         })
+        //播放音乐
+        playBackgroundMusic(this,AUDIO_ASSET_KEYS.TITLE)
 
 
     }
