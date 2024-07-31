@@ -1,3 +1,4 @@
+import { setGlobalSoundSetting } from './../utils/audio-utils';
 import { BaseScene } from './BaseScene';
 import { BattleStyleOptions, BATTLE_SCENE_OPTIONS, BATTLE_STYLE_OPTIONS, MenuColorOptions, SoundOptions, SOUND_OPTIONS, TEXT_SPEED_OPTIONS, VolumeOptions } from './../common/option';
 import { Scene, GameObjects, Cameras } from 'phaser';
@@ -172,6 +173,7 @@ export class OptionScene extends BaseScene {
         if(this._controls.wasSpaceKeyPressed() && this._selectedOptionMenu === OPTION_MENU_OPTIONS.CONFIRM){
             this._controls.lockInput = true
             this._updateOptionDataInDataManager()
+            setGlobalSoundSetting(this)
             this.cameras.main.fadeOut(500,0,0,0)
             return
         }

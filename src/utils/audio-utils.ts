@@ -24,8 +24,22 @@ export function playBackgroundMusic(scene:Scene,audioKey:AudioKey){
         //设置音乐
         scene.sound.play(audioKey,{
             loop:true,
-            volume:dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME) / 4
         })
     }
 
+}
+
+export function playSoundFx(scene:Scene,audioKey:AudioKey){
+    if(dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_SOUND)!== SOUND_OPTIONS.ON){
+        return
+    }
+    scene.sound.play(audioKey,{
+        volume:20 * dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME) / 4
+    })
+}
+
+
+export const setGlobalSoundSetting = (scene:Scene) => {
+    scene.sound.setVolume(dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_VOLUME) / 4)
+    scene.sound.setMute(dataManager.store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_SOUND) === SOUND_OPTIONS.OFF)
 }

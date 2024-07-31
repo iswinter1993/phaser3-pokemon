@@ -17,7 +17,7 @@ import { StateMachine } from "../utils/state-machine";
 import { Controls } from '../utils/controls';
 import { DATA_MANAGER_STORE_KEYS, dataManager } from '../utils/data-manager';
 import { BATTLE_SCENE_OPTIONS } from '../common/option';
-import { playBackgroundMusic } from '../utils/audio-utils';
+import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
 
 const BATTLE_STATES = Object.freeze({
     INTRO:'INTRO',
@@ -195,6 +195,9 @@ export class BattleScene extends BaseScene {
         this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activePlayerMonster.name} used ${this._activePlayerMonster.attacks[this._activePlayerAttackIndex].name}`,()=>{
             //引入时间插件
             this.time.delayedCall(500,()=>{
+                this.time.delayedCall(100,()=>{
+                    playSoundFx(this,this._activePlayerMonster.attacks[this._activePlayerAttackIndex].audioKey)
+                })
                 this._attackManager.playAttackAnimation(this._activePlayerMonster.attacks[this._activePlayerAttackIndex].animationName,ATTACK_TARGET.ENEMY,()=>{
                     this._activeEnemyMonster.playTakeDamageAnimation(()=>{
                         this._activeEnemyMonster.takeDamage(this._activePlayerMonster.baseAttack,()=>{
@@ -220,6 +223,9 @@ export class BattleScene extends BaseScene {
         //使用随机招式
         this._battleMenu.updateInfoPaneMessageNoInputRequired(`${this._activeEnemyMonster.name} used ${this._activeEnemyMonster.attacks[this._activeEnemyAttackIndex].name}`,()=>{
             this.time.delayedCall(500,()=>{
+                this.time.delayedCall(100,()=>{
+                    playSoundFx(this,this._activeEnemyMonster.attacks[this._activeEnemyAttackIndex].audioKey)
+                })
                 this._attackManager.playAttackAnimation(this._activeEnemyMonster.attacks[this._activeEnemyAttackIndex].animationName,ATTACK_TARGET.PLAYER,()=>{
                     this._activePlayerMonster.playTakeDamageAnimation(()=>{
                         this._activePlayerMonster.takeDamage(this._activeEnemyMonster.baseAttack,()=>{
@@ -412,6 +418,7 @@ export class BattleScene extends BaseScene {
                 const randomNumber = Phaser.Math.Between(1,10)
                 if(randomNumber > 5){
                     this._battleMenu.updateInfoPaneMessageAndWaitForInput([`You got away safely!`],()=>{
+                        playSoundFx(this,AUDIO_ASSET_KEYS.FLEE)
                         this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
                     })
                 }else{

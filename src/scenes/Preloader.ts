@@ -1,3 +1,4 @@
+import { setGlobalSoundSetting } from './../utils/audio-utils';
 import { MONSTER_PARTY_ASSET_KEYS, INVENTORY_ASSET_KEYS, AUDIO_ASSET_KEYS } from './../assets/asset-keys';
 import { BaseScene } from './BaseScene';
 import { Animation } from './../types/typedef';
@@ -156,6 +157,7 @@ export class Preloader extends BaseScene {
         this._createAnimations()
         dataManager.init(this)
         dataManager.loadData()
+        setGlobalSoundSetting(this)
         this.scene.start('TitleScene')
          
     }

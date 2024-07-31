@@ -1,5 +1,9 @@
+import { AUDIO_ASSET_KEYS } from './../assets/asset-keys';
 import { AttackKeys } from './../battle/attacks/attack-keys';
 import { Scene } from "phaser"
+
+type AudioKeyType = keyof typeof AUDIO_ASSET_KEYS
+
 export type Monster = {
     //怪兽个体的唯一id
     id:number,
@@ -34,7 +38,8 @@ export type Coordinate = {
 export type Attack = {
     id:number,
     name:string,
-    animationName:AttackKeys
+    animationName:AttackKeys,
+    audioKey:AudioKeyType
 }
 
 export type Animation = {

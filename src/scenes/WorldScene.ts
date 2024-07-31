@@ -14,7 +14,7 @@ import { dataManager, DATA_MANAGER_STORE_KEYS } from '../utils/data-manager';
 import { CANNOT_READ_SIGN_TEXT, SAMPLE_TEXT } from '../utils/text-utils';
 import { DialogUi } from '../world/dialog-ui';
 import { NPC } from '../world/characters/npc';
-import { playBackgroundMusic } from '../utils/audio-utils';
+import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
 
 
 type TiledObjectType = {
@@ -113,6 +113,7 @@ export class WorldScene extends BaseScene {
             console.log('遭遇怪图块不存在')
             return
         }
+        //遭遇怪图层
         this._encounterLayer = map.createLayer('Encounter',encounter,0,0)
         if(!this._encounterLayer){
             console.log('遭遇怪图层不存在')
@@ -275,7 +276,7 @@ export class WorldScene extends BaseScene {
             return
         }
         console.log('进入遭遇怪图层')
-
+        playSoundFx(this,AUDIO_ASSET_KEYS.GRASS)
         //是否遭遇怪兽
         this._wildMonsterEncountered = Math.random() < 0.2
         if(this._wildMonsterEncountered){
