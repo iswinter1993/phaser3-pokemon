@@ -40,6 +40,10 @@ const TILED_NPC_PROPERTY = Object.freeze({
     IS_SPAWN_POINT:'is_spawn_point'
 })
 
+const TILED_ENCOUNTER_PROPERTY = Object.freeze({
+    AREA:'area'
+})
+
 export class WorldScene extends BaseScene {
     _player:Player
     //遭遇怪图层
@@ -281,11 +285,22 @@ export class WorldScene extends BaseScene {
         this._wildMonsterEncountered = Math.random() < 0.2
         if(this._wildMonsterEncountered){
             console.log('遇到野生怪兽了！')
+            //获取遭遇层数据，拿到area属性值
+            console.log(this._encounterLayer.layer)
+            const encounterArea:TiledObjectType = this._encounterLayer.layer.properties.find((property:any)=>property.name === TILED_ENCOUNTER_PROPERTY.AREA) as TiledObjectType
+            //通过area的id获取可遭遇怪兽
+            const encounterAreaMonsters = DataUtils.getEncountersMonsterByAreaId(this,encounterArea.value)
+            //随机怪兽索引
+            const randomMonsterIndex = Phaser.Math.Between(0,encounterAreaMonsters.length - 1)
+            // 获取索引的怪兽id
+            const randomMonsterId = encounterAreaMonsters[randomMonsterIndex] as number[]
+            console.log('area:',encounterArea.value,'random monsters:',randomMonsterId)
+
             this.cameras.main.fadeOut(2000)
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
                 const sceneDataToPass:BattleSceneData = {
                     playerMonsters:dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY),
-                    enemyMonsters:[DataUtils.getMonsterById(this,2) as Monster]
+                    enemyMonsters:[DataUtils.getMonsterById(this,randomMonsterId[0]) as Monster]
                 }
                 this.scene.start('BattleScene',sceneDataToPass)
             })

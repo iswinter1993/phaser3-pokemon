@@ -84,3 +84,8 @@ export type InventoryItem = {
     item:Item,
     quantity:number
 }
+
+export type EncounterData = {
+    [key:string]:[][]
+}
+

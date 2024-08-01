@@ -1,4 +1,4 @@
-import { Monster } from './../types/typedef';
+import { EncounterData, Monster } from './../types/typedef';
 import { Scene } from "phaser";
 import { DATA_ASSET_KEYS } from "../assets/asset-keys";
 import { Animation, Attack, Item } from "../types/typedef";
@@ -63,5 +63,16 @@ export class DataUtils {
     static getAnimations(scene:Scene){
         const data:Animation[] = scene.cache.json.get(DATA_ASSET_KEYS.ANIMATIONS)
         return data
+    }
+    /**
+     * 通过地区ID获取可以遇到的怪兽
+     * @param scene 
+     * @param areaId 地区id
+     * @returns 
+     */
+    static getEncountersMonsterByAreaId(scene:Scene,areaId:number){
+        const data:EncounterData = scene.cache.json.get(DATA_ASSET_KEYS.ENCOUNTERS)
+        const monsterId:[][] = data[areaId]
+        return monsterId
     }
 }

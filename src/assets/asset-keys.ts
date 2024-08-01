@@ -4,7 +4,10 @@ export const BATTLE_BACKGROUND_ASSET_KEYS = Object.freeze({
 
 export const MONSTER_ASSET_KEYS = Object.freeze({
     IGUANIGNITE:'IGUANIGNITE',
-    CARNODUSK:'CARNODUSK'
+    CARNODUSK:'CARNODUSK',
+    IGNIVOLT:'IGNIVOLT',
+    AQUAVALOR:'AQUAVALOR',
+    FROSTSABER:'FROSTSABER'
 })
 
 export const BATTLLE_ASSET_KEYS = Object.freeze({
@@ -34,7 +37,8 @@ export const DATA_ASSET_KEYS = Object.freeze({
     ATTACKS:'ATTACKS',
     ANIMATIONS:'ANIMATIONS',
     ITEM:'ITEM',
-    MONSTERS:'MONSTERS'
+    MONSTERS:'MONSTERS',
+    ENCOUNTERS:'ENCOUNTERS'
 })
 
 export const ATTACK_ASSET_KEYS = Object.freeze({
@@ -49,7 +53,8 @@ export const WORLD_ASSET_KEYS = Object.freeze({
     WORLD_MAIN_LEVEL:'WORLD_MAIN_LEVEL',//所有碰撞层json数据
     WORLD_COLLISION:'WORLD_COLLISION',//碰撞层的图片
     WORLD_FOREGROUND:'WORLD_FOREGROUND',//碰撞块上方的图片
-    WORLD_ENCOUNTER_ZONE:'WORLD_ENCOUNTER_ZONE'//遭遇怪的碰撞层图片
+    WORLD_ENCOUNTER_ZONE:'WORLD_ENCOUNTER_ZONE',//遭遇怪的碰撞层图片
+    BEACH:'BEACH'
 })
 
 export const CHARACTER_ASSET_KEYS = Object.freeze({
