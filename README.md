@@ -111,13 +111,13 @@
   - [x] dynamic monster data based on player party and encounter
 
 ## Audio:
-  - [ ] adding background music
-  - [ ] adding battle music
-  - [ ] adding attack effects
-  - [ ] connecting audio options to settings
+  - [x] adding background music
+  - [x] adding battle music
+  - [x] adding attack effects
+  - [x] connecting audio options to settings
 
 ## World Scene Part 3:
-  - [ ] advanced wild monster encounter logic
+  - [x] advanced wild monster encounter logic
   - [ ] buildings
   - [ ] items in the field
   - [ ] npc event data structure
