@@ -31,7 +31,8 @@ type GlobalState = {
     },
     gameStarted:boolean,
     monster:MonsterData,
-    inventory:Inventory
+    inventory:Inventory,
+    itemsPickedUp:number[]
 }
 
 const initialState:GlobalState = {
@@ -77,7 +78,8 @@ const initialState:GlobalState = {
             },
             quantity:5
         },
-    ]
+    ],
+    itemsPickedUp:[]
 }
 
 
@@ -92,7 +94,8 @@ export const DATA_MANAGER_STORE_KEYS = Object.freeze({
     OPTIONS_MENU_COLOR:'OPTIONS_MENU_COLOR',
     GAME_STARTED:'GAME_STARTED',
     MONSTER_IN_PARTY:'MONSTER_IN_PARTY',
-    INVENTORY:'INVENTORY'
+    INVENTORY:'INVENTORY',
+    ITEM_PICKED_UP:'ITEM_PICKED_UP'
 })
 
 export class DataManager extends Events.EventEmitter {
@@ -176,6 +179,38 @@ export class DataManager extends Events.EventEmitter {
         this._store.set(DATA_MANAGER_STORE_KEYS.INVENTORY,inventory)
     }
 
+    /**
+     * 添加道具
+     * @param item 
+     * @param quantity 
+     */
+    addItem(item:Item,quantity:number){
+        const inventory = this._store.get(DATA_MANAGER_STORE_KEYS.INVENTORY) as Inventory
+        const exitingItem = inventory.find((inventoryItem)=>{
+            return inventoryItem.item.id === item.id
+        })
+        if(exitingItem){
+            exitingItem.quantity += quantity
+            
+        }else{
+
+            inventory.push(
+                {
+                    item,
+                    quantity
+                }
+            )
+        }
+        this._store.set(DATA_MANAGER_STORE_KEYS.INVENTORY,inventory)
+    }
+
+    addItemPickedUp(id:number){
+        const itemsPickedUp = this._store.get(DATA_MANAGER_STORE_KEYS.ITEM_PICKED_UP) || []
+        itemsPickedUp.push(id)
+        this._store.set(DATA_MANAGER_STORE_KEYS.ITEM_PICKED_UP,itemsPickedUp)
+
+    }
+
     getAnimatedTextSpeed(){
         const speed:TextSpeedOptions = this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_TEXT_SPEED)
         if(speed === undefined){
@@ -191,6 +226,7 @@ export class DataManager extends Events.EventEmitter {
         exsitingData.gameStarted = initialState.gameStarted
         exsitingData.monster.inParty = [...initialState.monster.inParty]
         exsitingData.inventory = initialState.inventory
+        exsitingData.itemsPickedUp = initialState.itemsPickedUp
         console.log(exsitingData)
 
         this._store.reset()
@@ -211,7 +247,8 @@ export class DataManager extends Events.EventEmitter {
             [DATA_MANAGER_STORE_KEYS.OPTIONS_MENU_COLOR]:data.options.menuColor,
             [DATA_MANAGER_STORE_KEYS.GAME_STARTED]:data.gameStarted,
             [DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY]:data.monster.inParty,
-            [DATA_MANAGER_STORE_KEYS.INVENTORY]:data.inventory
+            [DATA_MANAGER_STORE_KEYS.INVENTORY]:data.inventory,
+            [DATA_MANAGER_STORE_KEYS.ITEM_PICKED_UP]:data.itemsPickedUp
         })
     }
     _getGlobalState(){
@@ -232,7 +269,8 @@ export class DataManager extends Events.EventEmitter {
             monster:{
                 inParty:[...this._store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)]
             },
-            inventory:this._store.get(DATA_MANAGER_STORE_KEYS.INVENTORY)
+            inventory:this._store.get(DATA_MANAGER_STORE_KEYS.INVENTORY),
+            itemsPickedUp:this._store.get(DATA_MANAGER_STORE_KEYS.ITEM_PICKED_UP)||[]
         }
     }
 }

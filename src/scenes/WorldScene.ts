@@ -1,4 +1,4 @@
-import { Monster, Coordinate } from './../types/typedef';
+import { Monster, Coordinate, Item as ItemType } from './../types/typedef';
 import { BattleSceneData } from './BattleScene';
 import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
@@ -17,7 +17,6 @@ import { NPC } from '../world/characters/npc';
 import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
 import { weightedRandom } from '../utils/random';
 import { Item } from '../world/item';
-
 
 type TiledObjectType = {
     name:string,
@@ -394,10 +393,12 @@ export class WorldScene extends BaseScene {
                 return true
             }
             return false
-        })
+        }) 
         if(nearbyItem){
-            const item = DataUtils.getItemById(this,nearbyItem.itemId)
+            const item = DataUtils.getItemById(this,nearbyItem.itemId) as ItemType
+            dataManager.addItem(item,1)
             nearbyItem.gameObject.destroy()
+            dataManager.addItemPickedUp(nearbyItem.id)
             this._items.splice(nearbyItemIndex,1)
             this._dialogUi.showDialogModal([`You find a ${item?.name}`])
         }
@@ -478,6 +479,8 @@ export class WorldScene extends BaseScene {
      */
     _createItemMap(map:Tilemaps.Tilemap){
         const itemObjectLayer = map.getObjectLayer('Item')
+        const itemsPickedUp = dataManager.store.get(DATA_MANAGER_STORE_KEYS.ITEM_PICKED_UP) || []
+        
         if(!itemObjectLayer){
             return
         }
@@ -489,18 +492,21 @@ export class WorldScene extends BaseScene {
         for(const tiledItem of validItems){
             const itemId = tiledItem.properties?.find((property:TiledObjectType) => property.name === TILED_ITEM_PROPERTY.ITEM_ID).value
             const id = tiledItem.properties?.find((property:TiledObjectType) => property.name === TILED_ITEM_PROPERTY.ID).value
+            const hasPickedUp = itemsPickedUp?.find((pickedId:number)=>pickedId===id)
+            if(!hasPickedUp){
+                const item = new Item({
+                    scene:this,
+                    position:{
+                        x:tiledItem.x as number,
+                        y:tiledItem.y as number - TILE_SIZE
+                    },
+                    id,
+                    itemId
+                })
+    
+                this._items.push(item)
+            }
             console.log(itemId,id)
-            const item = new Item({
-                scene:this,
-                position:{
-                    x:tiledItem.x as number,
-                    y:tiledItem.y as number - TILE_SIZE
-                },
-                id,
-                itemId
-            })
-
-            this._items.push(item)
         }
     }
     
