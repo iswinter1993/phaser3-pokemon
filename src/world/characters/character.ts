@@ -14,6 +14,7 @@ type CharacterConfig = {
     spriteGridMovementFinishedCallback?:()=>void,
     collisionLayer?:Tilemaps.TilemapLayer,
     otherCharactersToCheckForCollisionsWith?:Character[],
+    objectsToCheckForCollisionsWith?:any[]
     spriteChangeDirectionCallback?:()=>void
 }
 
@@ -42,6 +43,8 @@ export class Character {
     _collisionLayer?:Tilemaps.TilemapLayer 
     //检查与其他角色的碰撞
     _otherCharactersToCheckForCollisionsWith:Character[]
+    //检查位置碰撞
+    _objectsToCheckForCollisionsWith:any[]
 
     _spriteChangeDirectionCallback:(()=>void) | undefined
 
@@ -58,6 +61,7 @@ export class Character {
         this._phaserGameObject = this._scene.add.sprite(config.position.x,config.position.y,config.assetKey,this._getIdleFrame()).setOrigin(this._origin.x,this._origin.y)
         this._spriteGridMovementFinishedCallback = config.spriteGridMovementFinishedCallback
         this._spriteChangeDirectionCallback = config.spriteChangeDirectionCallback
+        this._objectsToCheckForCollisionsWith = config.objectsToCheckForCollisionsWith || []
     }
 
 
@@ -151,7 +155,7 @@ export class Character {
         }
         const targetPosition = {...this._targetPosition}
         const updatePosition = getTargetPositionFromGameObjectPositionAndDirection(targetPosition,this._direction)
-        return this._doesPositionCollideWithCollisionLayer(updatePosition) || this._doesPositionCollideWithOtherCharacter(updatePosition)
+        return this._doesPositionCollideWithCollisionLayer(updatePosition) || this._doesPositionCollideWithOtherCharacter(updatePosition) || this._doesPositionCollideWithObject(updatePosition)
     }
 
     _handleSpriteMovement(){
@@ -222,5 +226,17 @@ export class Character {
         })
         console.log('是否有其他角色',collidesWithACharacter)
         return collidesWithACharacter
+    }
+
+    _doesPositionCollideWithObject(position:Coordinate){
+        const {x,y} = position
+        if(this._objectsToCheckForCollisionsWith.length === 0){
+            return false
+        }
+        const collidesWithObject = this._objectsToCheckForCollisionsWith.some(object=>{
+            return (object.position.x === x && object.position.y === y)
+        })
+        console.log('是否碰撞对象',collidesWithObject)
+        return collidesWithObject
     }
 }

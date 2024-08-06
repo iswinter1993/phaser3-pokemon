@@ -11,6 +11,7 @@ type PlayerConfig = {
     collisionLayer?:Tilemaps.TilemapLayer,
     spriteGridMovementFinishedCallback?:()=>void,
     otherCharactersToCheckForCollisionsWith?:Character[],
+    objectsToCheckForCollisionsWith?:any[],
     spriteChangeDirectionCallback?:()=>void
 }
 

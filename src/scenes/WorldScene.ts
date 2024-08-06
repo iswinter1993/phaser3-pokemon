@@ -1,4 +1,4 @@
-import { Monster } from './../types/typedef';
+import { Monster, Coordinate } from './../types/typedef';
 import { BattleSceneData } from './BattleScene';
 import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
@@ -16,6 +16,7 @@ import { DialogUi } from '../world/dialog-ui';
 import { NPC } from '../world/characters/npc';
 import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
 import { weightedRandom } from '../utils/random';
+import { Item } from '../world/item';
 
 
 type TiledObjectType = {
@@ -63,6 +64,7 @@ export class WorldScene extends BaseScene {
     _npcPlayerIsInteractionWith:NPC | undefined
     _sceneData:WorldSceneData
     _menu:Menu
+    _items:Item[]
     constructor(){
         super('WorldScene')
     }
@@ -75,7 +77,7 @@ export class WorldScene extends BaseScene {
                 isPlayerKnockOut:false
             }
         }
-        console.log('isPlayerKnockOut',this._sceneData)
+        console.log('isPlayerKnockOut玩家是否被打败',this._sceneData)
         this._wildMonsterEncountered = false
         //如果玩家被打败，更新玩家位置到初始值
         if(this._sceneData.isPlayerKnockOut){
@@ -85,6 +87,8 @@ export class WorldScene extends BaseScene {
             })
             dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_DIRECTION,DIRECTION.DOWN)
         }
+        this._npcPlayerIsInteractionWith = undefined
+        this._items = []
     }
 
     create(){
@@ -157,7 +161,8 @@ export class WorldScene extends BaseScene {
             spriteChangeDirectionCallback:()=>{
                 this._handlePlayerDirectionUpdate()
             },
-            otherCharactersToCheckForCollisionsWith:this._npc
+            otherCharactersToCheckForCollisionsWith:this._npc,
+            objectsToCheckForCollisionsWith:this._items
         })
 
 
@@ -382,6 +387,21 @@ export class WorldScene extends BaseScene {
             return
         }
 
+        let nearbyItemIndex:number = 0
+        const nearbyItem = this._items.find((item,index)=>{
+            if(item.position.x === targetPosition.x && item.position.y === targetPosition.y){
+                nearbyItemIndex = index
+                return true
+            }
+            return false
+        })
+        if(nearbyItem){
+            const item = DataUtils.getItemById(this,nearbyItem.itemId)
+            nearbyItem.gameObject.destroy()
+            this._items.splice(nearbyItemIndex,1)
+            this._dialogUi.showDialogModal([`You find a ${item?.name}`])
+        }
+
     }
 
     _handlePlayerDirectionUpdate(){
@@ -470,6 +490,17 @@ export class WorldScene extends BaseScene {
             const itemId = tiledItem.properties?.find((property:TiledObjectType) => property.name === TILED_ITEM_PROPERTY.ITEM_ID).value
             const id = tiledItem.properties?.find((property:TiledObjectType) => property.name === TILED_ITEM_PROPERTY.ID).value
             console.log(itemId,id)
+            const item = new Item({
+                scene:this,
+                position:{
+                    x:tiledItem.x as number,
+                    y:tiledItem.y as number - TILE_SIZE
+                },
+                id,
+                itemId
+            })
+
+            this._items.push(item)
         }
     }
     
