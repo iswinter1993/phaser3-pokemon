@@ -15,6 +15,7 @@ import { CANNOT_READ_SIGN_TEXT, SAMPLE_TEXT } from '../utils/text-utils';
 import { DialogUi } from '../world/dialog-ui';
 import { NPC } from '../world/characters/npc';
 import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
+import { weightedRandom } from '../utils/random';
 
 
 type TiledObjectType = {
@@ -23,6 +24,11 @@ type TiledObjectType = {
     value:any
 }
 
+
+const TILED_ITEM_PROPERTY = Object.freeze({
+    ITEM_ID:'item_id',
+    ID:'id'
+}) 
 
 export type WorldSceneData = {
     isPlayerKnockOut:boolean
@@ -134,6 +140,8 @@ export class WorldScene extends BaseScene {
       
 
         this.add.image(0,0,WORLD_ASSET_KEYS.WORLD_BACKGROUND,0).setOrigin(0)
+        //创建item 和 碰撞
+        this._createItemMap(map)
 
         //创建npc
         this._createNpcsMap(map)
@@ -290,17 +298,17 @@ export class WorldScene extends BaseScene {
             const encounterArea:TiledObjectType = this._encounterLayer.layer.properties.find((property:any)=>property.name === TILED_ENCOUNTER_PROPERTY.AREA) as TiledObjectType
             //通过area的id获取可遭遇怪兽
             const encounterAreaMonsters = DataUtils.getEncountersMonsterByAreaId(this,encounterArea.value)
-            //随机怪兽索引
-            const randomMonsterIndex = Phaser.Math.Between(0,encounterAreaMonsters.length - 1)
-            // 获取索引的怪兽id
-            const randomMonsterId = encounterAreaMonsters[randomMonsterIndex] as number[]
-            console.log('area:',encounterArea.value,'random monsters:',randomMonsterId)
+           
+            //获取怪兽id
+            const monsterId = weightedRandom(encounterAreaMonsters)
+           
+            console.log('area:',encounterArea.value,'random monsters:',monsterId)
 
             this.cameras.main.fadeOut(2000)
             this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE,()=>{
                 const sceneDataToPass:BattleSceneData = {
                     playerMonsters:dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY),
-                    enemyMonsters:[DataUtils.getMonsterById(this,randomMonsterId[0]) as Monster]
+                    enemyMonsters:[DataUtils.getMonsterById(this,monsterId) as Monster]
                 }
                 this.scene.start('BattleScene',sceneDataToPass)
             })
@@ -443,6 +451,26 @@ export class WorldScene extends BaseScene {
             value.currentHp = value.maxHp
         })
         dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,monsters)
+    }
+    /**
+     * 创建道具
+     * @param map 
+     */
+    _createItemMap(map:Tilemaps.Tilemap){
+        const itemObjectLayer = map.getObjectLayer('Item')
+        if(!itemObjectLayer){
+            return
+        }
+        const items = itemObjectLayer.objects
+        const validItems = items.filter(item=>{
+            return item.x !== undefined && item.y !==undefined
+        })
+        console.log(validItems)
+        for(const tiledItem of validItems){
+            const itemId = tiledItem.properties?.find((property:TiledObjectType) => property.name === TILED_ITEM_PROPERTY.ITEM_ID).value
+            const id = tiledItem.properties?.find((property:TiledObjectType) => property.name === TILED_ITEM_PROPERTY.ID).value
+            console.log(itemId,id)
+        }
     }
     
 }
