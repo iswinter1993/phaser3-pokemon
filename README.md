@@ -118,8 +118,8 @@
 
 ## World Scene Part 3:
   - [x] advanced wild monster encounter logic
-  - [ ] buildings
-  - [ ] items in the field
+  - [x] buildings
+  - [x] items in the field
   - [ ] npc event data structure
   - [ ] respawn next to npc
 
