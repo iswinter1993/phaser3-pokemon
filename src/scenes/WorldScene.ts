@@ -31,7 +31,9 @@ const TILED_ITEM_PROPERTY = Object.freeze({
 }) 
 
 export type WorldSceneData = {
-    isPlayerKnockOut:boolean
+    isPlayerKnockOut?:boolean,//是否被打败
+    area?:string,//地图资源
+    isInBuilding?:boolean
 }
 
 const CUSTOM_TILED_TYPES = Object.freeze({
@@ -71,13 +73,19 @@ export class WorldScene extends BaseScene {
     init(data:WorldSceneData){
         super.init(data)
         this._sceneData = data
-        if(Object.keys(data).length === 0){
-            this._sceneData = {
-                isPlayerKnockOut:false
-            }
+        
+        const area = this._sceneData.area || dataManager.store.get(DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION).area
+        const isInBuilding = this._sceneData.isInBuilding || dataManager.store.get(DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION).isInBuilding
+        const isPlayerKnockOut = this._sceneData.isPlayerKnockOut || false
+
+        this._sceneData = {
+            area,
+            isInBuilding,
+            isPlayerKnockOut
         }
+
         console.log('isPlayerKnockOut玩家是否被打败',this._sceneData)
-        this._wildMonsterEncountered = false
+        
         //如果玩家被打败，更新玩家位置到初始值
         if(this._sceneData.isPlayerKnockOut){
             dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_POSITION,{
@@ -86,6 +94,13 @@ export class WorldScene extends BaseScene {
             })
             dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_DIRECTION,DIRECTION.DOWN)
         }
+
+        dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION,{
+            area:this._sceneData.area,
+            isInBuilding:this._sceneData.isInBuilding
+        })
+
+        this._wildMonsterEncountered = false
         this._npcPlayerIsInteractionWith = undefined
         this._items = []
     }
@@ -93,19 +108,17 @@ export class WorldScene extends BaseScene {
     create(){
         super.create()
 
-        //设置相机边界，超出不跟随目标
-        this.cameras.main.setBounds(0,0,1280,2176)
-        //相机缩放
-        this.cameras.main.setZoom(0.8)
+        
+        
         //设置相机中心点
-        this.cameras.main.centerOn(6*64,22*64)
+        // this.cameras.main.centerOn(6*64,22*64)
 
 
         //创建碰撞地图
-        const map = this.make.tilemap({key:WORLD_ASSET_KEYS.WORLD_MAIN_LEVEL})
+        const map = this.make.tilemap({key:`${this._sceneData.area?.toUpperCase()}_LEVEL`})
         //碰撞图块
         //addTilesetImage将图像添加到地图以用作图块集。单个地图可以使用多个图块集
-        //第一个参数最好使用level.json中的碰撞图块名字
+        //第一个参数最好使用json中的碰撞图块名字
         const collisionTiles = map.addTilesetImage('collision',WORLD_ASSET_KEYS.WORLD_COLLISION)
         if(!collisionTiles){
             console.log('物体碰撞图块不存在')
@@ -120,29 +133,38 @@ export class WorldScene extends BaseScene {
         collisionLayer.setAlpha(TILE_COLLISION_LAYER_ALPHA).setDepth(2)
 
 
-        //创建遭遇怪的碰撞块
-        const encounter = map.addTilesetImage('encounter',WORLD_ASSET_KEYS.WORLD_ENCOUNTER_ZONE)
-        if(!encounter){
-            console.log('遭遇怪图块不存在')
-            return
+
+        //创建交互对象层
+        const hasSignLayer = map.getObjectLayer('Sign') !== null
+        if(hasSignLayer){
+            this._signObjectLayer = map.getObjectLayer('Sign')
         }
+    
+        
         //遭遇怪图层
-        this._encounterLayer = map.createLayer('Encounter',encounter,0,0)
-        if(!this._encounterLayer){
-            console.log('遭遇怪图层不存在')
-            return
+        const hasEncounterLayer = map.getObjectLayer('Encounter') !== null
+        if(hasEncounterLayer){
+            //创建遭遇怪的碰撞块
+            const encounter = map.addTilesetImage('encounter',WORLD_ASSET_KEYS.WORLD_ENCOUNTER_ZONE)
+            if(!encounter){
+                console.log('遭遇怪图块不存在')
+                return
+            }
+            this._encounterLayer = map.createLayer('Encounter',encounter,0,0) as Tilemaps.TilemapLayer
+            this._encounterLayer.setAlpha(TILE_COLLISION_LAYER_ALPHA).setDepth(2)
         }
-        this._encounterLayer.setAlpha(TILE_COLLISION_LAYER_ALPHA).setDepth(2)
+       
 
-        //创建 广告牌交互对象层
-        this._signObjectLayer = map.getObjectLayer('Sign')
-        if(!this._signObjectLayer){
-            console.log('Sign 交互对象层不存在')
-            return
+        
+        
+        //如果不在建筑内
+        if(!this._sceneData.isInBuilding){
+            //设置相机边界，超出不跟随目标
+            this.cameras.main.setBounds(0,0,1280,2176)
         }
-      
-
-        this.add.image(0,0,WORLD_ASSET_KEYS.WORLD_BACKGROUND,0).setOrigin(0)
+        //相机缩放
+        this.cameras.main.setZoom(0.8)
+        this.add.image(0,0,`${this._sceneData.area?.toUpperCase()}_BACKGROUND`,0).setOrigin(0)
         //创建item 和 碰撞
         this._createItemMap(map)
 
@@ -173,7 +195,7 @@ export class WorldScene extends BaseScene {
         this.cameras.main.startFollow(this._player.sprite)
 
         //设置屋顶，树尖的遮挡图片
-        this.add.image(0,0,WORLD_ASSET_KEYS.WORLD_FOREGROUND,0).setOrigin(0)
+        this.add.image(0,0,`${this._sceneData.area?.toUpperCase()}_FOREGROUND`,0).setOrigin(0)
         //创建对话框实例
         this._dialogUi = new DialogUi(this,1280)
 
@@ -348,7 +370,7 @@ export class WorldScene extends BaseScene {
             return
         }
         //获取 交互对象层 的对象 , 检查玩家朝向是否有交互对象层
-        const nearbySign = this._signObjectLayer.objects.find(object=>{
+        const nearbySign = this._signObjectLayer?.objects.find(object=>{
             if(!object.x || !object.y){
                 return
             }

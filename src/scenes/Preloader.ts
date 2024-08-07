@@ -1,5 +1,5 @@
 import { setGlobalSoundSetting } from './../utils/audio-utils';
-import { MONSTER_PARTY_ASSET_KEYS, INVENTORY_ASSET_KEYS, AUDIO_ASSET_KEYS } from './../assets/asset-keys';
+import { MONSTER_PARTY_ASSET_KEYS, INVENTORY_ASSET_KEYS, AUDIO_ASSET_KEYS, BUILDING_ASSET_KEYS } from './../assets/asset-keys';
 import { BaseScene } from './BaseScene';
 import { Animation } from './../types/typedef';
 import { DataUtils } from './../utils/data-utils';
@@ -98,18 +98,28 @@ export class Preloader extends BaseScene {
         /**
          * load world assets
          */
-        this.load.image(WORLD_ASSET_KEYS.WORLD_BACKGROUND,`${monsterTamerAssetPath}/map/level_background.png`)
-        //加载地图上的碰撞块数据
-        this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.WORLD_MAIN_LEVEL,`assets/data/level.json`)
+        this.load.image(WORLD_ASSET_KEYS.MAIN_1_BACKGROUND,`${monsterTamerAssetPath}/map/main_1_level_background.png`)
+        //加载地图数据
+        this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.MAIN_1_LEVEL,`assets/data/level.json`)
         //加载地图上碰撞块的图层
         this.load.image(WORLD_ASSET_KEYS.WORLD_COLLISION,`${monsterTamerAssetPath}/map/collision.png`)
-        this.load.image(WORLD_ASSET_KEYS.WORLD_FOREGROUND,`${monsterTamerAssetPath}/map/level_foreground.png`)
+        this.load.image(WORLD_ASSET_KEYS.MAIN_1_FOREGROUND,`${monsterTamerAssetPath}/map/main_1_level_foreground.png`)
         this.load.image(WORLD_ASSET_KEYS.WORLD_ENCOUNTER_ZONE,`${monsterTamerAssetPath}/map/encounter.png`)
 
         this.load.spritesheet(WORLD_ASSET_KEYS.BEACH,`${axulArtAssetPath}/beach/AxulArtīs_Basic-Top-down-interior_By_AxulArt_scaled_4x_pngcrushed.png`,{
             frameHeight:64,
             frameWidth:64
         })
+
+        this.load.image(BUILDING_ASSET_KEYS.BUILDING_1_BACKGROUND,`${monsterTamerAssetPath}/map/buildings/building_1_level_background.png`)
+        this.load.image(BUILDING_ASSET_KEYS.BUILDING_1_FOREGROUND,`${monsterTamerAssetPath}/map/buildings/building_1_level_foreground.png`)
+        this.load.tilemapTiledJSON(BUILDING_ASSET_KEYS.BUILDING_1_LEVEL,`assets/data/building_1.json`)
+
+        this.load.image(BUILDING_ASSET_KEYS.BUILDING_2_BACKGROUND,`${monsterTamerAssetPath}/map/buildings/building_2_level_background.png`)
+        this.load.image(BUILDING_ASSET_KEYS.BUILDING_2_FOREGROUND,`${monsterTamerAssetPath}/map/buildings/building_2_level_foreground.png`)
+        this.load.tilemapTiledJSON(BUILDING_ASSET_KEYS.BUILDING_2_LEVEL,`assets/data/building_2.json`)
+
+
         /**
          * load characters image
          */

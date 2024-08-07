@@ -12,13 +12,19 @@ type MonsterData = {
     inParty:Monster[]
 }
 
+type PlayerLocation = {
+    area:string,
+    isInBuilding:boolean
+}
+
 type GlobalState = {
     player:{
         position:{
             x:number,   
             y:number
         },
-        direction:DirectionType
+        direction:DirectionType,
+        location:PlayerLocation
     },
     options:{
         textSpeed:TextSpeedOptions
@@ -41,7 +47,11 @@ const initialState:GlobalState = {
             x: 6 * TILE_SIZE,
             y: 21 * TILE_SIZE
         },
-        direction:DIRECTION.DOWN
+        direction:DIRECTION.DOWN,
+        location:{
+            area:'main_1',
+            isInBuilding:false
+        }
     },
     options:{
         textSpeed:TEXT_SPEED_OPTIONS.MID,
@@ -86,6 +96,7 @@ const initialState:GlobalState = {
 export const DATA_MANAGER_STORE_KEYS = Object.freeze({
     PLAYER_POSITION:'PLAYER_POSITION',
     PLAYER_DIRECTION:'PLAYER_DIRECTION',
+    PLAYER_LOCATION:'PLAYER_LOCATION',
     OPTIONS_TEXT_SPEED:'OPTIONS_TEXT_SPEED',
     OPTIONS_BATTLE_SCENE:'OPTIONS_BATTLE_SCENE',
     OPTIONS_BATTLE_STYLE:'OPTIONS_BATTLE_STYLE',
@@ -238,6 +249,7 @@ export class DataManager extends Events.EventEmitter {
     _updateDataManager(data:GlobalState){
         this._store.set({
             [DATA_MANAGER_STORE_KEYS.PLAYER_POSITION]:data.player.position,
+            [DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION]:data.player.location || {...initialState.player.location},
             [DATA_MANAGER_STORE_KEYS.PLAYER_DIRECTION]:data.player.direction,
             [DATA_MANAGER_STORE_KEYS.OPTIONS_TEXT_SPEED]:data.options.textSpeed,
             [DATA_MANAGER_STORE_KEYS.OPTIONS_BATTLE_SCENE]:data.options.battleScene,
@@ -255,7 +267,8 @@ export class DataManager extends Events.EventEmitter {
         return {
             player:{
                 position:this._store.get(DATA_MANAGER_STORE_KEYS.PLAYER_POSITION),
-                direction:this._store.get(DATA_MANAGER_STORE_KEYS.PLAYER_DIRECTION)
+                direction:this._store.get(DATA_MANAGER_STORE_KEYS.PLAYER_DIRECTION),
+                location:this._store.get(DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION),
             },
             options:{
                 textSpeed:this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_TEXT_SPEED),
