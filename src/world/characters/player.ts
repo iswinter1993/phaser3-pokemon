@@ -1,7 +1,9 @@
 import { Scene, Tilemaps } from 'phaser';
 import { CHARACTER_ASSET_KEYS } from '../../assets/asset-keys';
 import { DIRECTION, DirectionType } from '../../common/direction';
+import { TILE_SIZE } from '../../config';
 import { Coordinate } from '../../types/typedef';
+import { getTargetPositionFromGameObjectPositionAndDirection } from '../../utils/grid-utils';
 import { Character } from "./character";
 
 type PlayerConfig = {
@@ -12,10 +14,14 @@ type PlayerConfig = {
     spriteGridMovementFinishedCallback?:()=>void,
     otherCharactersToCheckForCollisionsWith?:Character[],
     objectsToCheckForCollisionsWith?:any[],
-    spriteChangeDirectionCallback?:()=>void
+    spriteChangeDirectionCallback?:()=>void,
+    enterLayer?:Tilemaps.ObjectLayer | undefined,
+    enterCallback?:(enterName:string,enterId:string,isBuilding:boolean)=>void
 }
 
 export class Player extends Character {
+    _enterLayer:Tilemaps.ObjectLayer | undefined
+    _enterCallback:((enterName:string,enterId:string,isBuilding:boolean)=>void) | undefined
     constructor(config:PlayerConfig){
         super({
             ...config,
@@ -29,6 +35,9 @@ export class Player extends Character {
                 RIGHT:4
             }
         })
+
+        this._enterLayer = config.enterLayer
+        this._enterCallback = config.enterCallback
     }
 
     moveCharacter(direction:DirectionType){
@@ -61,6 +70,32 @@ export class Player extends Character {
                 break;
             
          
+        }
+
+        if(!this._isMoving && this._enterLayer !== undefined){
+            const targetPosition = getTargetPositionFromGameObjectPositionAndDirection(
+                {
+                    x:this._phaserGameObject.x,
+                    y:this._phaserGameObject.y
+                },
+                this._direction
+            )
+            const nearbyEnter = this._enterLayer?.objects.find((object)=>{
+                if(!object.x || !object.y)
+                {
+                    return false
+                }
+                return object.x === targetPosition.x && object.y - TILE_SIZE === targetPosition.y
+            })
+            console.log(nearbyEnter)
+            if(!nearbyEnter){
+                return
+            }
+            //存在其他场景入口，尝试进入场景
+            const [entranceName,entranceId,isBuilding] = nearbyEnter.properties
+            if(this._enterCallback){
+                this._enterCallback(entranceName.value,entranceId.value,isBuilding.value||false)
+            }
         }
         
     }

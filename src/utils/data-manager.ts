@@ -14,7 +14,7 @@ type MonsterData = {
 
 type PlayerLocation = {
     area:string,
-    isInBuilding:boolean
+    isBuilding:boolean
 }
 
 type GlobalState = {
@@ -50,7 +50,7 @@ const initialState:GlobalState = {
         direction:DIRECTION.DOWN,
         location:{
             area:'main_1',
-            isInBuilding:false
+            isBuilding:false
         }
     },
     options:{

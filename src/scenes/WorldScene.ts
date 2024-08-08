@@ -33,7 +33,7 @@ const TILED_ITEM_PROPERTY = Object.freeze({
 export type WorldSceneData = {
     isPlayerKnockOut?:boolean,//是否被打败
     area?:string,//地图资源
-    isInBuilding?:boolean
+    isBuilding?:boolean
 }
 
 const CUSTOM_TILED_TYPES = Object.freeze({
@@ -55,10 +55,10 @@ const TILED_ENCOUNTER_PROPERTY = Object.freeze({
 export class WorldScene extends BaseScene {
     _player:Player
     //遭遇怪图层
-    _encounterLayer:Tilemaps.TilemapLayer | null
+    _encounterLayer:Tilemaps.TilemapLayer | undefined
     //是否遭遇怪兽
     _wildMonsterEncountered:boolean
-    _signObjectLayer:Tilemaps.ObjectLayer | null
+    _signObjectLayer:Tilemaps.ObjectLayer | undefined
     _dialogUi:DialogUi
     _npc:NPC[]
     //玩家交互的NPC
@@ -66,6 +66,7 @@ export class WorldScene extends BaseScene {
     _sceneData:WorldSceneData
     _menu:Menu
     _items:Item[]
+    _enterLayer:Tilemaps.ObjectLayer | undefined
     constructor(){
         super('WorldScene')
     }
@@ -75,12 +76,15 @@ export class WorldScene extends BaseScene {
         this._sceneData = data
         
         const area = this._sceneData.area || dataManager.store.get(DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION).area
-        const isInBuilding = this._sceneData.isInBuilding || dataManager.store.get(DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION).isInBuilding
+        let isBuilding = this._sceneData.isBuilding 
+        if(isBuilding === undefined){
+            isBuilding =  dataManager.store.get(DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION).isBuilding
+        }
         const isPlayerKnockOut = this._sceneData.isPlayerKnockOut || false
 
         this._sceneData = {
             area,
-            isInBuilding,
+            isBuilding,
             isPlayerKnockOut
         }
 
@@ -97,12 +101,15 @@ export class WorldScene extends BaseScene {
 
         dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION,{
             area:this._sceneData.area,
-            isInBuilding:this._sceneData.isInBuilding
+            isInBuilding:this._sceneData.isBuilding
         })
 
         this._wildMonsterEncountered = false
         this._npcPlayerIsInteractionWith = undefined
         this._items = []
+        this._signObjectLayer = undefined
+        this._encounterLayer = undefined
+        this._enterLayer = undefined
     }
 
     create(){
@@ -137,12 +144,20 @@ export class WorldScene extends BaseScene {
         //创建交互对象层
         const hasSignLayer = map.getObjectLayer('Sign') !== null
         if(hasSignLayer){
-            this._signObjectLayer = map.getObjectLayer('Sign')
+            this._signObjectLayer = map.getObjectLayer('Sign') as Tilemaps.ObjectLayer
+        }
+
+        //创建场景转换层
+        const hasSceneTransitionLayer = map.getObjectLayer('Scene-Transitions') !== null
+        if(hasSceneTransitionLayer){
+            this._enterLayer = map.getObjectLayer('Scene-Transitions') as Tilemaps.ObjectLayer
+        }else{
+            console.log('Scene-Transitions不存在')
         }
     
         
-        //遭遇怪图层
-        const hasEncounterLayer = map.getObjectLayer('Encounter') !== null
+        //创建遭遇怪图层
+        const hasEncounterLayer = map.getLayerIndexByName('Encounter') !== null
         if(hasEncounterLayer){
             //创建遭遇怪的碰撞块
             const encounter = map.addTilesetImage('encounter',WORLD_ASSET_KEYS.WORLD_ENCOUNTER_ZONE)
@@ -158,7 +173,7 @@ export class WorldScene extends BaseScene {
         
         
         //如果不在建筑内
-        if(!this._sceneData.isInBuilding){
+        if(!this._sceneData.isBuilding){
             //设置相机边界，超出不跟随目标
             this.cameras.main.setBounds(0,0,1280,2176)
         }
@@ -183,7 +198,13 @@ export class WorldScene extends BaseScene {
                 this._handlePlayerDirectionUpdate()
             },
             otherCharactersToCheckForCollisionsWith:this._npc,
-            objectsToCheckForCollisionsWith:this._items
+            objectsToCheckForCollisionsWith:this._items,
+            enterLayer:this._enterLayer,
+            enterCallback:(entranceName,entranceId,isBuilding)=> {
+                console.log(entranceName,entranceId,isBuilding)
+                this._handleEnterCallback(entranceName,entranceId,isBuilding)
+            }
+            
         })
 
 
@@ -447,6 +468,7 @@ export class WorldScene extends BaseScene {
             const layer = map.getObjectLayer(layerName)
             const npcObject = layer?.objects.find(obj=>obj.type === CUSTOM_TILED_TYPES.NPC)
             console.log(npcObject)
+            
             if(!npcObject || npcObject.x === undefined || npcObject.y === undefined){
                 return
             }
@@ -455,7 +477,7 @@ export class WorldScene extends BaseScene {
             const pathObject = layer?.objects.filter(obj => {
                 return obj.type === CUSTOM_TILED_TYPES.NPC_PATH
             })
-
+            console.log(pathObject)
             const npcPath:any = {
                 0:{x:npcObject.x,y:npcObject.y - TILE_SIZE}
             } 
@@ -467,8 +489,6 @@ export class WorldScene extends BaseScene {
             })
 
             console.log(npcPath)
-
-
 
             const [ frame, messages, movement_pattern ] = npcObject.properties
             console.log(movement_pattern)
@@ -482,7 +502,7 @@ export class WorldScene extends BaseScene {
                 frame:Number(frame.value || '0'),
                 message:npcMessages,
                 npcPath,
-                movementPattern:movement_pattern.value || 'IDLE'
+                movementPattern:movement_pattern?.value || 'IDLE'
             })
             this._npc.push(npc)
         })
@@ -530,6 +550,46 @@ export class WorldScene extends BaseScene {
             }
             console.log(itemId,id)
         }
+    }
+
+    _handleEnterCallback(entranceName:string,entranceId:string,isBuilding:boolean){
+        this._controls.lockInput = true
+        const map = this.make.tilemap({key:`${entranceName.toUpperCase()}_LEVEL`})
+        //获取building的对象
+        const enterObjectLayer = map.getObjectLayer('Scene-Transitions')
+        console.log(enterObjectLayer?.objects)
+        const enterObject = enterObjectLayer?.objects.find(obj=>{
+            const tempEntranceName = obj.properties.find((pro:any)=>pro.name === 'connects_to').value
+            const tempEntranceId= obj.properties.find((pro:any)=>pro.name === 'entrance_id').value
+            return tempEntranceName === this._sceneData.area && tempEntranceId === entranceId
+        })
+        console.log(enterObject)
+        let x = enterObject?.x as number
+        let y = (enterObject?.y as number) - TILE_SIZE
+        //如果玩家朝向上，则向上移动一格
+        if(this._player.direction === DIRECTION.UP){
+            y -= TILE_SIZE
+        }
+        if(this._player.direction === DIRECTION.DOWN){
+            y += TILE_SIZE
+        }
+
+        this.cameras.main.fadeOut(1000,0,0,0,(camera:any,progress:any)=>{
+            if(progress === 1){
+
+                dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_POSITION,{x,y})
+        
+                const dataToPass:WorldSceneData = {
+                    isBuilding,
+                    isPlayerKnockOut:false,
+                    area:entranceName
+                }
+        
+                this.scene.start('WorldScene',dataToPass)
+            }
+        })
+
+
     }
     
 }
