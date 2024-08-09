@@ -89,3 +89,33 @@ export type EncounterData = {
     [key:string]:[][]
 }
 
+
+export const NPC_EVENT_TYPE = Object.freeze({
+    MESSAGE:'MESSAGE',
+    SCENE_FADE_IN_AND_OUT:'SCENE_FADE_IN_AND_OUT',
+    HEAL:'HEAL',
+    TRADE:'TRADE',
+    ITEM:'ITEM',
+    BATTLE:'BATTLE'
+})
+
+export type NpcEventType = keyof typeof NPC_EVENT_TYPE
+
+type NpcEventMessage = {
+    type:'MESSAGE',
+    data:{
+        messages:string[]
+    }
+}
+
+export type NpcEvent = NpcEventMessage
+type NpcDetails = {
+    frame:number,
+    events:NpcEvent[]
+}
+
+export type NpcData = {
+    [key:string]:NpcDetails
+}
+
+

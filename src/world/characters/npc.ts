@@ -1,4 +1,4 @@
-import { Coordinate } from './../../types/typedef';
+import { Coordinate, NpcEvent } from './../../types/typedef';
 import { DIRECTION } from './../../common/direction';
 import { Scene, Tilemaps } from "phaser";
 import { CHARACTER_ASSET_KEYS } from "../../assets/asset-keys";
@@ -23,12 +23,12 @@ type NPCConfig = {
     collisionLayer?:Tilemaps.TilemapLayer,
     spriteGridMovementFinishedCallback?:()=>void,
     frame:number,
-    message:string[],
+    events:NpcEvent[],
     npcPath:NPCPath
     movementPattern:NpcMovementPattern //运动类型 IDLE空闲 CLOCKWISE移动
 }
 export class NPC extends Character {
-    _message:string[]
+    _events:NpcEvent[]
     //是否在与玩家交谈
     _talkingToPlayer:boolean
     _npcPath:NPCPath
@@ -49,7 +49,7 @@ export class NPC extends Character {
                 RIGHT:config.frame + 2
             }
         })
-        this._message = config.message || []
+        this._events = config.events || []
         this._talkingToPlayer = false
         this._npcPath = config.npcPath
         this._currentPathIndex = 0
@@ -58,8 +58,8 @@ export class NPC extends Character {
         this._phaserGameObject.setScale(4)
     }
 
-    get message () {
-        return [...this._message]
+    get events () {
+        return [...this._events]
     }
 
     get isTalkingToPlayer () {

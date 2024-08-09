@@ -1,4 +1,4 @@
-import { Monster, Coordinate, Item as ItemType } from './../types/typedef';
+import { Monster, Coordinate, Item as ItemType, NpcEvent, NPC_EVENT_TYPE, NpcEventType } from './../types/typedef';
 import { BattleSceneData } from './BattleScene';
 import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
@@ -67,6 +67,10 @@ export class WorldScene extends BaseScene {
     _menu:Menu
     _items:Item[]
     _enterLayer:Tilemaps.ObjectLayer | undefined
+    //npc执行任务的索引
+    _lastNpcEventHandledIndex:number
+    //场景过度是否完成
+    _isProcessingNpcEvent:boolean
     constructor(){
         super('WorldScene')
     }
@@ -110,6 +114,8 @@ export class WorldScene extends BaseScene {
         this._signObjectLayer = undefined
         this._encounterLayer = undefined
         this._enterLayer = undefined
+        this._lastNpcEventHandledIndex = -1
+        this._isProcessingNpcEvent = false
     }
 
     create(){
@@ -262,7 +268,7 @@ export class WorldScene extends BaseScene {
 
         if(this._controls.wasEnterKeyPressed() && !this._player.isMoving){
             console.log('enter key pressed')
-            if(this._dialogUi.isVisible){
+            if(this._dialogUi.isVisible || this._isProcessingNpcEvent){
                 return
             }
 
@@ -373,8 +379,7 @@ export class WorldScene extends BaseScene {
         if(this._dialogUi.isVisible && !this._dialogUi.moreMessageToShow){
             this._dialogUi.hideDialogModal()
             if(this._npcPlayerIsInteractionWith){
-                this._npcPlayerIsInteractionWith.isTalkingToPlayer = false
-                this._npcPlayerIsInteractionWith = undefined
+                this._handleNpcInteraction()
             }
             return
         }
@@ -419,13 +424,11 @@ export class WorldScene extends BaseScene {
             return npc.sprite.x === targetPosition.x && npc.sprite.y === targetPosition.y
         })
         if(nearbyNPC){
-            const msg:string[] = nearbyNPC.message
             nearbyNPC.facePlayer(this._player.direction)
             nearbyNPC.isTalkingToPlayer = true
             //玩家交互的NPC
             this._npcPlayerIsInteractionWith = nearbyNPC
-            this._dialogUi.showDialogModal(msg)
-            console.log(msg)
+            this._handleNpcInteraction()
             return
         }
 
@@ -454,7 +457,7 @@ export class WorldScene extends BaseScene {
     }
     //弹框是否在显示
     _isPlayerInputLocked () {
-        return this._dialogUi.isVisible || this._menu.isVisible || this._controls.isInputLocked
+        return this._dialogUi.isVisible || this._menu.isVisible || this._controls.isInputLocked || this._isProcessingNpcEvent
     }
     /**
      * 创建npc
@@ -464,10 +467,11 @@ export class WorldScene extends BaseScene {
         this._npc = []
         //创建npc交互对象层
         const npcLayers = map.getObjectLayerNames().filter(layerName => layerName.includes('NPC'))//获取包含NPC的图层名字
+        console.log('创建npc', npcLayers)
         npcLayers.forEach(layerName=>{
             const layer = map.getObjectLayer(layerName)
             const npcObject = layer?.objects.find(obj=>obj.type === CUSTOM_TILED_TYPES.NPC)
-            console.log(npcObject)
+            
             
             if(!npcObject || npcObject.x === undefined || npcObject.y === undefined){
                 return
@@ -490,17 +494,16 @@ export class WorldScene extends BaseScene {
 
             console.log(npcPath)
 
-            const [ frame, messages, movement_pattern ] = npcObject.properties
+            const [ id, movement_pattern ] = npcObject.properties
             console.log(movement_pattern)
-
-            const npcMessages = messages.value?.split('::') || []
+            const npcData = DataUtils.getNPCById(this,id.value)
 
             const npc = new NPC({
                 scene:this, 
                 position:{x:npcObject.x,y:npcObject.y - TILE_SIZE}, 
                 direction:DIRECTION.DOWN, 
-                frame:Number(frame.value || '0'),
-                message:npcMessages,
+                frame:npcData.frame,
+                events:npcData.events,
                 npcPath,
                 movementPattern:movement_pattern?.value || 'IDLE'
             })
@@ -588,8 +591,47 @@ export class WorldScene extends BaseScene {
                 this.scene.start('WorldScene',dataToPass)
             }
         })
+    }
 
-
+    _handleNpcInteraction(){
+        if(this._isProcessingNpcEvent){
+            return
+        }
+        const isMoreEventsToProcess = (this._npcPlayerIsInteractionWith?.events.length as number) - 1 !== this._lastNpcEventHandledIndex
+        if(!isMoreEventsToProcess){
+            if (this._npcPlayerIsInteractionWith){
+                this._npcPlayerIsInteractionWith.isTalkingToPlayer = false
+                this._npcPlayerIsInteractionWith = undefined
+            }
+            this._lastNpcEventHandledIndex = -1
+            this._isProcessingNpcEvent = false
+            return
+        }
+        this._lastNpcEventHandledIndex += 1
+        const eventHandle = this._npcPlayerIsInteractionWith?.events[this._lastNpcEventHandledIndex] as NpcEvent
+        const eventType = eventHandle.type 
+        switch (eventType) {
+            case NPC_EVENT_TYPE.MESSAGE:
+                this._dialogUi.showDialogModal(eventHandle.data.messages)
+                break;
+            // case NPC_EVENT_TYPE.BATTLE:
+            
+            //     break;
+            // case NPC_EVENT_TYPE.HEAL:
+                
+            //     break;
+            // case NPC_EVENT_TYPE.ITEM:
+                
+            //     break;
+            // case NPC_EVENT_TYPE.SCENE_FADE_IN_AND_OUT:
+                
+            //     break;
+            // case NPC_EVENT_TYPE.TRADE:
+                
+            //     break;
+            default:
+                break;
+        }
     }
     
 }

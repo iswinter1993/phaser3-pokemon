@@ -139,7 +139,13 @@
                          "name":"entrance_id",
                          "type":"string",
                          "value":"1"
-                        }],
+                        },
+                        {
+                           "name": "is_building",
+                           "type": "bool",
+                           "value": false
+                       }
+                     ],
                  "rotation":0,
                  "type":"entrance",
                  "visible":true,

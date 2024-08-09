@@ -1,4 +1,5 @@
-import { EncounterData, Monster } from './../types/typedef';
+import { CHARACTER_ASSET_KEYS } from './../assets/asset-keys';
+import { EncounterData, Monster, NpcData } from './../types/typedef';
 import { Scene } from "phaser";
 import { DATA_ASSET_KEYS } from "../assets/asset-keys";
 import { Animation, Attack, Item } from "../types/typedef";
@@ -74,5 +75,15 @@ export class DataUtils {
         const data:EncounterData = scene.cache.json.get(DATA_ASSET_KEYS.ENCOUNTERS)
         const monsterId:[][] = data[areaId]
         return monsterId
+    }
+    /**
+     * 通过id获取npc数据
+     * @param scene 
+     * @param id 
+     * @returns 
+     */
+    static getNPCById(scene:Scene,id:number){
+        const data:NpcData = scene.cache.json.get(DATA_ASSET_KEYS.NPCS)
+        return data[id.toString()]
     }
 }

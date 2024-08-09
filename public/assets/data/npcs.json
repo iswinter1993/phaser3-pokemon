@@ -29,6 +29,12 @@
         "data": {
           "messages": ["You can save your game from the menu.", "To open the menu, press the ENTER key."]
         }
+      },
+      {
+        "type": "MESSAGE",
+        "data": {
+          "messages": ["You can save your game from the menu. 2"]
+        }
       }
     ]
   }

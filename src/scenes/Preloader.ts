@@ -64,6 +64,8 @@ export class Preloader extends BaseScene {
         this.load.image(MONSTER_ASSET_KEYS.IGNIVOLT,`${monsterTamerAssetPath}/monsters/Ignivolt.png`)
         this.load.json(DATA_ASSET_KEYS.MONSTERS,`${dataAssetPath}/monsters.json`)
         this.load.json(DATA_ASSET_KEYS.ENCOUNTERS,`${dataAssetPath}/encounters.json`)
+        //npc json
+        this.load.json(DATA_ASSET_KEYS.NPCS,`assets/data/npcs.json`)
         /**
          * 光标
          */
@@ -100,7 +102,7 @@ export class Preloader extends BaseScene {
          */
         this.load.image(WORLD_ASSET_KEYS.MAIN_1_BACKGROUND,`${monsterTamerAssetPath}/map/main_1_level_background.png`)
         //加载地图数据
-        this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.MAIN_1_LEVEL,`assets/data/level.json`)
+        this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.MAIN_1_LEVEL,`assets/data/main_1.json`)
         //加载地图上碰撞块的图层
         this.load.image(WORLD_ASSET_KEYS.WORLD_COLLISION,`${monsterTamerAssetPath}/map/collision.png`)
         this.load.image(WORLD_ASSET_KEYS.MAIN_1_FOREGROUND,`${monsterTamerAssetPath}/map/main_1_level_foreground.png`)
@@ -168,6 +170,7 @@ export class Preloader extends BaseScene {
         this.load.audio(AUDIO_ASSET_KEYS.FLEE,'51_Flee_02.wav')
         this.load.audio(AUDIO_ASSET_KEYS.GRASS,'03_Step_grass_03.wav')
         this.load.audio(AUDIO_ASSET_KEYS.ICE,'13_Ice_explosion_01.wav')
+        
     }
 
     create(){
@@ -177,7 +180,7 @@ export class Preloader extends BaseScene {
         dataManager.init(this)
         dataManager.loadData()
         setGlobalSoundSetting(this)
-        this.scene.start('WorldScene')
+        this.scene.start('TitleScene')
          
     }
 

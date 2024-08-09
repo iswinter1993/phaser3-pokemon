@@ -38,7 +38,8 @@ export const DATA_ASSET_KEYS = Object.freeze({
     ANIMATIONS:'ANIMATIONS',
     ITEM:'ITEM',
     MONSTERS:'MONSTERS',
-    ENCOUNTERS:'ENCOUNTERS'
+    ENCOUNTERS:'ENCOUNTERS',
+    NPCS:'NPCS'
 })
 
 export const ATTACK_ASSET_KEYS = Object.freeze({
@@ -70,6 +71,8 @@ export const CHARACTER_ASSET_KEYS = Object.freeze({
     PLAYER:'PLAYER',
     NPC:'NPC'
 })
+
+
 
 export const TITLE_ASSET_KEYS = Object.freeze({
     BACKGROUND:'BACKGROUND',
