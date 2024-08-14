@@ -2,11 +2,11 @@ import { ITEM_EFFECT } from './../types/typedef';
 import { DIRECTION, DirectionType } from './../common/direction';
 import { dataManager, DATA_MANAGER_STORE_KEYS } from './../utils/data-manager';
 import { UI_ASSET_KEYS, MONSTER_PARTY_ASSET_KEYS, BATTLLE_ASSET_KEYS, HEALTH_BAR_ASSET_KEYS } from './../assets/asset-keys';
-import { HealthBar } from './../battle/ui/health-bar';
 import { GameObjects } from 'phaser';
 import { BaseScene } from './BaseScene';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../assets/font-keys';
 import { Item, Monster } from '../types/typedef';
+import { HealthBar } from '../common/health-bar';
 
 const UI_TEXT_STYLE = {
     fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME,

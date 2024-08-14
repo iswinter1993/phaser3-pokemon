@@ -1,5 +1,5 @@
 import { setGlobalSoundSetting } from './../utils/audio-utils';
-import { MONSTER_PARTY_ASSET_KEYS, INVENTORY_ASSET_KEYS, AUDIO_ASSET_KEYS, BUILDING_ASSET_KEYS } from './../assets/asset-keys';
+import { MONSTER_PARTY_ASSET_KEYS, INVENTORY_ASSET_KEYS, AUDIO_ASSET_KEYS, BUILDING_ASSET_KEYS, EXP_BAR_ASSET_KEYS } from './../assets/asset-keys';
 import { BaseScene } from './BaseScene';
 import { Animation } from './../types/typedef';
 import { DataUtils } from './../utils/data-utils';
@@ -54,6 +54,10 @@ export class Preloader extends BaseScene {
         this.load.image(HEALTH_BAR_ASSET_KEYS.LEFT_CAP_SHADOW,`${kenneysAssetPath}/ui-space-expansion/barHorizontal_shadow_left.png`)
         this.load.image(HEALTH_BAR_ASSET_KEYS.MIDDLE_SHADOW,`${kenneysAssetPath}/ui-space-expansion/barHorizontal_shadow_mid.png`)
         this.load.image(HEALTH_BAR_ASSET_KEYS.RIGHT_CAP_SHADOW,`${kenneysAssetPath}/ui-space-expansion/barHorizontal_shadow_right.png`)
+        //EXP bar assets
+        this.load.image(EXP_BAR_ASSET_KEYS.EXP_LEFT_CAP,`${kenneysAssetPath}/ui-space-expansion/barHorizontal_blue_left.png`)
+        this.load.image(EXP_BAR_ASSET_KEYS.EXP_MIDDLE,`${kenneysAssetPath}/ui-space-expansion/barHorizontal_blue_mid.png`)
+        this.load.image(EXP_BAR_ASSET_KEYS.EXP_RIGHT_CAP,`${kenneysAssetPath}/ui-space-expansion/barHorizontal_blue_right.png`)
         /**
          * monster assets
          */

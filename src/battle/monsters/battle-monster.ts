@@ -1,9 +1,9 @@
 import { GameObjects, Scene } from 'phaser';
-import { HealthBar } from '../ui/health-bar';
 import { Monster,BattleMonsterConfig,Coordinate, Attack } from '../../types/typedef'; 
 import { BATTLLE_ASSET_KEYS } from '../../assets/asset-keys';
 import { DataUtils } from '../../utils/data-utils';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../../assets/font-keys';
+import { HealthBar } from '../../common/health-bar';
 
 export class BattleMonster {
     _scene:Scene;

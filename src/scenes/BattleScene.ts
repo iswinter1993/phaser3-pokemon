@@ -10,7 +10,6 @@ import { AttackManager } from "../battle/attacks/attack-manager";
 import { Background } from "../battle/background";
 import { EnemyBattleMonster } from "../battle/monsters/enemy-battle-monster";
 import { PlayerBattleMonster } from "../battle/monsters/player-battle-monster";
-import { HealthBar } from "../battle/ui/health-bar";
 import { BattleMenu } from "../battle/ui/menu/battle-menu";
 import { DIRECTION, DirectionType } from "../common/direction";
 import { StateMachine } from "../utils/state-machine";
@@ -18,6 +17,7 @@ import { Controls } from '../utils/controls';
 import { DATA_MANAGER_STORE_KEYS, dataManager } from '../utils/data-manager';
 import { BATTLE_SCENE_OPTIONS } from '../common/option';
 import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
+import { HealthBar } from '../common/health-bar';
 
 const BATTLE_STATES = Object.freeze({
     INTRO:'INTRO',
