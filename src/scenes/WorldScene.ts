@@ -5,7 +5,7 @@ import { BaseScene } from './BaseScene';
 import { Menu } from './../world/menu/menu';
 import { getTargetPositionFromGameObjectPositionAndDirection } from './../utils/grid-utils';
 import { TILE_COLLISION_LAYER_ALPHA, TILE_SIZE } from './../config';
-import { Scene, Tilemaps } from 'phaser';
+import { Scene, Tilemaps, Types } from 'phaser';
 import { AUDIO_ASSET_KEYS, WORLD_ASSET_KEYS } from '../assets/asset-keys';
 import { DIRECTION } from '../common/direction';
 import { Controls } from '../utils/controls';
@@ -27,6 +27,11 @@ type TiledObjectType = {
 
 const TILED_ITEM_PROPERTY = Object.freeze({
     ITEM_ID:'item_id',
+    ID:'id'
+}) 
+
+const TILED_AREA_METADATA_PROPERTY = Object.freeze({
+    FAINT_LOCATION:'faint_location',
     ID:'id'
 }) 
 
@@ -96,16 +101,32 @@ export class WorldScene extends BaseScene {
         
         //如果玩家被打败，更新玩家位置到初始值
         if(this._sceneData.isPlayerKnockOut){
+
+            let map = this.make.tilemap({key:`${this._sceneData.area?.toUpperCase()}_LEVEL`})
+            const areaMetaDataProperties = map.getObjectLayer('Area-Metadata')?.objects[0].properties as any[]
+            //获取 设置的初始位置
+            const knockOutLocation = areaMetaDataProperties.find((proper)=>proper.name === TILED_AREA_METADATA_PROPERTY.FAINT_LOCATION)?.value
+            //设置的初始位置 和 当前区域对比
+            if(knockOutLocation !== this._sceneData.area){
+                this._sceneData.area = knockOutLocation
+                map = this.make.tilemap({key:`${this._sceneData.area?.toUpperCase()}_LEVEL`})
+            }
+            //获取设置的复活区域
+            const reviveLocation = map.getObjectLayer('Revive-Location')?.objects[0] as Types.Tilemaps.TiledObject
+
+
+
+            console.log('reviveLocation:',reviveLocation)
             dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_POSITION,{
-                x: 6 * TILE_SIZE,
-                y:21 * TILE_SIZE
+                x: reviveLocation.x,
+                y: (reviveLocation.y as number) - TILE_SIZE
             })
-            dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_DIRECTION,DIRECTION.DOWN)
+            dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_DIRECTION,DIRECTION.UP)
         }
 
         dataManager.store.set(DATA_MANAGER_STORE_KEYS.PLAYER_LOCATION,{
             area:this._sceneData.area,
-            isInBuilding:this._sceneData.isBuilding
+            isBuilding:this._sceneData.isBuilding
         })
 
         this._wildMonsterEncountered = false
@@ -373,9 +394,11 @@ export class WorldScene extends BaseScene {
      * 玩家交互
      */
     _handlePlayerInteraction(){
+        console.log('玩家交互')
         if(this._dialogUi.isAnimationPlaying){
             return
         }
+        
         if(this._dialogUi.isVisible && !this._dialogUi.moreMessageToShow){
             this._dialogUi.hideDialogModal()
             if(this._npcPlayerIsInteractionWith){
@@ -383,18 +406,16 @@ export class WorldScene extends BaseScene {
             }
             return
         }
+        
         //如果弹框正在显示，并且还有消息，调用showNextMessage方法 获取下一条信息
         if(this._dialogUi.isVisible && this._dialogUi.moreMessageToShow){
             this._dialogUi.showNextMessage()
             return
         }
-
+        
         const {x,y} = this._player.sprite
         //通过当前位置，方向，获取下一步的坐标
         const targetPosition = getTargetPositionFromGameObjectPositionAndDirection({x,y},this._player.direction)
-        if(!this._signObjectLayer){
-            return
-        }
         //获取 交互对象层 的对象 , 检查玩家朝向是否有交互对象层
         const nearbySign = this._signObjectLayer?.objects.find(object=>{
             if(!object.x || !object.y){
@@ -403,7 +424,7 @@ export class WorldScene extends BaseScene {
             return object.x === targetPosition.x && (object.y - TILE_SIZE) === targetPosition.y
         })
 
-        console.log(nearbySign)
+        console.log('附近有Sign',nearbySign)
         if(nearbySign){
             const props:TiledObjectType[] = nearbySign.properties
             const msg = props.find((prop:TiledObjectType) => prop.name === 'message')?.value
@@ -423,6 +444,7 @@ export class WorldScene extends BaseScene {
         const nearbyNPC = this._npc.find(npc=>{
             return npc.sprite.x === targetPosition.x && npc.sprite.y === targetPosition.y
         })
+        console.log('附近有NPC',nearbyNPC)
         if(nearbyNPC){
             nearbyNPC.facePlayer(this._player.direction)
             nearbyNPC.isTalkingToPlayer = true
@@ -594,6 +616,7 @@ export class WorldScene extends BaseScene {
     }
 
     _handleNpcInteraction(){
+        console.log('npc 交谈')
         if(this._isProcessingNpcEvent){
             return
         }
@@ -617,15 +640,32 @@ export class WorldScene extends BaseScene {
             // case NPC_EVENT_TYPE.BATTLE:
             
             //     break;
-            // case NPC_EVENT_TYPE.HEAL:
-                
-            //     break;
+            case NPC_EVENT_TYPE.HEAL:
+                this._isProcessingNpcEvent = true
+                this._healPlayerParty()
+                this._isProcessingNpcEvent = false
+                this._handleNpcInteraction()
+                break;
             // case NPC_EVENT_TYPE.ITEM:
                 
             //     break;
-            // case NPC_EVENT_TYPE.SCENE_FADE_IN_AND_OUT:
-                
-            //     break;
+            case NPC_EVENT_TYPE.SCENE_FADE_IN_AND_OUT:
+                this._isProcessingNpcEvent = true
+                this.cameras.main.fadeOut(eventHandle.data.fadeOutDuration,0,0,0,(fadeOutCameras:any,fadeOutProgress:number)=>{
+                    if(fadeOutProgress !== 1){
+                        return
+                    }
+                    this.time.delayedCall(eventHandle.data.waitDuration,()=>{
+                        this.cameras.main.fadeIn(eventHandle.data.fadeInDuration,0,0,0,(fadeInCameras:any,fadeInProgress:number)=>{
+                            if(fadeInProgress !== 1){
+                                return
+                            }
+                            this._isProcessingNpcEvent = false
+                            this._handleNpcInteraction()
+                        })
+                    })
+                })
+                break;
             // case NPC_EVENT_TYPE.TRADE:
                 
             //     break;

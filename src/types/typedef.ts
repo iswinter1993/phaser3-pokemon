@@ -108,7 +108,22 @@ type NpcEventMessage = {
     }
 }
 
-export type NpcEvent = NpcEventMessage
+type NpcEventHeal = {
+    type:'HEAL',
+    data:{}
+}
+
+
+type NpcEventFadeInOut = {
+    type:'SCENE_FADE_IN_AND_OUT',
+    data:{
+        fadeInDuration:number,
+        fadeOutDuration:number,
+        waitDuration:number
+    }
+}
+
+export type NpcEvent = NpcEventMessage | NpcEventFadeInOut | NpcEventHeal
 type NpcDetails = {
     frame:number,
     events:NpcEvent[]
