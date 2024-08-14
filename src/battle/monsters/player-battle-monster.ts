@@ -1,5 +1,6 @@
 import { GameObjects } from 'phaser';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../../assets/font-keys';
+import { ExpBar } from '../../common/exp-bar';
 import { BattleMonsterConfig, Coordinate } from "../../types/typedef";
 import { BattleMonster } from "./battle-monster";
 
@@ -10,10 +11,12 @@ const PLAYER_POSITION:Coordinate = Object.freeze({
 
 export class PlayerBattleMonster extends BattleMonster {
     _healthBarTextGameObject:GameObjects.Text
+    _expBar:ExpBar
     constructor(config:BattleMonsterConfig){
         super(config,PLAYER_POSITION)
         this._phaserGameObject.setFlipX(true)
         this._addHealthBarComponents()
+        this._addExpBarComponents()
     }
     _setHealthBarText(){
         this._healthBarTextGameObject.setText(`${this._currentHealth}/${this._maxHealth}`)
@@ -119,5 +122,17 @@ export class PlayerBattleMonster extends BattleMonster {
             skipBattleAnimations:true,
         })
         this._setHealthBarText()
+    }
+
+    _addExpBarComponents(){
+        this._expBar = new ExpBar(this._scene,34,54)
+        this._expBar.setMeterPercentageAnimated(0.5,{skipBattleAnimations:true})
+        const monsterExp = this._scene.add.text(30,100,'EXP',{
+            color:'#6505ff',
+            fontSize:'14px',
+            fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME,
+            fontStyle:'italic'
+        })
+        this._phaserHealthBarContainerGameObject.add([this._expBar.container,monsterExp])
     }
 }

@@ -4,6 +4,7 @@ import { dataManager, DATA_MANAGER_STORE_KEYS } from './../utils/data-manager';
 import { Monster, Attack } from './../types/typedef';
 import { BaseScene } from './BaseScene';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../assets/font-keys';
+import { ExpBar } from '../common/exp-bar';
 
 
 const UI_TEXT_STYLE = {
@@ -16,6 +17,12 @@ const MONSTER_MOVE_TEXT_STYLE = {
     fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME,
     color:'#000000',
     fontSize:'40px'
+}
+
+const MONSTER_EXP_TEXT_STYLE = {
+    fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME,
+    color:'#000000',
+    fontSize:'22px'
 }
 export class MonsterDetailScene extends BaseScene{
 
@@ -64,6 +71,20 @@ export class MonsterDetailScene extends BaseScene{
                 this.add.text(560,82 + index * 80,attack.name,MONSTER_MOVE_TEXT_STYLE)
             })
         }
+
+        //add monster exp
+        this.add.text(20,340,'Current Exp.',MONSTER_EXP_TEXT_STYLE).setOrigin(0)
+        this.add.text(516,340,'5',MONSTER_EXP_TEXT_STYLE).setOrigin(1,0)
+        this.add.text(20,365,'Exp. to next level',MONSTER_EXP_TEXT_STYLE).setOrigin(0)
+        this.add.text(516,365,'5',MONSTER_EXP_TEXT_STYLE).setOrigin(1,0)
+        this.add.text(108,392,'EXP',{
+            color:'#6505ff',
+            fontSize:'14px',
+            fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME,
+            fontStyle:'italic'
+        })
+        const expBar = new ExpBar(this,70,200)
+        expBar.setMeterPercentageAnimated(0.5,{skipBattleAnimations:true})
 
     }
     update(time: number, delta: number): void {
