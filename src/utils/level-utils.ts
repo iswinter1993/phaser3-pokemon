@@ -9,7 +9,25 @@ import { Monster } from "../types/typedef"
 export const calculatedExpGainedFromMonster = (baseExp:number,currentLevel:number,isActiveMonster:boolean) => {
     return 10
 }
+/**
+ * 计算经验值Bar的长度
+ * @param currentLevel 
+ * @param currentExp 
+ */
+export const calculatedExpBarCurrentValue = (currentLevel:number,currentExp:number) => {
+    return 5
 
+}
+
+/**
+ * 计算升级下一级需要的经验
+ * @param currentLevel 
+ * @param currentExp 
+ * @returns 
+ */
+export const expNeedToNextLevel = (currentLevel:number,currentExp:number) => {
+    return 5
+}
 
 export type StateChange = {
     level:number,
@@ -25,9 +43,9 @@ export type StateChange = {
 
 export const handleMonsterGainingExp = (monster:Monster,gainedExp:number) => {
     const stateChange = {
-        level:0,
-        health:0,
-        attack:0
+        level:1,
+        health:10,
+        attack:10
     }
     return stateChange
 }

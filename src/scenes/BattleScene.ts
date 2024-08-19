@@ -136,6 +136,7 @@ export class BattleScene extends BaseScene {
         if(wasSpaceKeyPressed && (this._battleStateMachine.currentStateName === BATTLE_STATES.PRE_BATTLE_INFO
             || this._battleStateMachine.currentStateName === BATTLE_STATES.POST_ATTACK_CHECK
             || this._battleStateMachine.currentStateName === BATTLE_STATES.FLEE_ATTEMPT
+            || this._battleStateMachine.currentStateName === BATTLE_STATES.GAIN_EXP
         )){
             this._battleMenu.handlePlayerInput('OK')
             return
@@ -243,6 +244,7 @@ export class BattleScene extends BaseScene {
      * 战斗后序列的检查
      */
     _postBattleSequeneCheck(){
+        this._controls.lockInput = true
         //确保战斗后的血量保持一致
         this._sceneData.playerMonsters[this._activePlayerMonsterPartyIndex].currentHp = this._activePlayerMonster.currentHp
         dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._sceneData.playerMonsters)
@@ -251,17 +253,20 @@ export class BattleScene extends BaseScene {
          */
         if(this._activeEnemyMonster.isFainted){
             this._activeEnemyMonster.playDeathAnimation(()=>{
-                this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`,'You have gained some exp!'],()=>{
+                this._controls.lockInput = false
+                this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`],()=>{
                     //过渡下个状态
                     this._battleStateMachine.setState(BATTLE_STATES.GAIN_EXP)
                 }
                 )
             })
+            
             return
         }
 
         if(this._activePlayerMonster.isFainted){
             this._activePlayerMonster.playDeathAnimation(()=>{
+                this._controls.lockInput = false
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
                     this._playerKnockedOut = true
                     this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
@@ -270,7 +275,7 @@ export class BattleScene extends BaseScene {
             })
             return
         }
-
+        this._controls.lockInput = false
         this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
     }
 
@@ -452,7 +457,7 @@ export class BattleScene extends BaseScene {
                         message.push(`${this._sceneData.playerMonsters[index].name} gained ${gainedExpForUnActiveMonster} exp.`)
                     }
 
-                    if(stateChange.level !== 0){
+                    if(stateChange?.level !== 0){
                         message.push(`${this._sceneData.playerMonsters[index].name} level increase to ${this._sceneData.playerMonsters[index].currentLevel}`)
                         message.push(`${this._sceneData.playerMonsters[index].name} attack +${stateChange.attack}`)
                         message.push(`${this._sceneData.playerMonsters[index].name} health +${stateChange.health}`)

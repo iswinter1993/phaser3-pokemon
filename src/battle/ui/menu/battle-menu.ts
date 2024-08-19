@@ -274,7 +274,12 @@ export class BattleMenu {
     _init(){
         console.log('init BattleMenu')
         
-        this._battleTextGameObjectLine1 = this._scene.add.text(30,26,'what should',BATTLE_UI_TEXT_STYLE)
+        this._battleTextGameObjectLine1 = this._scene.add.text(30,26,'what should',{
+            ...BATTLE_UI_TEXT_STYLE,
+            wordWrap:{
+                width:this._scene.scale.width - 20
+            }
+        })
         this._battleTextGameObjectLine2 = this._scene.add.text(30,64,`${this._activePlayerMonster.name} do next?`,BATTLE_UI_TEXT_STYLE)
         this._scene.add.container(0,this._scene.scale.height-132,[
             this._createMainInfoPane(),

@@ -2,6 +2,7 @@ import { GameObjects } from 'phaser';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../../assets/font-keys';
 import { ExpBar } from '../../common/exp-bar';
 import { BattleMonsterConfig, Coordinate } from "../../types/typedef";
+import { calculatedExpBarCurrentValue, handleMonsterGainingExp } from '../../utils/level-utils';
 import { BattleMonster } from "./battle-monster";
 
 const PLAYER_POSITION:Coordinate = Object.freeze({
@@ -126,7 +127,7 @@ export class PlayerBattleMonster extends BattleMonster {
 
     _addExpBarComponents(){
         this._expBar = new ExpBar(this._scene,34,54)
-        this._expBar.setMeterPercentageAnimated(0.5,{skipBattleAnimations:true})
+        this._expBar.setMeterPercentageAnimated( calculatedExpBarCurrentValue(this._monsterDetails.currentLevel,this._monsterDetails.currentExp),{skipBattleAnimations:true})
         const monsterExp = this._scene.add.text(30,100,'EXP',{
             color:'#6505ff',
             fontSize:'14px',
@@ -135,7 +136,16 @@ export class PlayerBattleMonster extends BattleMonster {
         })
         this._phaserHealthBarContainerGameObject.add([this._expBar.container,monsterExp])
     }
+
+    /**
+     * 
+     * @param gainedExp 
+     * @returns 
+     */
     updateMonsterExp(gainedExp:number){
+        const data = handleMonsterGainingExp(this._monsterDetails,gainedExp)
+        console.log(data)
+        return data
 
     }
 
@@ -149,4 +159,6 @@ export class PlayerBattleMonster extends BattleMonster {
             }
         })
     }
+
+    
 }

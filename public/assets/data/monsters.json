@@ -5,13 +5,13 @@
     "name": "iguanignite",
     "assetKey": "IGUANIGNITE",
     "assetFrame": 0,
-    "currentHp": 5,
+    "currentHp": 25,
     "maxHp": 25,
     "attackIds": [2],
-    "baseAttack": 5,
+    "baseAttack": 25,
     "currentLevel": 5,
     "baseExp": 50,
-    "currentAttack":5,
+    "currentAttack":25,
     "currentExp":200
   },
   {
