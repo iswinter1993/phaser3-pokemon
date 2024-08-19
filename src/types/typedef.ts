@@ -16,7 +16,10 @@ export type Monster = {
     currentHp:number,
     baseAttack:number,
     attackIds:number[],
-    currentLevel:number
+    currentLevel:number,
+    baseExp: number,
+    currentAttack:number,
+    currentExp:number
 }
 
 /**

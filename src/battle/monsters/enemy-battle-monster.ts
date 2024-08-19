@@ -11,6 +11,14 @@ export class EnemyBattleMonster extends BattleMonster {
         super(config,ENEMY_POSITION)
 
     }
+
+    /**
+     * 打败怪兽可获取得经验
+     */
+    get baseExpValue(): number {
+        return this._monsterDetails.baseExp
+    }
+
     playMonsterAppearAnimation(callback:()=>void){
     
         const startXPos = -30 //动画起始位置

@@ -135,4 +135,18 @@ export class PlayerBattleMonster extends BattleMonster {
         })
         this._phaserHealthBarContainerGameObject.add([this._expBar.container,monsterExp])
     }
+    updateMonsterExp(gainedExp:number){
+
+    }
+
+    updateMonsterExpBar(callback:()=>void){
+        this._expBar.setMeterPercentageAnimated(0.5,{
+            callback:()=>{
+                this._setMonsterLevelText()
+                this._maxHealth = this._monsterDetails.maxHp
+                this.updateMonsterHealth(this._currentHealth)
+                callback()
+            }
+        })
+    }
 }

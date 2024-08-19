@@ -15,6 +15,7 @@ export class BattleMonster {
      _monsterAttacks:Attack[];
      _phaserHealthBarContainerGameObject:GameObjects.Container
      _skipBattleAnimations:boolean;
+     _monsterHealthBarLevelText:GameObjects.Text;
     /**
      * 
      * @param config 怪兽设置
@@ -63,7 +64,7 @@ export class BattleMonster {
     }
 
     get baseAttack ():number {
-        return this._monsterDetails.baseAttack
+        return this._monsterDetails.currentAttack
     }
 
     get currentHp ():number {
@@ -114,6 +115,10 @@ export class BattleMonster {
         throw new Error('playDeathAnimation方法没有实现')
     }
 
+    _setMonsterLevelText(){
+        this._monsterHealthBarLevelText.setText(`L${this.level}`)
+    }
+
     _creatHealthBarComponents(scaleHealthBarBackgroundImageByY=1,position:Coordinate){
         this._healthBar = new HealthBar(this._scene,34,34);
         const monsterNameGameText:GameObjects.Text = this._scene.add.text(30,20,this.name,{
@@ -122,11 +127,13 @@ export class BattleMonster {
             fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME
         })
         const healthBarBgImage:GameObjects.Image = this._scene.add.image(0,0,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND).setOrigin(0).setScale(1,scaleHealthBarBackgroundImageByY)
-        const monsterHealthBarLevelText:GameObjects.Text = this._scene.add.text(monsterNameGameText.width+35,23,`L${this.level}`,{
+        this._monsterHealthBarLevelText = this._scene.add.text(monsterNameGameText.width+35,23,``,{
             color:'#ED474B',
             fontSize:'28px',
             fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME
         })
+        this._setMonsterLevelText()
+
         const monsterHpText:GameObjects.Text = this._scene.add.text(30,55,'HP',{
             color:'#FF6505',
             fontSize:'24px',
@@ -138,7 +145,7 @@ export class BattleMonster {
             healthBarBgImage,
             monsterNameGameText,
             this._healthBar.container,
-            monsterHealthBarLevelText,
+            this._monsterHealthBarLevelText,
             monsterHpText,
         ]).setAlpha(0)
     }

@@ -18,6 +18,7 @@ import { DATA_MANAGER_STORE_KEYS, dataManager } from '../utils/data-manager';
 import { BATTLE_SCENE_OPTIONS } from '../common/option';
 import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
 import { HealthBar } from '../common/health-bar';
+import { calculatedExpGainedFromMonster, StateChange } from '../utils/level-utils';
 
 const BATTLE_STATES = Object.freeze({
     INTRO:'INTRO',
@@ -28,7 +29,8 @@ const BATTLE_STATES = Object.freeze({
     BATTLE:'BATTLE',
     POST_ATTACK_CHECK:'POST_ATTACK_CHECK',
     FINISHED:'FINISHED',
-    FLEE_ATTEMPT:'FLEE_ATTEMPT'
+    FLEE_ATTEMPT:'FLEE_ATTEMPT',
+    GAIN_EXP:'GAIN_EXP'
 })
 
 export type BattleSceneData = {
@@ -251,7 +253,7 @@ export class BattleScene extends BaseScene {
             this._activeEnemyMonster.playDeathAnimation(()=>{
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} fainted`,'You have gained some exp!'],()=>{
                     //过渡下个状态
-                    this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+                    this._battleStateMachine.setState(BATTLE_STATES.GAIN_EXP)
                 }
                 )
             })
@@ -428,6 +430,45 @@ export class BattleScene extends BaseScene {
                         })
                     })
                 }
+            }
+        })
+        this._battleStateMachine.addState({
+            name:BATTLE_STATES.GAIN_EXP,
+            onEnter:()=>{
+                //update exp bar
+                //计算正在战斗的宠物获得的经验
+                const gainedExpForActiveMonster = calculatedExpGainedFromMonster(this._activeEnemyMonster.baseExpValue,this._activeEnemyMonster.level,true)
+                //计算队伍中没有战斗的宠物获得的经验
+                const gainedExpForUnActiveMonster = calculatedExpGainedFromMonster(this._activeEnemyMonster.baseExpValue,this._activeEnemyMonster.level,false)
+                const message:string[] = []
+                this._sceneData.playerMonsters.forEach((monster,index)=>{
+                    let stateChange:StateChange = {
+                        level:0, health:0, attack:0
+                    }
+                    if(index === this._activePlayerAttackIndex){
+                        stateChange = this._activePlayerMonster.updateMonsterExp(gainedExpForActiveMonster)
+                        message.push(`${this._sceneData.playerMonsters[index].name} gained ${gainedExpForActiveMonster} exp.`)
+                    }else{
+                        message.push(`${this._sceneData.playerMonsters[index].name} gained ${gainedExpForUnActiveMonster} exp.`)
+                    }
+
+                    if(stateChange.level !== 0){
+                        message.push(`${this._sceneData.playerMonsters[index].name} level increase to ${this._sceneData.playerMonsters[index].currentLevel}`)
+                        message.push(`${this._sceneData.playerMonsters[index].name} attack +${stateChange.attack}`)
+                        message.push(`${this._sceneData.playerMonsters[index].name} health +${stateChange.health}`)
+                    }
+
+                })
+                this._controls.lockInput = true
+                this._activePlayerMonster.updateMonsterExpBar(()=>{
+                    this._battleMenu.updateInfoPaneMessageAndWaitForInput(message,()=>{
+                        this.time.delayedCall(200,()=>{
+                            dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._sceneData.playerMonsters)
+                            this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+                        })
+                    })
+                    this._controls.lockInput = false
+                })
             }
         })
         //启动状态机

@@ -72,7 +72,10 @@ const initialState:GlobalState = {
             currentHp:25,
             baseAttack:5,
             attackIds:[2,1],
-            currentLevel:5
+            currentLevel:5,
+            currentAttack:5,
+            currentExp:50,
+            baseExp:200
         }]
     },
     inventory:[
