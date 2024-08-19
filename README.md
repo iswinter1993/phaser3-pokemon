@@ -120,17 +120,17 @@
   - [x] advanced wild monster encounter logic
   - [x] buildings
   - [x] items in the field
-  - [ ] npc event data structure
-  - [ ] respawn next to npc
+  - [x] npc event data structure
+  - [x] respawn next to npc
 
 ## Leveling & Experience:
-  - [ ] review math for leveling and exp gain
-  - [ ] update monseters json file and types to include exp info
-  - [ ] add new assets for exp bar
-  - [ ] refactor hp bar into re-usable class
-  - [ ] update battle scene to display exp bar
-  - [ ] update monster details scene to display exp bar
-  - [ ] gain exp when battle is over
+  - [x] review math for leveling and exp gain
+  - [x] update monseters json file and types to include exp info
+  - [x] add new assets for exp bar
+  - [x] refactor hp bar into re-usable class
+  - [x] update battle scene to display exp bar
+  - [x] update monster details scene to display exp bar
+  - [x] gain exp when battle is over
     - [ ] add new battle state for tracking
     - [ ] new leveling utils for updates
     - [ ] update monster classes to support
