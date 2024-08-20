@@ -150,7 +150,7 @@ export class PlayerBattleMonster extends BattleMonster {
     }
 
     updateMonsterExpBar(callback:()=>void){
-        this._expBar.setMeterPercentageAnimated(0.5,{
+        this._expBar.setMeterPercentageAnimated(calculatedExpBarCurrentValue(this._monsterDetails.currentLevel,this._monsterDetails.currentExp),{
             callback:()=>{
                 this._setMonsterLevelText()
                 this._maxHealth = this._monsterDetails.maxHp
