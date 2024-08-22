@@ -16,6 +16,7 @@ export class BattleMonster {
      _phaserHealthBarContainerGameObject:GameObjects.Container
      _skipBattleAnimations:boolean;
      _monsterHealthBarLevelText:GameObjects.Text;
+     _monsterName:GameObjects.Text;
     /**
      * 
      * @param config 怪兽设置
@@ -70,6 +71,27 @@ export class BattleMonster {
     get currentHp ():number {
         return this._currentHealth
     }
+
+    switchMonster(monster:Monster){
+        this._monsterDetails = monster
+        this._currentHealth = this._monsterDetails.currentHp
+        this._maxHealth = this._monsterDetails.maxHp
+        this._healthBar.setMeterPercentageAnimated(this._currentHealth/this._maxHealth,{skipBattleAnimations:true})
+        this._monsterAttacks = []
+        /**
+         * 通过 attackId 获取招式数据
+         */
+         this._monsterDetails.attackIds.forEach( attackId => {
+            const monsterAttack = DataUtils.getMonsterAttackById(this._scene,attackId)
+            if(monsterAttack != undefined){
+                this._monsterAttacks.push(monsterAttack)
+            }
+        })
+        this._phaserGameObject.setTexture(this._monsterDetails.assetKey,this._monsterDetails.assetFrame||0)
+        this._monsterName.setText(this._monsterDetails.name)
+        this._setMonsterLevelText()
+        this._monsterHealthBarLevelText.setX(this._monsterName.width + 35)
+    }
     /**
      * 受到伤害更新血量和动画
      * @param damage 
@@ -121,13 +143,13 @@ export class BattleMonster {
 
     _creatHealthBarComponents(scaleHealthBarBackgroundImageByY=1,position:Coordinate){
         this._healthBar = new HealthBar(this._scene,34,34);
-        const monsterNameGameText:GameObjects.Text = this._scene.add.text(30,20,this.name,{
+        this._monsterName = this._scene.add.text(30,20,this.name,{
             color:'#7E3D3F',
             fontSize:'32px',
             fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME
         })
         const healthBarBgImage:GameObjects.Image = this._scene.add.image(0,0,BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND).setOrigin(0).setScale(1,scaleHealthBarBackgroundImageByY)
-        this._monsterHealthBarLevelText = this._scene.add.text(monsterNameGameText.width+35,23,``,{
+        this._monsterHealthBarLevelText = this._scene.add.text(this._monsterName.width+35,23,``,{
             color:'#ED474B',
             fontSize:'28px',
             fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME
@@ -143,7 +165,7 @@ export class BattleMonster {
 
         this._phaserHealthBarContainerGameObject = this._scene.add.container(position.x,position.y, [
             healthBarBgImage,
-            monsterNameGameText,
+            this._monsterName,
             this._healthBar.container,
             this._monsterHealthBarLevelText,
             monsterHpText,

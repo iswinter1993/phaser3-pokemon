@@ -18,7 +18,7 @@ import { DATA_MANAGER_STORE_KEYS, dataManager } from '../utils/data-manager';
 import { BATTLE_SCENE_OPTIONS } from '../common/option';
 import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
 import { HealthBar } from '../common/health-bar';
-import { calculatedExpGainedFromMonster, StateChange } from '../utils/level-utils';
+import { calculatedExpGainedFromMonster, handleMonsterGainingExp, StateChange } from '../utils/level-utils';
 
 const BATTLE_STATES = Object.freeze({
     INTRO:'INTRO',
@@ -64,6 +64,7 @@ export class BattleScene extends BaseScene {
         super.init(data)
         this._sceneData = data
         if(Object.keys(data).length === 0){
+            console.log('MONSTER_IN_PARTY:',dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY))
             this._sceneData = {
                 playerMonsters:[dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0]],
                 enemyMonsters:[DataUtils.getMonsterById(this,2) as Monster]
@@ -446,23 +447,39 @@ export class BattleScene extends BaseScene {
                 //计算队伍中没有战斗的宠物获得的经验
                 const gainedExpForUnActiveMonster = calculatedExpGainedFromMonster(this._activeEnemyMonster.baseExpValue,this._activeEnemyMonster.level,false)
                 const message:string[] = []
+                const monsterMessage:string[] = []
+                let activeMonsterlevelUp = false
                 this._sceneData.playerMonsters.forEach((monster,index)=>{
+                    if(this._sceneData.playerMonsters[index].currentHp <= 0){
+                        return
+                    }
+
                     let stateChange:StateChange = {
                         level:0, health:0, attack:0
                     }
                     if(index === this._activePlayerAttackIndex){
                         stateChange = this._activePlayerMonster.updateMonsterExp(gainedExpForActiveMonster)
-                        message.push(`${this._sceneData.playerMonsters[index].name} gained ${gainedExpForActiveMonster} exp.`)
+                        monsterMessage.push(`${this._sceneData.playerMonsters[index].name} gained ${gainedExpForActiveMonster} exp.`)
+                        //战斗中的怪兽是否升级
+                        if(stateChange?.level !== 0){
+                            activeMonsterlevelUp = true
+                        }
                     }else{
-                        message.push(`${this._sceneData.playerMonsters[index].name} gained ${gainedExpForUnActiveMonster} exp.`)
+                        stateChange = handleMonsterGainingExp(this._sceneData.playerMonsters[index],gainedExpForUnActiveMonster)
+                        monsterMessage.push(`${this._sceneData.playerMonsters[index].name} gained ${gainedExpForUnActiveMonster} exp.`)
                     }
 
                     if(stateChange?.level !== 0){
-                        message.push(`${this._sceneData.playerMonsters[index].name} level increase to ${this._sceneData.playerMonsters[index].currentLevel}`)
-                        message.push(`${this._sceneData.playerMonsters[index].name} attack +${stateChange.attack}`)
-                        message.push(`${this._sceneData.playerMonsters[index].name} health +${stateChange.health}`)
+                        monsterMessage.push(`${this._sceneData.playerMonsters[index].name} level increase to ${this._sceneData.playerMonsters[index].currentLevel}`)
+                        monsterMessage.push(`${this._sceneData.playerMonsters[index].name} attack +${stateChange.attack}`)
+                        monsterMessage.push(`${this._sceneData.playerMonsters[index].name} health +${stateChange.health}`)
                     }
 
+                    if(index === this._activePlayerAttackIndex){
+                        message.unshift(...monsterMessage)
+                    }else{
+                        message.push(...monsterMessage)
+                    }
                 })
                 this._controls.lockInput = true
                 this._activePlayerMonster.updateMonsterExpBar(()=>{
@@ -473,7 +490,7 @@ export class BattleScene extends BaseScene {
                         })
                     })
                     this._controls.lockInput = false
-                })
+                },activeMonsterlevelUp)
             }
         })
         //启动状态机

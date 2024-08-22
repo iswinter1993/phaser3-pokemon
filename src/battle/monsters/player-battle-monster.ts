@@ -149,14 +149,35 @@ export class PlayerBattleMonster extends BattleMonster {
 
     }
 
-    updateMonsterExpBar(callback:()=>void){
+/**
+ * 
+ * @param callback 
+ * @param levelUp 
+ */
+    updateMonsterExpBar(callback:()=>void,levelUp:boolean){
+        const cb = ()=>{
+            this._setMonsterLevelText()
+            this._maxHealth = this._monsterDetails.maxHp
+            this.updateMonsterHealth(this._currentHealth)
+            callback()
+        }
+        if(levelUp){
+            this._expBar.setMeterPercentageAnimated(1,{
+                callback:()=>{
+                    this._scene.time.delayedCall(500,()=>{
+                        this._expBar.setMeterPercentageAnimated(0,{skipBattleAnimations:true})
+                        this._expBar.setMeterPercentageAnimated(calculatedExpBarCurrentValue(this._monsterDetails.currentLevel,this._monsterDetails.currentExp),{
+                            callback:cb
+                        })
+                    })
+                }
+            })
+            
+            return
+        }
+
         this._expBar.setMeterPercentageAnimated(calculatedExpBarCurrentValue(this._monsterDetails.currentLevel,this._monsterDetails.currentExp),{
-            callback:()=>{
-                this._setMonsterLevelText()
-                this._maxHealth = this._monsterDetails.maxHp
-                this.updateMonsterHealth(this._currentHealth)
-                callback()
-            }
+            callback:cb
         })
     }
 
