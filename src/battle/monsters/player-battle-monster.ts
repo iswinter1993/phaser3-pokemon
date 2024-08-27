@@ -1,7 +1,7 @@
 import { GameObjects } from 'phaser';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../../assets/font-keys';
 import { ExpBar } from '../../common/exp-bar';
-import { BattleMonsterConfig, Coordinate } from "../../types/typedef";
+import { BattleMonsterConfig, Coordinate, Monster } from "../../types/typedef";
 import { calculatedExpBarCurrentValue, handleMonsterGainingExp } from '../../utils/level-utils';
 import { BattleMonster } from "./battle-monster";
 
@@ -68,6 +68,7 @@ export class PlayerBattleMonster extends BattleMonster {
     playMonsterHealthAppearAnimation(callback:()=>void){
         const startXPos = 1000 //动画起始位置
         const endXPos = this._phaserHealthBarContainerGameObject.x //动画结束位置
+
         this._phaserHealthBarContainerGameObject.setPosition(startXPos,this._phaserHealthBarContainerGameObject.y)
         this._phaserHealthBarContainerGameObject.setAlpha(1)
         if(this._skipBattleAnimations){
@@ -93,8 +94,13 @@ export class PlayerBattleMonster extends BattleMonster {
     playDeathAnimation(callback:()=>void){
         const startYPos = PLAYER_POSITION.y //动画起始位置
         const endYPos = PLAYER_POSITION.y + 400 //动画结束位置
+
+        const healthStartXPos = this._phaserHealthBarContainerGameObject.x
+        const healthEndXPos = 1200
+
         if(this._skipBattleAnimations){
             this._phaserGameObject.setY(endYPos)
+            this._phaserHealthBarContainerGameObject.setAlpha(0)
             callback()
             return
         }
@@ -110,6 +116,22 @@ export class PlayerBattleMonster extends BattleMonster {
             delay:0,
             onComplete:()=>{
                 callback()
+            }
+        })
+
+        this._scene.add.tween({
+            targets:this._phaserHealthBarContainerGameObject,
+            x:{
+                from:healthStartXPos,
+                start:healthStartXPos,
+                to:healthEndXPos
+            },
+            ease:'Quint.Out',
+            duration:1600,
+            delay:0,
+            onComplete:()=>{
+               this._phaserHealthBarContainerGameObject.setAlpha(0)
+               this._phaserHealthBarContainerGameObject.setX(healthStartXPos)
             }
         })
     }
@@ -154,12 +176,14 @@ export class PlayerBattleMonster extends BattleMonster {
  * @param callback 
  * @param levelUp 
  */
-    updateMonsterExpBar(callback:()=>void,levelUp:boolean){
+    updateMonsterExpBar(levelUp:boolean,skipBattleAnimations:boolean,callback?:()=>void){
         const cb = ()=>{
             this._setMonsterLevelText()
             this._maxHealth = this._monsterDetails.maxHp
             this.updateMonsterHealth(this._currentHealth)
-            callback()
+            if(callback){
+                callback()
+            }
         }
         if(levelUp){
             this._expBar.setMeterPercentageAnimated(1,{
@@ -180,6 +204,10 @@ export class PlayerBattleMonster extends BattleMonster {
             callback:cb
         })
     }
-
+    switchMonster(monster:Monster){
+        super.switchMonster(monster)
+        this._setHealthBarText()
+        this.updateMonsterExpBar(false,true,undefined)
+    }
     
 }

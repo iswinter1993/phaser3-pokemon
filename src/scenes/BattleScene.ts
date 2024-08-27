@@ -1,5 +1,5 @@
 import { WorldSceneData } from './WorldScene';
-import { Monster } from './../types/typedef';
+import { Item, Monster } from './../types/typedef';
 import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
 import { createSceneTransition } from './../utils/scene-transition';
@@ -30,8 +30,17 @@ const BATTLE_STATES = Object.freeze({
     POST_ATTACK_CHECK:'POST_ATTACK_CHECK',
     FINISHED:'FINISHED',
     FLEE_ATTEMPT:'FLEE_ATTEMPT',
-    GAIN_EXP:'GAIN_EXP'
+    GAIN_EXP:'GAIN_EXP',
+    SWITCH_MONSTER:'SWITCH_MONSTER'
 })
+
+
+export type BattleSceneWasResumedData = {
+    wasMonsterSelected:boolean,
+    selectedMonsterIndex?:number,
+    itemUsed:boolean,
+    item?:Item
+}
 
 export type BattleSceneData = {
     playerMonsters:Monster[],
@@ -66,7 +75,7 @@ export class BattleScene extends BaseScene {
         if(Object.keys(data).length === 0){
             console.log('MONSTER_IN_PARTY:',dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY))
             this._sceneData = {
-                playerMonsters:[dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0]],
+                playerMonsters:[dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0],dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[1],dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[2]],
                 enemyMonsters:[DataUtils.getMonsterById(this,2) as Monster]
             }
         }
@@ -138,6 +147,7 @@ export class BattleScene extends BaseScene {
             || this._battleStateMachine.currentStateName === BATTLE_STATES.POST_ATTACK_CHECK
             || this._battleStateMachine.currentStateName === BATTLE_STATES.FLEE_ATTEMPT
             || this._battleStateMachine.currentStateName === BATTLE_STATES.GAIN_EXP
+            || this._battleStateMachine.currentStateName === BATTLE_STATES.SWITCH_MONSTER
         )){
             this._battleMenu.handlePlayerInput('OK')
             return
@@ -158,6 +168,11 @@ export class BattleScene extends BaseScene {
             //判断玩家是否逃跑
             if(this._battleMenu.isAttemptingToFlee){
                 this._battleStateMachine.setState(BATTLE_STATES.FLEE_ATTEMPT)
+                return
+            }
+            //是否切换怪兽
+            if(this._battleMenu.isAttemptingToSwitchMonster){
+                this._battleStateMachine.setState(BATTLE_STATES.SWITCH_MONSTER)
                 return
             }
 
@@ -482,7 +497,7 @@ export class BattleScene extends BaseScene {
                     }
                 })
                 this._controls.lockInput = true
-                this._activePlayerMonster.updateMonsterExpBar(()=>{
+                this._activePlayerMonster.updateMonsterExpBar(activeMonsterlevelUp,false,()=>{
                     this._battleMenu.updateInfoPaneMessageAndWaitForInput(message,()=>{
                         this.time.delayedCall(200,()=>{
                             dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._sceneData.playerMonsters)
@@ -490,7 +505,16 @@ export class BattleScene extends BaseScene {
                         })
                     })
                     this._controls.lockInput = false
-                },activeMonsterlevelUp)
+                })
+            }
+        })
+        this._battleStateMachine.addState({
+            name:BATTLE_STATES.SWITCH_MONSTER,
+            onEnter:()=>{
+
+                this._battleMenu.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],()=>{
+                    this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
+                })
             }
         })
         //启动状态机

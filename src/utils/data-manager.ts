@@ -128,7 +128,9 @@ export class DataManager extends Events.EventEmitter {
 
     init(scene:Scene){
         const startMonster = DataUtils.getMonsterById(scene,1)
-        this._store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,[startMonster])
+        const startMonster1 = DataUtils.getMonsterById(scene,2)
+        const startMonster2 = DataUtils.getMonsterById(scene,3)
+        this._store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,[startMonster,startMonster1,startMonster2])
     }
 
     loadData(){

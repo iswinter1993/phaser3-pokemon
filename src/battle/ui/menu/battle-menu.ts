@@ -7,6 +7,7 @@ import { BATTLE_UI_TEXT_STYLE } from './battle-menu-config';
 import { PlayerBattleMonster } from '../../monsters/player-battle-monster';
 import { animateText } from '../../../utils/text-utils';
 import { dataManager } from '../../../utils/data-manager';
+import { BattleSceneWasResumedData } from '../../../scenes/BattleScene';
 
 
 const BATTLE_MENU_CURSOR_POS =Object.freeze({
@@ -79,6 +80,8 @@ export class BattleMenu {
      _usedItem:boolean
      //逃跑
      _fleeAttempt:boolean
+     //切换怪兽
+     _switchMonsterAttempt:boolean
 
     constructor(scene: Scene, activePlayerMonster:PlayerBattleMonster,skipAnimations=false){
         this._scene = scene
@@ -95,6 +98,7 @@ export class BattleMenu {
         this._init()
         this._usedItem = false
         this._fleeAttempt = false
+        this._switchMonsterAttempt = false
         //不是继承自Scene，所以监听场景resume场景重启事件要单独写一次
         //监听场景resume场景重启事件，获取返回数据
          this._scene.events.on(Phaser.Scenes.Events.RESUME,this._handleSceneResume,this)
@@ -121,6 +125,21 @@ export class BattleMenu {
         return this._fleeAttempt
     }
 
+    get isAttemptingToSwitchMonster(){
+        return this._switchMonsterAttempt
+    }
+
+    updateMonsterAttackSubMenu(){
+        this._moveSelectionSubBattleMenuPhaserContainerGameObject.getAll().forEach(gameObject=>{
+            if(gameObject.type === 'text') {
+                (gameObject as GameObjects.Text).setText('-')
+            }
+        })
+        this._activePlayerMonster.attacks.forEach((attack,index)=>{
+            (this._moveSelectionSubBattleMenuPhaserContainerGameObject.getAt(index) as GameObjects.Text).setText(attack.name)
+        })
+    }
+
     playInputCursorAnimate(){
         this._userInputCursorPhaserImageObject.setPosition(this._battleTextGameObjectLine1.displayWidth + this._userInputCursorPhaserImageObject.displayWidth * 2.7,
             this._userInputCursorPhaserImageObject.y
@@ -142,6 +161,7 @@ export class BattleMenu {
         this._selectedAttackIndex = undefined
         this._usedItem = false
         this._fleeAttempt = false
+        this._switchMonsterAttempt = false
         // this._selectedBattleMenuOption = BATTLE_MENU_OPTION.FIGHT
         // this._mainBattleMenuCursorPhaserImageGameObject.setPosition(BATTLE_MENU_CURSOR_POS.x,BATTLE_MENU_CURSOR_POS.y)
     }
@@ -277,7 +297,7 @@ export class BattleMenu {
         this._battleTextGameObjectLine1 = this._scene.add.text(30,26,'what should',{
             ...BATTLE_UI_TEXT_STYLE,
             wordWrap:{
-                width:this._scene.scale.width - 20
+                width:this._scene.scale.width - 55
             }
         })
         this._battleTextGameObjectLine2 = this._scene.add.text(30,64,`${this._activePlayerMonster.name} do next?`,BATTLE_UI_TEXT_STYLE)
@@ -546,7 +566,8 @@ export class BattleMenu {
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.SWITCH){
             this._activeBattleMenu = ACTIVE_BATTLE_MENU.BATTLE_SWITCH
-            this.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],this._switchToMainBattelMenu)
+            this._switchMonsterAttempt = true
+            // this.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],this._switchToMainBattelMenu)
             return
         }
         if(this._selectedBattleMenuOption === BATTLE_MENU_OPTION.ITEM){
@@ -610,8 +631,12 @@ export class BattleMenu {
      * @param sys 系统数据
      * @param data 我们返回的数据
      */
-    _handleSceneResume(sys:Scene,data:InventorySceneItemUsedData){
+    _handleSceneResume(sys:Scene,data:BattleSceneWasResumedData){
         console.log(`[${BattleMenu.name}]: has been resumed`,{data})
+        if(data && data.wasMonsterSelected){
+            
+            return
+        }
         if(!data || !data.itemUsed){
             this._switchToMainBattelMenu()
             return

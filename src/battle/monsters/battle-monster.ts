@@ -72,6 +72,10 @@ export class BattleMonster {
         return this._currentHealth
     }
 
+    /**
+     * 切换怪兽方法
+     * @param monster 
+     */
     switchMonster(monster:Monster){
         this._monsterDetails = monster
         this._currentHealth = this._monsterDetails.currentHp
