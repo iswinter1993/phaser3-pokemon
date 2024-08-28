@@ -26,9 +26,10 @@ const MONSTER_PARTY_POSITION = Object.freeze({
     increment:150
 })
 
-type MonsterPartySceneData = {
+export type MonsterPartySceneData = {
     previousScene:string,
-    itemSelected?:Item
+    itemSelected?:Item,
+    activeBattleMonsterInPartyIndex?:number,
 }
 
 export class MonsterPartyScene extends BaseScene {
@@ -99,13 +100,13 @@ export class MonsterPartyScene extends BaseScene {
                 this._waitingInput = false
                 return
             }
-            this._goBackToPreviousScene(false)
+            this._goBackToPreviousScene(false,false)
             return
         }
         const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
         if(wasSpaceKeyPressed){
             if(this._selectedPartyMonsterIndex === -1){
-                this._goBackToPreviousScene(false)
+                this._goBackToPreviousScene(false,false)
                 return
             }
             if(this._waitingInput){
@@ -116,6 +117,11 @@ export class MonsterPartyScene extends BaseScene {
             if(this._sceneData.previousScene === 'InventoryScene' && this._sceneData.itemSelected){
                 //使用道具
                 this._handleItemUsed()
+                return
+            }
+
+            if(this._sceneData.previousScene === 'BattleScene'){
+                this._handleSwitchMonster()
                 return
             }
 
@@ -212,14 +218,18 @@ export class MonsterPartyScene extends BaseScene {
     }
 
     /**
-     * 
      * @param itemUsed 是否使用道具
+     * @param wasMonsterSelected 是否切换怪兽
      */
-    _goBackToPreviousScene(itemUsed:boolean){
+    _goBackToPreviousScene(itemUsed:boolean,wasMonsterSelected:boolean){
         this._controls.lockInput = true
         
         this.scene.stop('MonsterPartyScene')
-        this.scene.resume(this._sceneData.previousScene,{itemUsed})
+        this.scene.resume(this._sceneData.previousScene,{
+            itemUsed,
+            selectedMonsterIndex:wasMonsterSelected ? this._selectedPartyMonsterIndex : undefined,
+            wasMonsterSelected
+        })
     }
 
 
@@ -338,10 +348,27 @@ export class MonsterPartyScene extends BaseScene {
                 this._healthBarTextGameObjects[this._selectedPartyMonsterIndex].setText(`${currentHp}/${maxHp}`)
                 dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._monsters)
                 this.time.delayedCall(300,()=>{
-                    this._goBackToPreviousScene(true)
+                    this._goBackToPreviousScene(true,false)
                 })
             }
         })
+    }
+    /**
+     * 切换怪兽
+     */
+    _handleSwitchMonster(){
+        if(this._monsters[this._selectedPartyMonsterIndex].currentHp === 0){
+            this._infoTextGameObject.setText('Selected monster is not able fight.')
+            this._waitingInput = true
+            return
+        }
+        if(this._sceneData.activeBattleMonsterInPartyIndex === this._selectedPartyMonsterIndex){
+            this._infoTextGameObject.setText('Selected monster is already battle.')
+            this._waitingInput = true
+            return
+        }
+        this._waitingInput = false
+        this._goBackToPreviousScene(false,true)
     }
 
 }

@@ -1,3 +1,4 @@
+import { MonsterPartySceneData } from './MonsterPartyScene';
 import { WorldSceneData } from './WorldScene';
 import { Item, Monster } from './../types/typedef';
 import { DataUtils } from './../utils/data-utils';
@@ -64,6 +65,8 @@ export class BattleScene extends BaseScene {
     _activePlayerMonsterPartyIndex:number
     //玩家是否被击倒
     _playerKnockedOut:boolean
+    //正在选择怪兽
+    _switchingActiveMonster:boolean
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -89,6 +92,7 @@ export class BattleScene extends BaseScene {
         }
         this._skipAnimations = true
         this._playerKnockedOut = false
+        this._switchingActiveMonster = false
     }
 
     create(){
@@ -345,6 +349,8 @@ export class BattleScene extends BaseScene {
                     this._activePlayerMonster.playMonsterAppearAnimation(()=>{
                         this._activePlayerMonster.playMonsterHealthAppearAnimation(()=>{})
                         this._battleMenu.updateInfoPaneMessageNoInputRequired(`go ${this._activePlayerMonster.name}!`,()=>{
+
+
                             //等待文本动画完成 并跳转下一个状态
                             //运用事件循环机制，先安照代码循序执行，
                             //使用this.time.delayedCall函数，this._battleStateMachine.setState会被放到 宏任务队列 中，
@@ -352,6 +358,11 @@ export class BattleScene extends BaseScene {
                             //当微任务队列为空后，开始执行宏任务队列，运行this._battleStateMachine.setState，因为isChangingState已经是false，
                             //BATTLE_STATES.PLAYER_INPUT不会被push到changingStateQueQue序列
                             this.time.delayedCall(800,()=>{
+                                //检查是否切换怪兽
+                                if(this._switchingActiveMonster){
+                                    this._battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT)
+                                    return
+                                }
                                 this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
                             })
                         }
@@ -399,11 +410,16 @@ export class BattleScene extends BaseScene {
                     }))
 
                 }else if(this._battleMenu.isAttemptingToFlee){
-                    //是否试图逃跑
+                    //是否试图逃跑,
                     this.time.delayedCall(200,()=>this._enemyAttck(()=>{
                         this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
                     }))
 
+                }else if(this._battleMenu.isAttemptingToSwitchMonster){
+                    this.time.delayedCall(500,()=>this._enemyAttck(()=>{
+                        this._switchingActiveMonster = false
+                        this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                    }))
                 }
                 else{
                     const randomNumber = Phaser.Math.Between(0,1)
@@ -472,7 +488,7 @@ export class BattleScene extends BaseScene {
                     let stateChange:StateChange = {
                         level:0, health:0, attack:0
                     }
-                    if(index === this._activePlayerAttackIndex){
+                    if(index === this._activePlayerMonsterPartyIndex){
                         stateChange = this._activePlayerMonster.updateMonsterExp(gainedExpForActiveMonster)
                         monsterMessage.push(`${this._sceneData.playerMonsters[index].name} gained ${gainedExpForActiveMonster} exp.`)
                         //战斗中的怪兽是否升级
@@ -511,13 +527,47 @@ export class BattleScene extends BaseScene {
         this._battleStateMachine.addState({
             name:BATTLE_STATES.SWITCH_MONSTER,
             onEnter:()=>{
-
-                this._battleMenu.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],()=>{
-                    this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
+                const hasOtherActiveMonster = this._sceneData.playerMonsters.some(monster=>{
+                    return (monster.id !== this._sceneData.playerMonsters[this._activePlayerMonsterPartyIndex].id && monster.currentHp > 0)
                 })
+                if(!hasOtherActiveMonster){
+                    this._battleMenu.updateInfoPaneMessageAndWaitForInput(['You have no other monsters...'],()=>{
+                        this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
+                    })
+                    return
+                }
+                const sceneDataToPass:MonsterPartySceneData = {
+                    previousScene:'BattleScene',
+                    activeBattleMonsterInPartyIndex:this._activePlayerMonsterPartyIndex
+                }
+                this.scene.launch('MonsterPartyScene', sceneDataToPass)
+                this.scene.pause('BattleScene')
+
             }
         })
         //启动状态机
         this._battleStateMachine.setState(BATTLE_STATES.INTRO)
+    }
+    /**
+     * 监听回调
+     * @param sys 系统数据
+     * @param data 我们返回的数据
+     */
+     handleSceneResume(sys:Scene,data:BattleSceneWasResumedData){
+        super.handleSceneResume(sys,data)
+        if(!data || !data.wasMonsterSelected || data.selectedMonsterIndex === undefined){
+            this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
+            return
+        }
+        this._controls.lockInput = true
+        this._switchingActiveMonster = true
+
+        this._activePlayerMonster.playDeathAnimation(()=>{
+            this._activePlayerMonsterPartyIndex = data.selectedMonsterIndex as number
+            this._activePlayerMonster.switchMonster(this._sceneData.playerMonsters[(data.selectedMonsterIndex as number)])
+            this._battleMenu.updateMonsterAttackSubMenu()
+            this._controls.lockInput = false
+            this._battleStateMachine.setState(BATTLE_STATES.BRING_OUT_MONSTER)
+        })
     }
 }
