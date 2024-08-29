@@ -30,6 +30,7 @@ export type MonsterPartySceneData = {
     previousScene:string,
     itemSelected?:Item,
     activeBattleMonsterInPartyIndex?:number,
+    activeMonsterKnockedOut?:boolean//战斗怪兽是否被击倒
 }
 
 export class MonsterPartyScene extends BaseScene {
@@ -222,6 +223,11 @@ export class MonsterPartyScene extends BaseScene {
      * @param wasMonsterSelected 是否切换怪兽
      */
     _goBackToPreviousScene(itemUsed:boolean,wasMonsterSelected:boolean){
+        if(this._sceneData.activeMonsterKnockedOut && this._sceneData.previousScene === 'BattleScene' && !wasMonsterSelected){
+            this._infoTextGameObject.setText('You must choose a monster.')
+            this._waitingInput = true
+            return
+        }
         this._controls.lockInput = true
         
         this.scene.stop('MonsterPartyScene')

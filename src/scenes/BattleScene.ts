@@ -63,10 +63,12 @@ export class BattleScene extends BaseScene {
     _sceneData:BattleSceneData
     //为了更新datamanage中的数据
     _activePlayerMonsterPartyIndex:number
-    //玩家是否被击倒
+    //玩家是否被击败
     _playerKnockedOut:boolean
     //正在选择怪兽
     _switchingActiveMonster:boolean
+    //我们当前怪兽是否被击败
+    _activeMonsterKnockedOut:boolean
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -93,6 +95,7 @@ export class BattleScene extends BaseScene {
         this._skipAnimations = true
         this._playerKnockedOut = false
         this._switchingActiveMonster = false
+        this._activeMonsterKnockedOut = false
     }
 
     create(){
@@ -113,9 +116,12 @@ export class BattleScene extends BaseScene {
         // this.add.image(768,144,MONSTER_ASSET_KEYS.CARNODUSK,0) //没有动画，最后参数设置为0
        
         //render player health bar 玩家健康条
+        //
+        const LiveMonsterIndex = this._sceneData.playerMonsters.findIndex(monster=>monster.currentHp > 0)
+        this._activePlayerMonsterPartyIndex = LiveMonsterIndex
         this._activePlayerMonster = new PlayerBattleMonster({
             scene:this,
-            monsterDetails:this._sceneData.playerMonsters[0],
+            monsterDetails:this._sceneData.playerMonsters[this._activePlayerMonsterPartyIndex],
             scaleHealthBarBackgroundImageByY:1,
             healthBarComponentPosition:{x:556,y:318},
             skipBattleAnimations:this._skipAnimations
@@ -287,11 +293,24 @@ export class BattleScene extends BaseScene {
         if(this._activePlayerMonster.isFainted){
             this._activePlayerMonster.playDeathAnimation(()=>{
                 this._controls.lockInput = false
-                this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
-                    this._playerKnockedOut = true
-                    this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+                const hasOtherActiveMonster = this._sceneData.playerMonsters.some(monster=>{
+                    return (monster.id !== this._sceneData.playerMonsters[this._activePlayerMonsterPartyIndex].id && monster.currentHp > 0)
+                })
+                if(!hasOtherActiveMonster){
+                    this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'You have no more monsters'],()=>{
+                            this._playerKnockedOut = true
+                            this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
+                        }
+                    )
+                    return
                 }
+
+                this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activePlayerMonster.name} fainted`,'Choose a monster continue battle'],()=>{
+                        this._activeMonsterKnockedOut = true
+                        this._battleStateMachine.setState(BATTLE_STATES.SWITCH_MONSTER)
+                    }
                 )
+
             })
             return
         }
@@ -359,10 +378,12 @@ export class BattleScene extends BaseScene {
                             //BATTLE_STATES.PLAYER_INPUT不会被push到changingStateQueQue序列
                             this.time.delayedCall(800,()=>{
                                 //检查是否切换怪兽
-                                if(this._switchingActiveMonster){
+                                if(this._switchingActiveMonster && !this._activeMonsterKnockedOut){
                                     this._battleStateMachine.setState(BATTLE_STATES.ENEMY_INPUT)
                                     return
                                 }
+                                this._switchingActiveMonster = false
+                                this._activeMonsterKnockedOut = false
                                 this._battleStateMachine.setState(BATTLE_STATES.PLAYER_INPUT)
                             })
                         }
@@ -403,7 +424,7 @@ export class BattleScene extends BaseScene {
                 //如果使用了道具，只有敌人攻击
                 if(this._battleMenu.wasItemUsed){
                     this._activePlayerMonster.updateMonsterHealth(
-                        dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0].currentHp
+                        dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[this._activePlayerMonsterPartyIndex].currentHp
                     )
                     this.time.delayedCall(500,()=>this._enemyAttck(()=>{
                         this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
@@ -415,7 +436,7 @@ export class BattleScene extends BaseScene {
                         this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
                     }))
 
-                }else if(this._battleMenu.isAttemptingToSwitchMonster){
+                }else if(this._switchingActiveMonster){
                     this.time.delayedCall(500,()=>this._enemyAttck(()=>{
                         this._switchingActiveMonster = false
                         this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
@@ -538,7 +559,8 @@ export class BattleScene extends BaseScene {
                 }
                 const sceneDataToPass:MonsterPartySceneData = {
                     previousScene:'BattleScene',
-                    activeBattleMonsterInPartyIndex:this._activePlayerMonsterPartyIndex
+                    activeBattleMonsterInPartyIndex:this._activePlayerMonsterPartyIndex,
+                    activeMonsterKnockedOut:this._activeMonsterKnockedOut
                 }
                 this.scene.launch('MonsterPartyScene', sceneDataToPass)
                 this.scene.pause('BattleScene')
