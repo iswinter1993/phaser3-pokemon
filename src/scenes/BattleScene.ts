@@ -5,8 +5,8 @@ import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
 import { createSceneTransition } from './../utils/scene-transition';
 import { ATTACK_TARGET } from './../battle/attacks/attack-manager';
-import { Scene } from "phaser";
-import { AUDIO_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
+import { GameObjects, Scene } from "phaser";
+import { AUDIO_ASSET_KEYS, BATTLLE_ASSET_KEYS, MONSTER_ASSET_KEYS } from "../assets/asset-keys";
 import { AttackManager } from "../battle/attacks/attack-manager";
 import { Background } from "../battle/background";
 import { EnemyBattleMonster } from "../battle/monsters/enemy-battle-monster";
@@ -69,6 +69,8 @@ export class BattleScene extends BaseScene {
     _switchingActiveMonster:boolean
     //我们当前怪兽是否被击败
     _activeMonsterKnockedOut:boolean
+    //精灵球显示 怪兽还剩几只
+    _availableMonsterUiContainer:GameObjects.Container
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -134,6 +136,8 @@ export class BattleScene extends BaseScene {
         this._createBattleStateMachine()
 
         this._attackManager = new AttackManager(this,this._skipAnimations)
+
+        this._createAvailableMonsterUi()
         
         //创建键盘 上下左右,空格 shift等热键 事件
         // this._controls 已在BaseScene中创建
@@ -292,6 +296,7 @@ export class BattleScene extends BaseScene {
 
         if(this._activePlayerMonster.isFainted){
             this._activePlayerMonster.playDeathAnimation(()=>{
+                (this._availableMonsterUiContainer.getAt(this._activePlayerMonsterPartyIndex) as GameObjects.Image).setAlpha(0.4)
                 this._controls.lockInput = false
                 const hasOtherActiveMonster = this._sceneData.playerMonsters.some(monster=>{
                     return (monster.id !== this._sceneData.playerMonsters[this._activePlayerMonsterPartyIndex].id && monster.currentHp > 0)
@@ -351,7 +356,9 @@ export class BattleScene extends BaseScene {
             onEnter:()=>{
                 //等待敌方怪兽出现在场景中并通知玩家相关信息
                     this._activeEnemyMonster.playMonsterAppearAnimation(()=>{
-                        this._activeEnemyMonster.playMonsterHealthAppearAnimation(()=>{})
+                        this._activeEnemyMonster.playMonsterHealthAppearAnimation(()=>{
+                            this._availableMonsterUiContainer.setAlpha(1)
+                        })
                         this._controls.lockInput = false
                         this._battleMenu.updateInfoPaneMessageAndWaitForInput([`${this._activeEnemyMonster.name} appear!`],()=>{
                             //等待文本动画完成 并跳转下一个状态
@@ -591,5 +598,17 @@ export class BattleScene extends BaseScene {
             this._controls.lockInput = false
             this._battleStateMachine.setState(BATTLE_STATES.BRING_OUT_MONSTER)
         })
+    }
+    /**
+     * 创建精灵球其显示ui逻辑
+     */
+    _createAvailableMonsterUi(){
+        this._availableMonsterUiContainer = this.add.container(this.scale.width - 24,304,[])
+        this._sceneData.playerMonsters.forEach((monster,index)=>{
+            const alpha = monster.currentHp > 0 ? 1: 0.4
+            const ball = this.add.image(30 * (-index),0,BATTLLE_ASSET_KEYS.BALL_THUMBNAIL,0).setScale(0.8).setAlpha(alpha)
+            this._availableMonsterUiContainer.add(ball)
+        })
+        this._availableMonsterUiContainer.setAlpha(0)
     }
 }
