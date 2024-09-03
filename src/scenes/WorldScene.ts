@@ -2,7 +2,7 @@ import { Monster, Coordinate, Item as ItemType, NpcEvent, NPC_EVENT_TYPE, NpcEve
 import { BattleSceneData } from './BattleScene';
 import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
-import { Menu } from './../world/menu/menu';
+import { Menu } from '../common/menu/menu';
 import { getTargetPositionFromGameObjectPositionAndDirection } from './../utils/grid-utils';
 import { TILE_COLLISION_LAYER_ALPHA, TILE_SIZE } from './../config';
 import { Scene, Tilemaps, Types } from 'phaser';
@@ -17,6 +17,7 @@ import { NPC } from '../world/characters/npc';
 import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
 import { weightedRandom } from '../utils/random';
 import { Item } from '../world/item';
+import { WorldMenu } from '../world/world-menu';
 
 type TiledObjectType = {
     name:string,
@@ -259,7 +260,7 @@ export class WorldScene extends BaseScene {
             }
         })
         //创建菜单
-        this._menu = new Menu(this)
+        this._menu = new WorldMenu(this)
 
         //游戏已开始
         dataManager.store.set(DATA_MANAGER_STORE_KEYS.GAME_STARTED,true)
