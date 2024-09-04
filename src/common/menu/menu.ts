@@ -1,12 +1,12 @@
-import { DATA_MANAGER_STORE_KEYS } from './../../utils/data-manager';
-import { DIRECTION } from './../../common/direction';
+import { DATA_MANAGER_STORE_KEYS } from '../../utils/data-manager';
+import { DIRECTION } from '../direction';
 import { Scene, GameObjects } from 'phaser';
 import { UI_ASSET_KEYS } from '../../assets/asset-keys';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../../assets/font-keys';
-import { DirectionType } from '../../common/direction';
+import { DirectionType } from '../direction';
 import { dataManager } from '../../utils/data-manager';
 import { MENU_COLOR } from './menu-config';
-import { MenuColorOptions } from '../../common/option';
+import { MenuColorOptions } from '../option';
 
 export const MENU_TEXT_STYLE:Phaser.Types.GameObjects.Text.TextStyle = Object.freeze({
     color:'#FFFFFF',
@@ -14,16 +14,16 @@ export const MENU_TEXT_STYLE:Phaser.Types.GameObjects.Text.TextStyle = Object.fr
     fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME
 }) 
 
-export type MenuOptions = keyof typeof MENU_OPTIONS
+// export type MenuOptions = keyof typeof MENU_OPTIONS
 
-export const MENU_OPTIONS = Object.freeze({
-    MONSTERDEX:'MONSTERDEX',
-    MONSTERS:'MONSTERS',
-    BAG:'BAG',
-    SAVE:'SAVE',
-    OPTIONS:'OPTIONS',
-    EXIT:'EXIT'
-})
+// export const MENU_OPTIONS = Object.freeze({
+//     MONSTERDEX:'MONSTERDEX',
+//     MONSTERS:'MONSTERS',
+//     BAG:'BAG',
+//     SAVE:'SAVE',
+//     OPTIONS:'OPTIONS',
+//     EXIT:'EXIT'
+// })
 
 export class Menu {
     _scene:Scene
@@ -34,14 +34,14 @@ export class Menu {
     _container:GameObjects.Container
     _isVisible:boolean
     //可用菜单
-    _availabelMenuOptions:MenuOptions[]
+    _availabelMenuOptions:string[]
     _menuOptionsTextGameObjects:GameObjects.Text[]
     _selectedMenuOptionIndex:number
-    _selectedMenuOption:MenuOptions
+    _selectedMenuOption:string
     _userInputCursor:GameObjects.Image
-    constructor(scene:Scene){
+    constructor(scene:Scene,menuOptions:string[]){
         this._scene = scene
-        this._availabelMenuOptions = [MENU_OPTIONS.MONSTERS,MENU_OPTIONS.BAG,MENU_OPTIONS.SAVE,MENU_OPTIONS.EXIT]
+        this._availabelMenuOptions = menuOptions
         this._menuOptionsTextGameObjects = []
         this._selectedMenuOptionIndex = 0
         this._padding = 4

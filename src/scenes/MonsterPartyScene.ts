@@ -1,3 +1,4 @@
+import { MONSTER_PARTY_MENU_OPTIONS } from './../party/monster-party-menu';
 import { ITEM_EFFECT } from './../types/typedef';
 import { DIRECTION, DirectionType } from './../common/direction';
 import { dataManager, DATA_MANAGER_STORE_KEYS } from './../utils/data-manager';
@@ -7,6 +8,7 @@ import { BaseScene } from './BaseScene';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from '../assets/font-keys';
 import { Item, Monster } from '../types/typedef';
 import { HealthBar } from '../common/health-bar';
+import { MonsterPartyMenu } from '../party/monster-party-menu';
 
 const UI_TEXT_STYLE = {
     fontFamily:KENNEY_FUTURE_NARROW_FONT_NAME,
@@ -43,6 +45,7 @@ export class MonsterPartyScene extends BaseScene {
     _monsters:Monster[]
     _sceneData:MonsterPartySceneData
     _waitingInput:boolean
+    _menu:MonsterPartyMenu
     constructor(){
         super('MonsterPartyScene')
       
@@ -59,6 +62,8 @@ export class MonsterPartyScene extends BaseScene {
     }
     create(){
         super.create()
+       
+
         //create background  
         this.add.rectangle(0,0,this.scale.width,this.scale.height,0x000000,1).setOrigin(0)
         //tileSprite 图片平铺方法
@@ -86,6 +91,9 @@ export class MonsterPartyScene extends BaseScene {
             this._createMonster(x,y,monster)
         })
         this._movePlayerInputCursor(DIRECTION.NONE)
+
+        //create menu
+        this._menu = new MonsterPartyMenu(this,this._sceneData.previousScene)
      
 
     }
@@ -94,8 +102,16 @@ export class MonsterPartyScene extends BaseScene {
         if(this._controls.isInputLocked){
             return
         }
+        const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
+        const wasBackKeyPressed = this._controls.wasBackKeyPressed()
+        const selectedDirection = this._controls.getDirectionKeyJustPressed()
+
+        if(this._menu.isVisible){
+            this._handleInputForMenu(wasSpaceKeyPressed,wasBackKeyPressed,selectedDirection)
+            return
+        }
         
-        if(this._controls.wasBackKeyPressed()){
+        if(wasBackKeyPressed){
             if(this._waitingInput){
                 this._updateInfoContainerText()
                 this._waitingInput = false
@@ -104,7 +120,8 @@ export class MonsterPartyScene extends BaseScene {
             this._goBackToPreviousScene(false,false)
             return
         }
-        const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
+        
+        //按下空格
         if(wasSpaceKeyPressed){
             if(this._selectedPartyMonsterIndex === -1){
                 this._goBackToPreviousScene(false,false)
@@ -115,29 +132,14 @@ export class MonsterPartyScene extends BaseScene {
                 this._waitingInput = false
                 return
             }
-            if(this._sceneData.previousScene === 'InventoryScene' && this._sceneData.itemSelected){
-                //使用道具
-                this._handleItemUsed()
-                return
-            }
-
-            if(this._sceneData.previousScene === 'BattleScene'){
-                this._handleSwitchMonster()
-                return
-            }
-
-            this._controls.lockInput = true
-            const sceneDataToPass = {
-                monster:this._monsters[this._selectedPartyMonsterIndex]
-            }
-            this.scene.launch('MonsterDetailScene',sceneDataToPass)
-            this.scene.pause('MonsterPartyScene')
+            this._menu.show()
             return
+            
         }
         if(this._waitingInput){
             return
         }
-        const selectedDirection = this._controls.getDirectionKeyJustPressed()
+        
         if(selectedDirection !== DIRECTION.NONE){
             this._movePlayerInputCursor(selectedDirection)
             this._updateInfoContainerText()
@@ -226,6 +228,7 @@ export class MonsterPartyScene extends BaseScene {
         if(this._sceneData.activeMonsterKnockedOut && this._sceneData.previousScene === 'BattleScene' && !wasMonsterSelected){
             this._infoTextGameObject.setText('You must choose a monster.')
             this._waitingInput = true
+            this._menu.hide()
             return
         }
         this._controls.lockInput = true
@@ -333,12 +336,14 @@ export class MonsterPartyScene extends BaseScene {
         if(this._monsters[this._selectedPartyMonsterIndex].currentHp === 0){
             this._infoTextGameObject.setText('cannot heal dead monster.')
             this._waitingInput = true
+            this._menu.hide()
             return
         }
         //判断怪兽是否满血
         if(this._monsters[this._selectedPartyMonsterIndex].currentHp === maxHp){
             this._infoTextGameObject.setText('Monster is already healed.')
             this._waitingInput = true
+            this._menu.hide()
             return
         }
 
@@ -366,15 +371,71 @@ export class MonsterPartyScene extends BaseScene {
         if(this._monsters[this._selectedPartyMonsterIndex].currentHp === 0){
             this._infoTextGameObject.setText('Selected monster is not able fight.')
             this._waitingInput = true
+            this._menu.hide()
             return
         }
         if(this._sceneData.activeBattleMonsterInPartyIndex === this._selectedPartyMonsterIndex){
             this._infoTextGameObject.setText('Selected monster is already battle.')
             this._waitingInput = true
+            this._menu.hide()
             return
         }
         this._waitingInput = false
         this._goBackToPreviousScene(false,true)
+    }
+
+    _handleInputForMenu(wasSpaceKeyPressed:boolean,wasBackKeyPressed:boolean,selectedDirection:DirectionType){
+        if(wasBackKeyPressed){
+            this._menu.hide()
+            return
+        }
+
+        if(wasSpaceKeyPressed){
+            this._menu.handlePlayerInput('OK')
+            if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.CANCEL){
+                this._menu.hide()
+                return
+            }
+
+            if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.MOVE){
+                return
+            }
+            if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.RELEASE){
+                return
+            }
+            if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.SELECT){
+                if(this._sceneData.previousScene === 'InventoryScene' && this._sceneData.itemSelected){
+                    //使用道具
+                    this._handleItemUsed()
+                    return
+                }
+        
+                if(this._sceneData.previousScene === 'BattleScene'){
+                    this._handleSwitchMonster()
+                    return
+                }
+                return
+            }
+            if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.SUMMARY){
+                this._controls.lockInput = true
+                const sceneDataToPass = {
+                    monster:this._monsters[this._selectedPartyMonsterIndex]
+                }
+                this.scene.launch('MonsterDetailScene',sceneDataToPass)
+                this.scene.pause('MonsterPartyScene')
+                return
+            }
+            return
+        }
+
+        if(selectedDirection !== DIRECTION.NONE){
+            this._menu.handlePlayerInput(selectedDirection)
+            return
+        }
+
+        
+
+       
     }
 
 }
