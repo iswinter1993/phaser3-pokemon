@@ -46,12 +46,18 @@ export class MonsterPartyScene extends BaseScene {
     _sceneData:MonsterPartySceneData
     _waitingInput:boolean
     _menu:MonsterPartyMenu
+    _isMovingMonster:boolean
+    _monsterToBeMovedIndex:number|undefined
+    _monsterContainers:GameObjects.Container[]
     constructor(){
         super('MonsterPartyScene')
       
     }
     init(data: any): void {
         super.init(data)
+        if(!data || !data.previousScene){
+            data.previousScene = 'WorldScene'
+        }
         this._sceneData = data
         this._monstersPartyBackgrounds = []
         this._healthBars = []
@@ -59,6 +65,9 @@ export class MonsterPartyScene extends BaseScene {
         this._selectedPartyMonsterIndex = 0
         this._monsters = dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)
         this._waitingInput = false
+        this._isMovingMonster = false
+        this._monsterToBeMovedIndex = undefined
+        this._monsterContainers = []
     }
     create(){
         super.create()
@@ -88,7 +97,8 @@ export class MonsterPartyScene extends BaseScene {
             const isEven = index % 2 === 0
             const x = isEven ? MONSTER_PARTY_POSITION.EVEN.x : MONSTER_PARTY_POSITION.ODD.x
             const y = isEven ? MONSTER_PARTY_POSITION.EVEN.y + MONSTER_PARTY_POSITION.increment * Math.floor(index / 2) : MONSTER_PARTY_POSITION.ODD.y + MONSTER_PARTY_POSITION.increment * Math.floor(index / 2)
-            this._createMonster(x,y,monster)
+            const monsterContainer = this._createMonster(x,y,monster)
+            this._monsterContainers.push(monsterContainer)
         })
         this._movePlayerInputCursor(DIRECTION.NONE)
 
@@ -117,13 +127,25 @@ export class MonsterPartyScene extends BaseScene {
                 this._waitingInput = false
                 return
             }
+
+            if(this._isMovingMonster){
+                this._updateInfoContainerText()
+                this._isMovingMonster = false
+                return
+            }
             this._goBackToPreviousScene(false,false)
             return
         }
         
         //按下空格
         if(wasSpaceKeyPressed){
-            if(this._selectedPartyMonsterIndex === -1){
+            if(this._selectedPartyMonsterIndex === -1){//选择取消按钮
+                if(this._isMovingMonster){
+                    this._updateInfoContainerText()
+                    this._isMovingMonster = false
+                    return
+                }
+                
                 this._goBackToPreviousScene(false,false)
                 return
             }
@@ -132,6 +154,15 @@ export class MonsterPartyScene extends BaseScene {
                 this._waitingInput = false
                 return
             }
+
+            if(this._isMovingMonster){
+                if(this._selectedPartyMonsterIndex === this._monsterToBeMovedIndex){
+                    return
+                }
+                this._moveMonster()
+                return
+            }
+            
             this._menu.show()
             return
             
@@ -142,6 +173,9 @@ export class MonsterPartyScene extends BaseScene {
         
         if(selectedDirection !== DIRECTION.NONE){
             this._movePlayerInputCursor(selectedDirection)
+            if(this._isMovingMonster){
+                return
+            }
             this._updateInfoContainerText()
         }
     }
@@ -398,6 +432,16 @@ export class MonsterPartyScene extends BaseScene {
             }
 
             if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.MOVE){
+                if(this._monsters.length <= 1){
+                    this._infoTextGameObject.setText('Cannot move monster')
+                    this._waitingInput = true
+                    this._menu.hide()
+                    return
+                }
+                this._isMovingMonster = true
+                this._monsterToBeMovedIndex = this._selectedPartyMonsterIndex
+                this._infoTextGameObject.setText('Choose a monster to switch position')
+                this._menu.hide()
                 return
             }
             if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.RELEASE){
@@ -437,5 +481,32 @@ export class MonsterPartyScene extends BaseScene {
 
        
     }
+    _moveMonster(){
+        const monsterRef = this._monsters[this._monsterToBeMovedIndex as number]
+        this._monsters[this._monsterToBeMovedIndex as number] = this._monsters[this._selectedPartyMonsterIndex]
+        this._monsters[this._selectedPartyMonsterIndex] = monsterRef
+        dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._monsters)
+        const monsterContainerRefPosition1 = {
+            x:this._monsterContainers[this._monsterToBeMovedIndex as number].x,
+            y:this._monsterContainers[this._monsterToBeMovedIndex as number].y
+        }
+        const monsterContainerRefPosition2 = {
+            x:this._monsterContainers[this._selectedPartyMonsterIndex as number].x,
+            y:this._monsterContainers[this._selectedPartyMonsterIndex as number].y
+        }
 
+        this._monsterContainers[this._monsterToBeMovedIndex as number].setPosition(monsterContainerRefPosition2.x,monsterContainerRefPosition2.y)
+        this._monsterContainers[this._selectedPartyMonsterIndex as number].setPosition(monsterContainerRefPosition1.x,monsterContainerRefPosition1.y)
+        //更改游戏容器对象
+        const monsterGameObjectContainerRef =  this._monsterContainers[this._monsterToBeMovedIndex as number]
+        this._monsterContainers[this._monsterToBeMovedIndex as number] = this._monsterContainers[this._selectedPartyMonsterIndex]
+        this._monsterContainers[this._selectedPartyMonsterIndex] = monsterGameObjectContainerRef
+
+        const backgrouondGameObjectContainerRef =  this._monstersPartyBackgrounds[this._monsterToBeMovedIndex as number]
+        this._monstersPartyBackgrounds[this._monsterToBeMovedIndex as number] = this._monstersPartyBackgrounds[this._selectedPartyMonsterIndex]
+        this._monstersPartyBackgrounds[this._selectedPartyMonsterIndex] = backgrouondGameObjectContainerRef
+        this._isMovingMonster = false
+        this._selectedPartyMonsterIndex = this._monsterToBeMovedIndex as number
+        this._monsterToBeMovedIndex = undefined
+    }
 }
