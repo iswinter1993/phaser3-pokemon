@@ -1,3 +1,4 @@
+import { ConfirmationMenu, CONFIRMATION_MENU_OPTIONS } from './../common/menu/confirmation-menu';
 import { MONSTER_PARTY_MENU_OPTIONS } from './../party/monster-party-menu';
 import { ITEM_EFFECT } from './../types/typedef';
 import { DIRECTION, DirectionType } from './../common/direction';
@@ -46,6 +47,7 @@ export class MonsterPartyScene extends BaseScene {
     _sceneData:MonsterPartySceneData
     _waitingInput:boolean
     _menu:MonsterPartyMenu
+    _confirmationMenu:ConfirmationMenu
     _isMovingMonster:boolean
     _monsterToBeMovedIndex:number|undefined
     _monsterContainers:GameObjects.Container[]
@@ -104,6 +106,7 @@ export class MonsterPartyScene extends BaseScene {
 
         //create menu
         this._menu = new MonsterPartyMenu(this,this._sceneData.previousScene)
+        this._confirmationMenu = new ConfirmationMenu(this)
      
 
     }
@@ -116,10 +119,16 @@ export class MonsterPartyScene extends BaseScene {
         const wasBackKeyPressed = this._controls.wasBackKeyPressed()
         const selectedDirection = this._controls.getDirectionKeyJustPressed()
 
+        if(this._confirmationMenu.isVisible){
+            this._handleInputForConfirmationMenu(wasSpaceKeyPressed,wasBackKeyPressed,selectedDirection)
+            return
+        }
+
         if(this._menu.isVisible){
             this._handleInputForMenu(wasSpaceKeyPressed,wasBackKeyPressed,selectedDirection)
             return
         }
+
         
         if(wasBackKeyPressed){
             if(this._waitingInput){
@@ -445,6 +454,15 @@ export class MonsterPartyScene extends BaseScene {
                 return
             }
             if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.RELEASE){
+                if(this._monsters.length <= 1){
+                    this._infoTextGameObject.setText('Cannot remove monster')
+                    this._waitingInput = true
+                    this._menu.hide()
+                    return
+                }
+                this._menu.hide()
+                this._confirmationMenu.show()
+                this._infoTextGameObject.setText(`Remove ${this._monsters[this._selectedPartyMonsterIndex].name}?`)
                 return
             }
             if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.SELECT){
@@ -481,6 +499,43 @@ export class MonsterPartyScene extends BaseScene {
 
        
     }
+    _handleInputForConfirmationMenu(wasSpaceKeyPressed:boolean,wasBackKeyPressed:boolean,selectedDirection:DirectionType){
+        if(wasBackKeyPressed){
+            this._confirmationMenu.hide()
+            this._menu.show()
+            this._updateInfoContainerText()
+            return
+        }
+
+        if(wasSpaceKeyPressed){
+            this._confirmationMenu.handlePlayerInput('OK')
+            if(this._confirmationMenu.selectedOption === CONFIRMATION_MENU_OPTIONS.YES){
+                this._confirmationMenu.hide()
+
+                if(this._menu.selectedOption === MONSTER_PARTY_MENU_OPTIONS.RELEASE){
+                    this._controls.lockInput = true
+                    this._infoTextGameObject.setText(`You remove ${this._monsters[this._selectedPartyMonsterIndex].name} into wild.`)
+                    this.time.delayedCall(1000,()=>{
+                        this._removeMonster()
+                        this._controls.lockInput = false
+                    })
+                }
+                return
+            }
+
+            if(this._confirmationMenu.selectedOption === CONFIRMATION_MENU_OPTIONS.NO){
+                this._confirmationMenu.hide()
+                this._menu.show()
+                this._updateInfoContainerText()
+                return
+            }
+           
+        }
+        if(selectedDirection !== DIRECTION.NONE){
+            this._confirmationMenu.handlePlayerInput(selectedDirection)
+            return
+        }
+    }
     _moveMonster(){
         const monsterRef = this._monsters[this._monsterToBeMovedIndex as number]
         this._monsters[this._monsterToBeMovedIndex as number] = this._monsters[this._selectedPartyMonsterIndex]
@@ -508,5 +563,32 @@ export class MonsterPartyScene extends BaseScene {
         this._isMovingMonster = false
         this._selectedPartyMonsterIndex = this._monsterToBeMovedIndex as number
         this._monsterToBeMovedIndex = undefined
+    }
+    _removeMonster(){
+        this._monsters.splice(this._selectedPartyMonsterIndex,1)
+        dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._monsters)
+
+        this._monstersPartyBackgrounds.splice(this._selectedPartyMonsterIndex,1)
+
+        const containerToMove = this._monsterContainers.splice(this._selectedPartyMonsterIndex,1)[0]
+        let preContainerPosition = {
+            x:containerToMove.x,
+            y:containerToMove.y
+        }
+        //删除containerToMove ，phaser会重新更新视图
+        containerToMove.destroy()
+
+        this._monsterContainers.forEach((container,index)=>{
+            if(index < this._selectedPartyMonsterIndex){
+                return
+            }
+            const containerPosition = {
+                x:container.x,
+                y:container.y
+            }
+            container.setPosition(preContainerPosition.x,preContainerPosition.y)
+            preContainerPosition = containerPosition
+        })
+        this._movePlayerInputCursor('UP')
     }
 }
