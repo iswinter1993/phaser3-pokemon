@@ -363,7 +363,9 @@ export class MonsterPartyScene extends BaseScene {
             case ITEM_EFFECT.HEAL_30:
                 this._handleHealthItemUsed(30)
                 break;
-        
+            case ITEM_EFFECT.CAPTURE_1:
+                //todo
+                break;
             default:
                 break;
         }

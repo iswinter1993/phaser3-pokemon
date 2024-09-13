@@ -6,7 +6,7 @@ type AudioKeyType = keyof typeof AUDIO_ASSET_KEYS
 
 export type Monster = {
     //怪兽个体的唯一id
-    id:number,
+    id:string,
     //怪兽种类id
     monsterId:number
     name:string,
@@ -55,8 +55,17 @@ export type Animation = {
     assetKey:string
   }
 
+  export const ITEM_CATEGORY = Object.freeze({
+    HEAL:'HEAL',
+    CAPTURE:'CAPTURE'//精灵球捕捉类型
+  })
+
+  type ItemCategory = keyof typeof ITEM_CATEGORY
+
+
   export const ITEM_EFFECT = Object.freeze({
-    HEAL_30:'HEAL_30'
+    HEAL_30:'HEAL_30',
+    CAPTURE_1:'CAPTURE_1'//精灵球捕捉效果1
   })
 
   type ItemEffect = keyof typeof ITEM_EFFECT
@@ -65,7 +74,8 @@ export type Animation = {
     id:number,
     name:string,
     description:string
-    effect:ItemEffect
+    effect:ItemEffect,
+    category:ItemCategory
 }
 
 //data manager中的库存数据类型

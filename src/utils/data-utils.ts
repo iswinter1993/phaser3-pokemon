@@ -54,7 +54,7 @@ export class DataUtils {
      */
     static getMonsterById(scene:Scene,monsterId:number){
         const data:Monster[] = scene.cache.json.get(DATA_ASSET_KEYS.MONSTERS)
-        return data.find( monster => monster.id === monsterId)
+        return data.find( monster => monster.monsterId === monsterId)
     }
     /**
      * 获取动画数据

@@ -8,7 +8,7 @@ export const CONFIRMATION_MENU_OPTIONS = Object.freeze({
     NO:'NO',
 })
 export class ConfirmationMenu extends Menu {
-    constructor(scene:Scene,previousSceneName:string){
+    constructor(scene:Scene){
         const avaliableOptions:ConfirmationMenuOptions[] = [CONFIRMATION_MENU_OPTIONS.YES,CONFIRMATION_MENU_OPTIONS.NO]
       
         super(scene,avaliableOptions)

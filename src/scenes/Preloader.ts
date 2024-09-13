@@ -46,6 +46,7 @@ export class Preloader extends BaseScene {
          */
         this.load.image(BATTLLE_ASSET_KEYS.HEALTH_BAR_BACKGROUND,`${kenneysAssetPath}/ui-space-expansion/custom-ui.png`)
         this.load.image(BATTLLE_ASSET_KEYS.BALL_THUMBNAIL,`${monsterTamerAssetPath}/battle/cosmoball.png`)
+        this.load.image(BATTLLE_ASSET_KEYS.DAMAGED_BALL,`${monsterTamerAssetPath}/battle/damagedBall.png`)
         /**
          * health bar assets
          */
@@ -185,7 +186,7 @@ export class Preloader extends BaseScene {
         dataManager.init(this)
         dataManager.loadData()
         setGlobalSoundSetting(this)
-        this.scene.start('MonsterPartyScene')
+        this.scene.start('TestScene')
          
     }
 

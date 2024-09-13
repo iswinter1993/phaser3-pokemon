@@ -1,3 +1,5 @@
+import { BATTLLE_ASSET_KEYS } from './../assets/asset-keys';
+import { Ball } from './../battle/ball';
 import { Background } from '../battle/background.js';
 import { AttackKeys, ATTACK_KEYS } from '../battle/attacks/attack-keys.js';
 import { IceShard } from '../battle/attacks/ice-shard.js';
@@ -12,6 +14,7 @@ export class TestScene extends Scene {
   #slashAttack:Slash
   #playerMonster:Phaser.GameObjects.Image
   #enemyMonster:Phaser.GameObjects.Image
+  #ball:Ball
 
   constructor() {
     super({ key: 'TestScene' });
@@ -38,6 +41,12 @@ export class TestScene extends Scene {
     this.#iceShardAttack = new IceShard(this, { x: 256, y: 344 });
     this.#slashAttack = new Slash(this, { x: 745, y: 140 });
 
+    this.#ball = new Ball({
+      scene:this,
+      assetKey:BATTLLE_ASSET_KEYS.DAMAGED_BALL,
+      assetFrame:0,
+      scale: 0.1  
+    })
     this.#addDataGui();
   }
 

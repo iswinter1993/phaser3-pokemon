@@ -3,12 +3,21 @@
     "id": 1,
     "name": "potion",
     "description": "A basic healing item that will heal 30 HP from a single monster.",
+    "category":"HEAL",
     "effect": "HEAL_30"
   },
   {
     "id": 2,
     "name": "potion2",
-    "description": "A basic healing item that will heal 30 HP from a single monster.",
-    "effect": "HEAL_30"
+    "description": "A basic healing item that will heal 60 HP from a single monster.",
+    "category":"HEAL",
+    "effect": "HEAL_60"
+  },
+  {
+    "id": 3,
+    "name": "damaged ball",
+    "description": "初级精灵球.",
+    "category":"CAPTURE",
+    "effect": "CAPTURE_1"
   }
 ]

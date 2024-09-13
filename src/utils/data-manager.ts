@@ -64,7 +64,7 @@ const initialState:GlobalState = {
     gameStarted:false,
     monster:{
         inParty:[{
-            id:1,
+            id:'1',
             monsterId:1,
             name:MONSTER_ASSET_KEYS.IGUANIGNITE,
             assetKey:MONSTER_ASSET_KEYS.IGUANIGNITE,
@@ -88,6 +88,12 @@ const initialState:GlobalState = {
         {
             item:{
                 id:2
+            },
+            quantity:5
+        },
+        {
+            item:{
+                id:3
             },
             quantity:5
         },
