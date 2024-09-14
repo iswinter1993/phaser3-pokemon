@@ -17,15 +17,8 @@ export class Ball {
         this._scene = config.scene
         this._skipBattleAnimations = config.skipBattleAnimations || false
         this._createCurvePath()
-        this._ball = this._scene.add.follower(this._ballPath,0,500,config.assetKey,config.assetFrame||0).setScale(config.scale||1)
-        this._ball.startFollow({
-            delay:0,
-            duration:1000,
-            ease:Phaser.Math.Easing.Sine.InOut,
-            onComplete:(tween)=>{
-                console.log('done')
-            }
-        })
+        this._ball = this._scene.add.follower(this._ballPath,0,500,config.assetKey,config.assetFrame||0).setScale(config.scale||1).setAlpha(0)
+       
     }
     /**
      * 定义精灵球抛出曲线
@@ -47,6 +40,72 @@ export class Ball {
         this._ballPathGraphics.lineStyle(1,0x00ff00,1)
         //曲线路径中添加图形对象，画出路径
         this._ballPath.draw(this._ballPathGraphics)
+        this._ballPathGraphics.setAlpha(0)
 
+    }
+
+    hide(){
+        this._ball.setAlpha(0)
+    }
+
+    showBallPath(){
+        this._ballPathGraphics.setAlpha(1)
+    }
+
+    hideBallPath(){
+        this._ballPathGraphics.setAlpha(0)
+    }
+
+    playThrowBallAnimations(){
+        return new Promise((resolve)=>{
+            if(this._skipBattleAnimations){
+                this._ball.setPosition(725,180)
+                this._ball.setAlpha(1)
+                resolve('onComplete')
+                return
+            }
+            this._ball.setPosition(0,500)
+            this._ball.setAlpha(1)
+            this._ball.startFollow({
+                delay:0,
+                duration:1000,
+                ease:Phaser.Math.Easing.Sine.InOut,
+                onComplete:(tween)=>{
+                    resolve('onComplete')
+                }
+            })
+        })
+
+    }
+
+    playShakeBallAnimations(repeat=2){
+        return new Promise((resolve)=>{
+            if(this._skipBattleAnimations){
+                resolve('done')
+                return
+            }
+            this._scene.tweens.add({
+                targets:this._ball,
+                delay:200,
+                duration:150,
+                repeatDelay:800,
+                repeat:repeat,
+                x:{
+                    from:this._ball.x,
+                    start:this._ball.x,
+                    to:this._ball.x + 10,
+                },
+                angle:{
+                    from:this._ball.angle,
+                    start:this._ball.angle,
+                    to:this._ball.angle + 40,
+                },
+                yoyo:true,
+                ease:Phaser.Math.Easing.Sine.InOut,
+                onComplete:()=>{
+                    resolve('done')
+                }
+            })
+        })
     }
 }

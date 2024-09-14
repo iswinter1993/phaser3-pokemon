@@ -8,6 +8,7 @@ import { MONSTER_ASSET_KEYS } from '../assets/asset-keys.js';
 import { makeDraggable } from '../utils/draggable.js';
 import { Scene } from 'phaser';
 import * as TweakPane from 'tweakpane'
+import { sleep } from '../utils/time-utils';
 export class TestScene extends Scene {
   #selectedAttack:AttackKeys
   #iceShardAttack:IceShard
@@ -146,6 +147,40 @@ export class TestScene extends Scene {
       }
     })
 
+
+
+    const f3 = pane.addFolder({
+      title:'Monster ball',
+      expanded:true
+    })
+
+    const f3Params = {
+      showPath:false
+    }
+
+    f3.addBinding(f3Params,'showPath',{
+      label:'show path'
+    }).on('change',(e)=>{
+      if(e.value){
+        this.#ball.showBallPath()
+      }else{
+        this.#ball.hideBallPath()
+      }
+    })
+
+    const playThrowBallButton = f3.addButton({
+      title:'Play'
+    })
+    playThrowBallButton.on('click',async ()=>{
+      const res = await this.#ball.playThrowBallAnimations()
+      const res3 = await this.#catchEnemy()
+      const res2 = await this.#ball.playShakeBallAnimations()
+      await sleep(500)
+      this.#ball.hide()
+      const res4 = await this.#catchEnemyFailed()
+      console.log(res,res2,res3,res4)
+    })
+
   }
 
   /**
@@ -172,5 +207,40 @@ export class TestScene extends Scene {
       this.#iceShardAttack.gameObject.setY(value);
       return;
     }
+  }
+
+  #catchEnemy(){
+    return new Promise(resolve=>{
+      this.tweens.add({
+        targets:this.#enemyMonster,
+        duration:500,
+        alpha:{
+          from:1,
+          start:1,
+          to:0
+        },
+        ease:Phaser.Math.Easing.Sine.InOut,
+        onComplete:()=>{
+          resolve('catchEnemy done')
+        }
+      })
+    })
+  }
+  #catchEnemyFailed(){
+    return new Promise(resolve=>{
+      this.tweens.add({
+        targets:this.#enemyMonster,
+        duration:500,
+        alpha:{
+          from:0,
+          start:0,
+          to:1
+        },
+        ease:Phaser.Math.Easing.Sine.InOut,
+        onComplete:()=>{
+          resolve('catchEnemy done')
+        }
+      })
+    })
   }
 }

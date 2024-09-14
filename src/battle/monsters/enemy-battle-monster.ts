@@ -101,4 +101,49 @@ export class EnemyBattleMonster extends BattleMonster {
     pickRandomMove(){
         return Phaser.Math.Between(0,this._monsterAttacks.length - 1)
     }
+
+    playCatchEnemy(){
+        return new Promise(resolve=>{
+            if(this._skipBattleAnimations){
+                this._phaserGameObject.setAlpha(0)
+                resolve('catchEnemy done')
+                return
+            }
+          this._scene.tweens.add({
+            targets:this._phaserGameObject,
+            duration:500,
+            alpha:{
+              from:1,
+              start:1,
+              to:0
+            },
+            ease:Phaser.Math.Easing.Sine.InOut,
+            onComplete:()=>{
+              resolve('catchEnemy done')
+            }
+          })
+        })
+      }
+    playCatchEnemyFailed(){
+        return new Promise(resolve=>{
+            if(this._skipBattleAnimations){
+                this._phaserGameObject.setAlpha(1)
+                resolve('catchEnemy done')
+                return
+            }
+          this._scene.tweens.add({
+            targets:this._phaserGameObject,
+            duration:500,
+            alpha:{
+              from:0,
+              start:0,
+              to:1
+            },
+            ease:Phaser.Math.Easing.Sine.InOut,
+            onComplete:()=>{
+              resolve('catchEnemy done')
+            }
+          })
+        })
+      }
 }
