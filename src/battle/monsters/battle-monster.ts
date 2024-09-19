@@ -72,6 +72,10 @@ export class BattleMonster {
         return this._currentHealth
     }
 
+    get maxHp ():number {
+        return this._maxHealth
+    }
+
     /**
      * 切换怪兽方法
      * @param monster 
