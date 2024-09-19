@@ -1,4 +1,4 @@
-import { Item } from './../types/typedef';
+import { Item, ITEM_CATEGORY } from './../types/typedef';
 import { dataManager } from './../utils/data-manager';
 import { DIRECTION, DirectionType } from './../common/direction';
 import { KENNEY_FUTURE_NARROW_FONT_NAME } from './../assets/font-keys';
@@ -15,7 +15,7 @@ export type Inventory = {
         quantitySign:GameObjects.Text | undefined
     }
 }
-
+const CANNOT_USE_ITEM_TEXT = 'can not use this item.'
 const INVENTORY_ITEM_POSITION = Object.freeze({
     x:50,
     y:14,
@@ -27,11 +27,11 @@ export type InventorySceneData = {
 }
 
 export type InventorySceneWasResumeData = {
-    itemUsed:boolean
+    wasItemUsed:boolean
 }
 
 export type InventorySceneItemUsedData = {
-    itemUsed:boolean,
+    wasItemUsed:boolean,
     item?:Item
 }
 
@@ -43,11 +43,13 @@ export class InventoryScene extends BaseScene{
     _userInputCursor:GameObjects.Image
     _inventory:Inventory[]
     _selectedInventoryOptionIndex:number
+    _waitingForInput:boolean
     constructor(){
         super('InventoryScene')
     }
     init(data: any): void {
         super.init(data)
+        this._waitingForInput = false
         this._sceneData = data
         const inventory = dataManager.getInventory(this)
         this._inventory = inventory.map(inventoryItem=>{
@@ -141,17 +143,47 @@ export class InventoryScene extends BaseScene{
             return
         }
         if(this._controls.wasBackKeyPressed()){
+            if(this._waitingForInput){
+                this._updateItemDescriptionText()
+                this._waitingForInput = false
+                return
+            }
             this._goBackToPreviousScene(false)
             return
         }
         const wasSpaceKeyPressed = this._controls.wasSpaceKeyPressed()
         if(wasSpaceKeyPressed){
+            if(this._waitingForInput){
+                this._updateItemDescriptionText()
+                this._waitingForInput = false
+                return
+            }
             if(this._isCancelButtonSelected()){
                 this._goBackToPreviousScene(false)
                 return
             }
 
             if(this._inventory[this._selectedInventoryOptionIndex].quantity < 1){
+                return
+            }
+
+            const selectionItem = this._inventory[this._selectedInventoryOptionIndex].item
+            if(this._sceneData.previousScene === 'BattleScene'){
+                //todo
+                if(selectionItem.category === ITEM_CATEGORY.CAPTURE){
+                    if(dataManager.isPartyFull()){
+                        this._selectedInventoryText.setText('队伍满了，不能捕捉')
+                        this._waitingForInput = true
+                        return
+                    }
+                    this._handleItemUsed()
+                    this._goBackToPreviousScene(true,selectionItem)
+                    return
+                }
+            }
+            if(selectionItem.category === ITEM_CATEGORY.CAPTURE){
+                this._selectedInventoryText.setText(CANNOT_USE_ITEM_TEXT)
+                this._waitingForInput = true
                 return
             }
 
@@ -164,6 +196,11 @@ export class InventoryScene extends BaseScene{
             this.scene.pause('InventoryScene')
             return
         }
+
+        if(this._waitingForInput){
+            return
+        }
+
         const selectedDirection = this._controls.getDirectionKeyJustPressed()
         if(selectedDirection !== DIRECTION.NONE){
             this._movePlayerInputCursor(selectedDirection)
@@ -191,7 +228,7 @@ export class InventoryScene extends BaseScene{
         this._controls.lockInput = true
         this.scene.stop('InventoryScene')
         const sceneDataToPass:InventorySceneItemUsedData = {
-            itemUsed:wasItemUsed,
+            wasItemUsed:wasItemUsed,
             item
         }
         this.scene.resume(this._sceneData.previousScene,sceneDataToPass)
@@ -235,19 +272,23 @@ export class InventoryScene extends BaseScene{
      */
      handleSceneResume(sys:Scene,data:InventorySceneWasResumeData){
         super.handleSceneResume(sys,data)
-        if(!data||!data.itemUsed){
+        if(!data||!data.wasItemUsed){
             return
         }
 
+        const updatedItem = this._handleItemUsed()
+
+        //在战斗中使用道具
+        if(this._sceneData.previousScene === 'BattleScene'){
+            this._goBackToPreviousScene(data.wasItemUsed,updatedItem.item)
+        }
+    }
+    _handleItemUsed(){
         const selectedItem = this._inventory[this._selectedInventoryOptionIndex]
         selectedItem.quantity -= 1
         selectedItem.gameObjects.quantity?.setText(`${selectedItem.quantity}`)
         dataManager.updateInventory(this._inventory)
-
-        //在战斗中使用道具
-        if(this._sceneData.previousScene === 'BattleScene'){
-            this._goBackToPreviousScene(data.itemUsed,selectedItem.item)
-        }
+        return selectedItem
     }
 }
 

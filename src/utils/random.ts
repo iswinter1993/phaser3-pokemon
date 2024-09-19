@@ -20,3 +20,11 @@ export const weightedRandom = (data:number[][]) =>{
 
     return values[index]
 }
+
+/**
+ * 生成uuid
+ * @returns 
+ */
+export const generateUuid = () =>{
+    return Phaser.Math.RND.uuid()
+}

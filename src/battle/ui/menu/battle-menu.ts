@@ -8,6 +8,7 @@ import { PlayerBattleMonster } from '../../monsters/player-battle-monster';
 import { animateText } from '../../../utils/text-utils';
 import { dataManager } from '../../../utils/data-manager';
 import { BattleSceneWasResumedData } from '../../../scenes/BattleScene';
+import { Item } from '../../../types/typedef';
 
 
 const BATTLE_MENU_CURSOR_POS =Object.freeze({
@@ -76,12 +77,14 @@ export class BattleMenu {
       * 文字动画是否正在播放
       */
      _quequeMessagesAnimationPlaying:boolean
-     //是否使用道具
-     _usedItem:boolean
+     //使用的道具
+     _usedItem:Item | undefined
      //逃跑
      _fleeAttempt:boolean
      //切换怪兽
      _switchMonsterAttempt:boolean
+     //是否使用了道具
+     _wasItemUsed:boolean
 
     constructor(scene: Scene, activePlayerMonster:PlayerBattleMonster,skipAnimations=false){
         this._scene = scene
@@ -96,7 +99,8 @@ export class BattleMenu {
         this._skipAnimations = skipAnimations
         this._quequeMessagesAnimationPlaying = false
         this._init()
-        this._usedItem = false
+        this._wasItemUsed = false
+        this._usedItem = undefined
         this._fleeAttempt = false
         this._switchMonsterAttempt = false
         //不是继承自Scene，所以监听场景resume场景重启事件要单独写一次
@@ -118,6 +122,10 @@ export class BattleMenu {
     }
 
     get wasItemUsed(){
+        return this._wasItemUsed
+    }
+
+    get itemUsed(){
         return this._usedItem
     }
 
@@ -159,7 +167,8 @@ export class BattleMenu {
         this._battleTextGameObjectLine1.setAlpha(1)
         this._battleTextGameObjectLine2.setAlpha(1)
         this._selectedAttackIndex = undefined
-        this._usedItem = false
+        this._wasItemUsed = false
+        this._usedItem = undefined
         this._fleeAttempt = false
         this._switchMonsterAttempt = false
         // this._selectedBattleMenuOption = BATTLE_MENU_OPTION.FIGHT
@@ -637,12 +646,12 @@ export class BattleMenu {
             
             return
         }
-        if(!data || !data.itemUsed){
+        if(!data || !data.wasItemUsed){
             this._switchToMainBattelMenu()
             return
         }
-
-        this._usedItem = true
+        this._usedItem = data.item
+        this._wasItemUsed = true
         this.updateInfoPaneMessageAndWaitForInput([`You used following item: ${data.item?.name}`])
     }
    

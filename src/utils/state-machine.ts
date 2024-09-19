@@ -1,6 +1,6 @@
 type State = {
     name:string,
-    onEnter?:()=>void|undefined,
+    onEnter?:()=>void|undefined|Promise<void>,
 
 }
 export class StateMachine {

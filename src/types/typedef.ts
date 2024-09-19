@@ -65,6 +65,7 @@ export type Animation = {
 
   export const ITEM_EFFECT = Object.freeze({
     HEAL_30:'HEAL_30',
+    HEAL_60:'HEAL_60',
     CAPTURE_1:'CAPTURE_1'//精灵球捕捉效果1
   })
 

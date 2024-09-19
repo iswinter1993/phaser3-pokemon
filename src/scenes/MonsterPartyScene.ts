@@ -264,10 +264,10 @@ export class MonsterPartyScene extends BaseScene {
     }
 
     /**
-     * @param itemUsed 是否使用道具
+     * @param wasItemUsed 是否使用道具
      * @param wasMonsterSelected 是否切换怪兽
      */
-    _goBackToPreviousScene(itemUsed:boolean,wasMonsterSelected:boolean){
+    _goBackToPreviousScene(wasItemUsed:boolean,wasMonsterSelected:boolean){
         if(this._sceneData.activeMonsterKnockedOut && this._sceneData.previousScene === 'BattleScene' && !wasMonsterSelected){
             this._infoTextGameObject.setText('You must choose a monster.')
             this._waitingInput = true
@@ -278,7 +278,7 @@ export class MonsterPartyScene extends BaseScene {
         
         this.scene.stop('MonsterPartyScene')
         this.scene.resume(this._sceneData.previousScene,{
-            itemUsed,
+            wasItemUsed,
             selectedMonsterIndex:wasMonsterSelected ? this._selectedPartyMonsterIndex : undefined,
             wasMonsterSelected
         })
@@ -362,6 +362,9 @@ export class MonsterPartyScene extends BaseScene {
         switch (this._sceneData.itemSelected?.effect) {
             case ITEM_EFFECT.HEAL_30:
                 this._handleHealthItemUsed(30)
+                break;
+            case ITEM_EFFECT.HEAL_60:
+                this._handleHealthItemUsed(60)
                 break;
             case ITEM_EFFECT.CAPTURE_1:
                 //todo

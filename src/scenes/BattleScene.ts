@@ -1,6 +1,6 @@
 import { MonsterPartySceneData } from './MonsterPartyScene';
 import { WorldSceneData } from './WorldScene';
-import { Item, Monster } from './../types/typedef';
+import { Item, Monster, ITEM_CATEGORY } from './../types/typedef';
 import { DataUtils } from './../utils/data-utils';
 import { BaseScene } from './BaseScene';
 import { createSceneTransition } from './../utils/scene-transition';
@@ -20,6 +20,9 @@ import { BATTLE_SCENE_OPTIONS } from '../common/option';
 import { playBackgroundMusic, playSoundFx } from '../utils/audio-utils';
 import { HealthBar } from '../common/health-bar';
 import { calculatedExpGainedFromMonster, handleMonsterGainingExp, StateChange } from '../utils/level-utils';
+import { Ball } from '../battle/ball';
+import { sleep } from '../utils/time-utils';
+import { generateUuid } from '../utils/random';
 
 const BATTLE_STATES = Object.freeze({
     INTRO:'INTRO',
@@ -32,14 +35,18 @@ const BATTLE_STATES = Object.freeze({
     FINISHED:'FINISHED',
     FLEE_ATTEMPT:'FLEE_ATTEMPT',
     GAIN_EXP:'GAIN_EXP',
-    SWITCH_MONSTER:'SWITCH_MONSTER'
+    SWITCH_MONSTER:'SWITCH_MONSTER',
+    USED_ITEM:'USED_ITEM',
+    HEAL_ITEM_USED:'HEAL_USED_ITEM',
+    CAPTURE_ITEM_USED:'CAPTURE_ITEM_USED',
+    CAUGHT_MONSTER:'CAUGHT_MONSTER'
 })
 
 
 export type BattleSceneWasResumedData = {
     wasMonsterSelected:boolean,
     selectedMonsterIndex?:number,
-    itemUsed:boolean,
+    wasItemUsed:boolean,
     item?:Item
 }
 
@@ -71,6 +78,10 @@ export class BattleScene extends BaseScene {
     _activeMonsterKnockedOut:boolean
     //精灵球显示 怪兽还剩几只
     _availableMonsterUiContainer:GameObjects.Container
+    //怪兽是否捕捉到
+    _monsterCaptured:boolean
+    //精灵球
+    _ball:Ball
     constructor(){
         super('BattleScene')
         console.log('BattleScene load',this)
@@ -82,7 +93,7 @@ export class BattleScene extends BaseScene {
         if(Object.keys(data).length === 0){
             console.log('MONSTER_IN_PARTY:',dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY))
             this._sceneData = {
-                playerMonsters:[dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[0],dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[1],dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[2]],
+                playerMonsters:[...dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)],
                 enemyMonsters:[DataUtils.getMonsterById(this,2) as Monster]
             }
         }
@@ -98,6 +109,7 @@ export class BattleScene extends BaseScene {
         this._playerKnockedOut = false
         this._switchingActiveMonster = false
         this._activeMonsterKnockedOut = false
+        this._monsterCaptured = false
     }
 
     create(){
@@ -115,6 +127,14 @@ export class BattleScene extends BaseScene {
                 skipBattleAnimations:this._skipAnimations
             }
         )
+        //create ball
+        this._ball = new Ball({
+            scene:this,
+            assetKey:BATTLLE_ASSET_KEYS.DAMAGED_BALL,
+            assetFrame:0,
+            scale:0.1,
+            skipBattleAnimations:this._skipAnimations
+        })
         // this.add.image(768,144,MONSTER_ASSET_KEYS.CARNODUSK,0) //没有动画，最后参数设置为0
        
         //render player health bar 玩家健康条
@@ -162,6 +182,7 @@ export class BattleScene extends BaseScene {
             || this._battleStateMachine.currentStateName === BATTLE_STATES.FLEE_ATTEMPT
             || this._battleStateMachine.currentStateName === BATTLE_STATES.GAIN_EXP
             || this._battleStateMachine.currentStateName === BATTLE_STATES.SWITCH_MONSTER
+            || this._battleStateMachine.currentStateName === BATTLE_STATES.CAPTURE_ITEM_USED
         )){
             this._battleMenu.handlePlayerInput('OK')
             return
@@ -278,6 +299,19 @@ export class BattleScene extends BaseScene {
         //确保战斗后的血量保持一致
         this._sceneData.playerMonsters[this._activePlayerMonsterPartyIndex].currentHp = this._activePlayerMonster.currentHp
         dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._sceneData.playerMonsters)
+
+
+        if(this._monsterCaptured){
+            this._activeEnemyMonster.playDeathAnimation(()=>{
+                this._controls.lockInput = false
+                this._battleMenu.updateInfoPaneMessageAndWaitForInput([`你抓到了 ${this._activeEnemyMonster.name}。`],()=>{
+                    //过渡下个状态
+                    this._battleStateMachine.setState(BATTLE_STATES.GAIN_EXP)
+                }
+                )
+            })
+            return
+        }
         /**
          * 检查敌方是否晕倒
          */
@@ -430,12 +464,8 @@ export class BattleScene extends BaseScene {
 
                 //如果使用了道具，只有敌人攻击
                 if(this._battleMenu.wasItemUsed){
-                    this._activePlayerMonster.updateMonsterHealth(
-                        dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[this._activePlayerMonsterPartyIndex].currentHp
-                    )
-                    this.time.delayedCall(500,()=>this._enemyAttck(()=>{
-                        this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
-                    }))
+                    this._battleStateMachine.setState(BATTLE_STATES.USED_ITEM)
+                    
 
                 }else if(this._battleMenu.isAttemptingToFlee){
                     //是否试图逃跑,
@@ -476,6 +506,7 @@ export class BattleScene extends BaseScene {
         this._battleStateMachine.addState({
             name:BATTLE_STATES.FINISHED,
             onEnter:()=>{
+                dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._sceneData.playerMonsters)
                 this._transitionToNextScene()
             }
         })
@@ -506,9 +537,12 @@ export class BattleScene extends BaseScene {
                 //计算队伍中没有战斗的宠物获得的经验
                 const gainedExpForUnActiveMonster = calculatedExpGainedFromMonster(this._activeEnemyMonster.baseExpValue,this._activeEnemyMonster.level,false)
                 const message:string[] = []
-                const monsterMessage:string[] = []
+               
                 let activeMonsterlevelUp = false
+                console.log(this._sceneData.playerMonsters)
                 this._sceneData.playerMonsters.forEach((monster,index)=>{
+                    const monsterMessage:string[] = []
+                    console.log(index,this._activePlayerMonsterPartyIndex)
                     if(this._sceneData.playerMonsters[index].currentHp <= 0){
                         return
                     }
@@ -533,18 +567,23 @@ export class BattleScene extends BaseScene {
                         monsterMessage.push(`${this._sceneData.playerMonsters[index].name} attack +${stateChange.attack}`)
                         monsterMessage.push(`${this._sceneData.playerMonsters[index].name} health +${stateChange.health}`)
                     }
-
-                    if(index === this._activePlayerAttackIndex){
+                    
+                    if(index === this._activePlayerMonsterPartyIndex){
                         message.unshift(...monsterMessage)
                     }else{
                         message.push(...monsterMessage)
                     }
                 })
+                console.log(message)
                 this._controls.lockInput = true
                 this._activePlayerMonster.updateMonsterExpBar(activeMonsterlevelUp,false,()=>{
                     this._battleMenu.updateInfoPaneMessageAndWaitForInput(message,()=>{
                         this.time.delayedCall(200,()=>{
-                            dataManager.store.set(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY,this._sceneData.playerMonsters)
+                            
+                            if(this._monsterCaptured){
+                                this._battleStateMachine.setState(BATTLE_STATES.CAUGHT_MONSTER)
+                                return
+                            }
                             this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
                         })
                     })
@@ -572,6 +611,67 @@ export class BattleScene extends BaseScene {
                 this.scene.launch('MonsterPartyScene', sceneDataToPass)
                 this.scene.pause('BattleScene')
 
+            }
+        })
+        this._battleStateMachine.addState({
+            name:BATTLE_STATES.USED_ITEM,
+            onEnter:()=>{
+                switch (this._battleMenu.itemUsed?.category) {
+                    case ITEM_CATEGORY.HEAL:
+                        this._battleStateMachine.setState(BATTLE_STATES.HEAL_ITEM_USED)
+                        break;
+                    case ITEM_CATEGORY.CAPTURE:
+                        this._battleStateMachine.setState(BATTLE_STATES.CAPTURE_ITEM_USED)
+                        break;
+                    default:
+                        break;
+                }
+            }
+        })
+        this._battleStateMachine.addState({
+            name:BATTLE_STATES.HEAL_ITEM_USED,
+            onEnter:()=>{
+                this._activePlayerMonster.updateMonsterHealth(
+                    dataManager.store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY)[this._activePlayerMonsterPartyIndex].currentHp
+                )
+                this.time.delayedCall(500,()=>this._enemyAttck(()=>{
+                    this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                }))
+            }
+        })
+        this._battleStateMachine.addState({
+            name:BATTLE_STATES.CAPTURE_ITEM_USED,
+            onEnter:async ()=>{
+                const wasCaptured = false
+                await this._ball.playThrowBallAnimations()
+                await this._activeEnemyMonster.playCatchEnemy()
+                await this._ball.playShakeBallAnimations()
+                
+                if(wasCaptured){
+                    this._monsterCaptured = true
+                    this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                    return
+                }
+                await sleep(500)
+                this._ball.hide()
+                await this._activeEnemyMonster.playCatchEnemyFailed()
+                this._battleMenu.updateInfoPaneMessageAndWaitForInput(['捕捉怪兽失败'],()=>{
+                    this.time.delayedCall(500,()=>this._enemyAttck(()=>{
+                        this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
+                    }))
+                })
+            }
+        })
+        this._battleStateMachine.addState({
+            name:BATTLE_STATES.CAUGHT_MONSTER,
+            onEnter:async ()=>{
+                const updatedMonster = {
+                    ...this._sceneData.enemyMonsters[0],
+                    id:generateUuid(),
+                    currentHp:this._activeEnemyMonster.currentHp
+                }
+                this._sceneData.playerMonsters.push(updatedMonster)
+                this._battleStateMachine.setState(BATTLE_STATES.FINISHED)
             }
         })
         //启动状态机

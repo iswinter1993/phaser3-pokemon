@@ -233,6 +233,11 @@ export class DataManager extends Events.EventEmitter {
 
     }
 
+    isPartyFull(){
+        const partySize = this._store.get(DATA_MANAGER_STORE_KEYS.MONSTER_IN_PARTY).length
+        return partySize === 6
+    }
+
     getAnimatedTextSpeed(){
         const speed:TextSpeedOptions = this._store.get(DATA_MANAGER_STORE_KEYS.OPTIONS_TEXT_SPEED)
         if(speed === undefined){
