@@ -1,4 +1,3 @@
-import { Monster } from './../types/typedef';
 import { EnemyBattleMonster } from "../battle/monsters/enemy-battle-monster";
 
 /**

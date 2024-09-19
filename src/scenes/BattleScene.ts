@@ -670,7 +670,7 @@ export class BattleScene extends BaseScene {
                     this._battleStateMachine.setState(BATTLE_STATES.POST_ATTACK_CHECK)
                     return
                 }
-                await sleep(500)
+                await sleep(500,this)
                 this._ball.hide()
                 await this._activeEnemyMonster.playCatchEnemyFailed()
                 this._battleMenu.updateInfoPaneMessageAndWaitForInput(['捕捉怪兽失败'],()=>{

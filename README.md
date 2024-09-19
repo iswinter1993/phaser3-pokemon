@@ -131,10 +131,13 @@
   - [x] update battle scene to display exp bar
   - [x] update monster details scene to display exp bar
   - [x] gain exp when battle is over
-    - [ ] add new battle state for tracking
-    - [ ] new leveling utils for updates
-    - [ ] update monster classes to support
-    - [ ] update battle menu ui to have wordwrap
+    - [x] add new battle state for tracking
+    - [x] new leveling utils for updates
+    - [x] update monster classes to support
+    - [x] update battle menu ui to have wordwrap
+## capture:
+  - [x] ball animations
+  - [x] capture logic
 
 -------------------------------
 

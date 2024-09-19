@@ -87,8 +87,8 @@ export class Ball {
             this._scene.tweens.add({
                 targets:this._ball,
                 delay:200,
-                duration:150,
-                repeatDelay:800,
+                duration:100,
+                repeatDelay:700,
                 repeat:repeat,
                 x:{
                     from:this._ball.x,

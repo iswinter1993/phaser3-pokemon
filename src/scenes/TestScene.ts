@@ -175,7 +175,7 @@ export class TestScene extends Scene {
       const res = await this.#ball.playThrowBallAnimations()
       const res3 = await this.#catchEnemy()
       const res2 = await this.#ball.playShakeBallAnimations()
-      await sleep(500)
+      await sleep(500,this)
       this.#ball.hide()
       const res4 = await this.#catchEnemyFailed()
       console.log(res,res2,res3,res4)
