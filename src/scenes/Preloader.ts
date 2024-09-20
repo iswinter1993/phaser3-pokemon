@@ -186,7 +186,7 @@ export class Preloader extends BaseScene {
         dataManager.init(this)
         dataManager.loadData()
         setGlobalSoundSetting(this)
-        this.scene.start('BattleScene')
+        this.scene.start('TitleScene')
          
     }
 
