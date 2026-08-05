@@ -41,6 +41,7 @@ export class Preloader extends BaseScene {
          * battle background assets
          */
         this.load.image(BATTLE_BACKGROUND_ASSET_KEYS.FOREST,`${monsterTamerAssetPath}/battle-backgrounds/forest-background.png`)
+        
         /**
          * battle assets
          */
@@ -107,9 +108,12 @@ export class Preloader extends BaseScene {
          * load world assets
          */
         this.load.image(WORLD_ASSET_KEYS.MAIN_1_BACKGROUND,`${monsterTamerAssetPath}/map/main_1_level_background.png`)
+        this.load.image('grass',`${monsterTamerAssetPath}/map/grass.png`)
         //加载地图数据
         this.load.tilemapTiledJSON(WORLD_ASSET_KEYS.MAIN_1_LEVEL,`assets/data/main_1.json`)
+        this.load.tilemapTiledJSON('untitled',`assets/data/untitled.json`)
         //加载地图上碰撞块的图层
+        this.load.image('tiles',`${monsterTamerAssetPath}/map/BasicPlains-tileset-Ver.2_by_AxulArt_scaled_4x_pngcrushed.png`)
         this.load.image(WORLD_ASSET_KEYS.WORLD_COLLISION,`${monsterTamerAssetPath}/map/collision.png`)
         this.load.image(WORLD_ASSET_KEYS.MAIN_1_FOREGROUND,`${monsterTamerAssetPath}/map/main_1_level_foreground.png`)
         this.load.image(WORLD_ASSET_KEYS.WORLD_ENCOUNTER_ZONE,`${monsterTamerAssetPath}/map/encounter.png`)
@@ -186,7 +190,7 @@ export class Preloader extends BaseScene {
         dataManager.init(this)
         dataManager.loadData()
         setGlobalSoundSetting(this)
-        this.scene.start('TitleScene')
+        this.scene.start('TestWorldCollies')
          
     }
 
